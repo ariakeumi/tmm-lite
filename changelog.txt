@@ -1,3 +1,7 @@
+Version 5.2.13
+=======================
+
+
 Version 5.2.12
 =======================
 + [Launcher] rewrote the launcher to Rust for better support of old OS versions #3271
