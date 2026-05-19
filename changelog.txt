@@ -1,6 +1,7 @@
 Version 5.2.13
 =======================
 x [Movies, TV shows] make checksum calculation abortable
+x [UI] darken the foreground of inactive dialogs/windows
 x [IMDB] refresh rating data once per day
 x [Library] upgraded libmediainfo to 26.05
 

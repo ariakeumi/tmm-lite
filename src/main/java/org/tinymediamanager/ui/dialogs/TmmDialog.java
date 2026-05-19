@@ -43,6 +43,7 @@ import org.jdesktop.beansbinding.BindingGroup;
 import org.tinymediamanager.ui.EqualsLayout;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmUILayoutStore;
+import org.tinymediamanager.ui.components.DarkenGlassPane;
 import org.tinymediamanager.ui.components.toast.TmmToast;
 import org.tinymediamanager.ui.panels.IModalPopupPanelProvider;
 import org.tinymediamanager.ui.panels.ModalPopupPanel;
@@ -277,6 +278,10 @@ public abstract class TmmDialog extends JDialog implements IModalPopupPanelProvi
     if (visible) {
       pack();
       TmmUILayoutStore.getInstance().loadSettings(this);
+
+      // darken the owner window when this modal dialog becomes visible
+      DarkenGlassPane.install(getOwner());
+
       super.setVisible(true);
       toFront();
     }
@@ -289,6 +294,9 @@ public abstract class TmmDialog extends JDialog implements IModalPopupPanelProvi
 
   @Override
   public void dispose() {
+    // undarkten the owner window when this dialog is disposed
+    DarkenGlassPane.uninstall(getOwner());
+
     unbind();
     // uninstall toast to restore previous glass pane and avoid memory leaks
     if (toast != null || TmmToast.isInstalled(this)) {
