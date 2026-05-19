@@ -2,6 +2,7 @@ Version 5.2.13
 =======================
 x [Movies, TV shows] make checksum calculation abortable
 x [UI] darken the foreground of inactive dialogs/windows
+x [UI] fixed layouting of the task list dialog
 x [IMDB] refresh rating data once per day
 x [Library] upgraded libmediainfo to 26.05
 x [Scraper] Fernsehserien.de - ignore unavailable cast/crew

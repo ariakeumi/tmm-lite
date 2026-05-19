@@ -20,6 +20,7 @@ import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 import static javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -52,6 +53,7 @@ public class TaskListDialog extends TmmDialog implements TmmTaskListener {
   private TaskListDialog() {
     super(TmmResourceBundle.getString("tasklist.title"), "taskList");
     setModalityType(ModalityType.MODELESS);
+    setMinimumSize(new Dimension(500, 400));
 
     {
       panelContent = new JPanel();
@@ -61,7 +63,7 @@ public class TaskListDialog extends TmmDialog implements TmmTaskListener {
       noActiveTask.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
       panelContent.add(noActiveTask);
 
-      panelContent.setLayout(new MigLayout("", "[400lp:500lp,grow]", "[]"));
+      panelContent.setLayout(new MigLayout("", "[350lp:400lp,grow]", "[]"));
       panelContent.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 20));
 
       JScrollPane scrollPane = new NoBorderScrollPane();
@@ -73,7 +75,7 @@ public class TaskListDialog extends TmmDialog implements TmmTaskListener {
 
       JPanel rootPanel = new JPanel();
       rootPanel.setBackground(UIManager.getColor("Menu.background"));
-      rootPanel.setLayout(new MigLayout("insets 0", "[400lp:500lp,grow]", "[300lp:300lp,grow]"));
+      rootPanel.setLayout(new MigLayout("insets 0", "[400lp:450lp,grow]", "[200lp:300lp,grow]"));
       rootPanel.add(scrollPane, "cell 0 0, top, grow");
 
       getContentPane().add(rootPanel, BorderLayout.CENTER);
