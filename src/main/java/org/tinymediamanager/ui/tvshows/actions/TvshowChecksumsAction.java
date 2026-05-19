@@ -46,13 +46,21 @@ public class TvshowChecksumsAction extends TmmAction {
       @Override
       protected void doInBackground() {
         Set<TvShowEpisode> selectedEpisodes = sel.getEpisodesRecursive(); // all EPs, even when show/Season clicked!
+        int i = 0;
         for (TvShowEpisode ep : selectedEpisodes) {
+          if (cancel) {
+            break;
+          }
+
           MediaFile main = ep.getMainVideoFile();
           String crc = Utils.getCRC32(main.getFileAsPath());
+
           if (!crc.isEmpty()) {
             main.setCRC32(crc);
             ep.saveToDb();
           }
+
+          publishState(++i);
         }
       }
     };

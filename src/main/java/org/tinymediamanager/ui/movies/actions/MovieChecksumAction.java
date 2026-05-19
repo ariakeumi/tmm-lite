@@ -52,13 +52,22 @@ public class MovieChecksumAction extends TmmAction {
         TmmTaskHandle.TaskType.BACKGROUND_TASK) {
       @Override
       protected void doInBackground() {
+        int i = 0;
+
         for (Movie movie : selectedMovies) {
+          if (cancel) {
+            break;
+          }
+
           MediaFile main = movie.getMainVideoFile();
           String crc = Utils.getCRC32(main.getFileAsPath());
+
           if (!crc.isEmpty()) {
             main.setCRC32(crc);
             movie.saveToDb();
           }
+
+          publishState(++i);
         }
       }
     };
