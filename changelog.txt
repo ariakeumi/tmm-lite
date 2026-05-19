@@ -1,5 +1,6 @@
 Version 5.2.13
 =======================
+x [IMDB] refresh rating data once per day
 
 
 Version 5.2.12

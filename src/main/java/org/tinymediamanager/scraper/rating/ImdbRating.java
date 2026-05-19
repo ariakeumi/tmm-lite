@@ -46,9 +46,13 @@ class ImdbRating {
 
   private static MVStore               mvStore;
   private static MVMap<String, String> ratingMap;
+  private static long                  initTime;
 
+  /**
+   * init the map if not done yet or at least once a day.
+   */
   private static synchronized void initMap() {
-    if (mvStore == null) {
+    if (mvStore == null || System.currentTimeMillis() - initTime > TimeUnit.DAYS.toMillis(1)) {
       // no rating here yet
       initImdbRatings();
     }
@@ -88,6 +92,7 @@ class ImdbRating {
 
   private static void initImdbRatings() {
     Path databaseFile = Paths.get(Globals.CACHE_FOLDER, IMDB_DB);
+
     try {
       try {
         mvStore = new MVStore.Builder().fileName(databaseFile.toString()).compressHigh().autoCommitDisabled().open();
@@ -99,7 +104,9 @@ class ImdbRating {
       }
       ratingMap = mvStore.openMap("ratings");
 
-      Url cachedUrl = new OnDiskCachedUrl("https://datasets.imdbws.com/title.ratings.tsv.gz", 7, TimeUnit.DAYS);
+      // fetch the latest IMDB ratings dump and cache it for at least 20 hours - so we do not have to fetch it every time we start TMM
+      // 20 hours, because the dump is updated once a day and for long-running instances (Docker), we do not want to interfere with the initTime
+      Url cachedUrl = new OnDiskCachedUrl("https://datasets.imdbws.com/title.ratings.tsv.gz", 20, TimeUnit.HOURS);
 
       try (InputStream httpInputStream = cachedUrl.getInputStream()) {
         // performance hack: even if we re-zip the same file we get a different file size
@@ -127,6 +134,8 @@ class ImdbRating {
           }
           ratingMap.put("length", String.valueOf(cachedUrl.getContentLength()));
           mvStore.commit();
+
+          initTime = System.currentTimeMillis();
         }
       }
     }
@@ -135,7 +144,7 @@ class ImdbRating {
     }
     catch (Exception e) {
       LOGGER.warn("Could not create IMDB ratings database - '{}'", e.getMessage());
-      Utils.deleteFileSafely(Paths.get(Globals.CACHE_FOLDER, IMDB_DB));
+      Utils.deleteFileSafely(databaseFile);
       shutdown();
     }
   }
