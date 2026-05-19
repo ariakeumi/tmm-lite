@@ -35,6 +35,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.tinymediamanager.TmmOsUtils;
+import org.tinymediamanager.core.Message;
+import org.tinymediamanager.core.MessageManager;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.threading.TmmTask;
@@ -161,6 +163,9 @@ public class UpdaterTask extends TmmTask {
 
       // also remove any downloaded files
       Utils.deleteDirectorySafely(updateFolder);
+
+      // show a message to the user
+      MessageManager.getInstance().pushMessage(new Message(Message.MessageLevel.ERROR, "Updater", "tmm.updater.failed"));
     }
   }
 
