@@ -5,27 +5,24 @@ If you have a feature request, please choose other description template above!
 
 ## 🐛 Summary
 <!--
-A clear and concise description of the bug (preferably in one sentence).
+A clear and concise description of the bug (preferably in one sentence).  
+Example: "The app crashes when exporting a file with special characters in the name."
 -->
-
-_Example: "The app crashes when exporting a file with special characters in the name."_
 
 
 
 ## 📈 What is the expected behavior?
 <!--
-What did you expect to happen instead?
+What did you expect to happen instead?  
+Example: "The file should export correctly regardless of filename characters."
 -->
-
-_Example: "The file should export correctly regardless of filename characters."_
 
 
 ## 🧐 Actual Behavior
 <!-- 
 What actually happened? Error messages, screenshots, or logs say more than 1000 words.
- -->
-
-_Example: "The application closes immediately without saving the file."_
+Example: "The application closes immediately without saving the file."
+-->
 
 
 ## ♻️ Steps to reproduce:
@@ -62,9 +59,6 @@ Best done after a fresh TMM start, reproducing your problem once again, so the l
 With that ZIP, we also get your complete TMM & regional settings, and can reproduce your issue more efficient (ZIP is password protected!)  
 Add any other context, related issues, or possible causes
 -->
-
-_Example: "Might be related to Unicode handling, see issue #NNN."_
-
 
 ---
 
