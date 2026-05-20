@@ -38,9 +38,9 @@ If you want to help us translating tinyMediaManager, please register at [Weblate
 
 Feature requests are also accepted via the [Issue Tracker][2] when made politely and a good case is made for how it will benefit a relatively broad portion of the userbase.
 
-[1]: https://gitlab.com/tinyMediaManager/tinyMediaManager/issues/new?issue
+[1]: https://gitlab.com/tinyMediaManager/tinyMediaManager/-/work_items/new?description_template=Default
 
-[2]: https://gitlab.com/tinyMediaManager/tinyMediaManager/issues?scope=all&state=all
+[2]: https://gitlab.com/tinyMediaManager/tinyMediaManager/-/work_itemssort=updated_desc&state=all&first_page_size=100
 
 [3]: https://www.reddit.com/r/tinyMediaManager/
 
