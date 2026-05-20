@@ -122,6 +122,7 @@ import org.tinymediamanager.scraper.entities.MediaCertification;
 import org.tinymediamanager.scraper.util.DateUtils;
 import org.tinymediamanager.scraper.util.LanguageUtils;
 import org.tinymediamanager.scraper.util.ListUtils;
+import org.tinymediamanager.scraper.util.MetadataUtil;
 import org.tinymediamanager.scraper.util.ParserUtils;
 import org.tinymediamanager.scraper.util.StrgUtils;
 
@@ -2802,9 +2803,30 @@ public class Movie extends MediaEntity implements IMediaInformation {
         }
       }
 
+      String imdb = mediaFile.getExtraData().get("imdbId");
+      if (StringUtils.isNotBlank(imdb)) {
+        setImdbId(imdb);
+        dirty = true;
+      }
+
+      String tmdb = mediaFile.getExtraData().get("tmdbId");
+      if (StringUtils.isNotBlank(tmdb)) {
+        int id = MetadataUtil.parseInt(tmdb, 0);
+        if (id > 0) {
+          setTmdbId(id);
+          dirty = true;
+        }
+      }
+
       String plot = mediaFile.getExtraData().get("plot");
       if (StringUtils.isNotBlank(plot)) {
         setPlot(plot);
+        dirty = true;
+      }
+
+      String tagline = mediaFile.getExtraData().get("tagline");
+      if (StringUtils.isNotBlank(tagline)) {
+        setTagline(tagline);
         dirty = true;
       }
 

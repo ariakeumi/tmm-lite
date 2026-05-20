@@ -778,11 +778,55 @@ public class MediaInfoTest extends BasicTest {
     MediaFile mf = new MediaFile(mediainfoFolder.resolve("subtitle-title.avi"));
     MediaFileHelper.gatherMediaInformation(mf, false);
     assertThat(mf.getSubtitles().size()).isEqualTo(2);
-
     MediaFileSubtitle sub1 = mf.getSubtitles().get(0);
     assertThat(sub1.getTitle()).isEqualTo("That's a DVDSUB subtitle");
-
     MediaFileSubtitle sub2 = mf.getSubtitles().get(1);
     assertThat(sub2.getTitle()).isEqualTo("and this a simple srt subtitle");
+
+    // real world embedded subtitles with flags
+    mf = new MediaFile(mediainfoFolder.resolve("Twister.1996.2160p.UHD.Blu-ray.DV.HDR10P.TrueHD.Atmos.8ch.h265.Remux.mkv"));
+    MediaFileHelper.gatherMediaInformation(mf, false);
+    assertThat(mf.getSubtitles().size()).isEqualTo(2);
+    sub1 = mf.getSubtitles().get(0);
+    assertThat(sub1.getTitle()).isEqualTo("Full dialogue");
+    assertThat(sub1.getLanguage()).isEqualTo("eng");
+    assertThat(sub1.isDefaultStream()).isTrue();
+    assertThat(sub1.isForced()).isFalse();
+    assertThat(sub1.isSdh()).isFalse();
+    assertThat(sub1.getFlags()).contains(MediaStreamInfo.Flags.FLAG_ORIGINAL);
+    sub2 = mf.getSubtitles().get(1);
+    assertThat(sub2.getTitle()).isEqualTo("SDH");
+    assertThat(sub2.getLanguage()).isEqualTo("eng");
+    assertThat(sub2.isDefaultStream()).isFalse();
+    assertThat(sub2.isForced()).isFalse();
+    assertThat(sub2.isSdh()).isTrue();
+    assertThat(sub2.getFlags()).contains(MediaStreamInfo.Flags.FLAG_ORIGINAL);
+    assertThat(sub2.getFlags()).contains(MediaStreamInfo.Flags.FLAG_HEARING_IMPAIRED);
+
+    mf = new MediaFile(mediainfoFolder.resolve("2.Guns.2013.2160p.UHD.Blu-ray.DV.HDR10.DTS-X.8ch.h265.Remux.mkv"));
+    MediaFileHelper.gatherMediaInformation(mf, false);
+    assertThat(mf.getSubtitles().size()).isEqualTo(2);
+    sub1 = mf.getSubtitles().get(0);
+    assertThat(sub1.getTitle()).isEqualTo("Full dialogue");
+    assertThat(sub1.getLanguage()).isEqualTo("eng");
+    assertThat(sub1.isDefaultStream()).isTrue();
+    assertThat(sub1.isForced()).isFalse();
+    assertThat(sub1.isSdh()).isFalse();
+    sub2 = mf.getSubtitles().get(1);
+    assertThat(sub2.getTitle()).isEqualTo("SDH");
+    assertThat(sub2.getLanguage()).isEqualTo("eng");
+    assertThat(sub2.isDefaultStream()).isFalse();
+    assertThat(sub2.isForced()).isFalse();
+    assertThat(sub2.isSdh()).isTrue();
+
+    mf = new MediaFile(mediainfoFolder.resolve("minions trailer with embedded subtitle.mkv"));
+    MediaFileHelper.gatherMediaInformation(mf, false);
+    assertThat(mf.getSubtitles().size()).isEqualTo(1);
+    sub1 = mf.getSubtitles().get(0);
+    assertThat(sub1.getTitle()).isEmpty();
+    assertThat(sub1.getLanguage()).isEqualTo("deu");
+    assertThat(sub1.isDefaultStream()).isTrue();
+    assertThat(sub1.isForced()).isTrue();
+    assertThat(sub1.isSdh()).isFalse();
   }
 }

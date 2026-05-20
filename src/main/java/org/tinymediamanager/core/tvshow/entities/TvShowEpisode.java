@@ -102,6 +102,7 @@ import org.tinymediamanager.scraper.entities.MediaEpisodeGroup;
 import org.tinymediamanager.scraper.entities.MediaEpisodeNumber;
 import org.tinymediamanager.scraper.util.DateUtils;
 import org.tinymediamanager.scraper.util.ListUtils;
+import org.tinymediamanager.scraper.util.MetadataUtil;
 import org.tinymediamanager.scraper.util.StrgUtils;
 
 import com.fasterxml.jackson.annotation.JsonAnySetter;
@@ -1662,6 +1663,21 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
       if (StringUtils.isNotBlank(originalTitle)) {
         setOriginalTitle(originalTitle);
         dirty = true;
+      }
+
+      String imdb = mediaFile.getExtraData().get("imdbId");
+      if (StringUtils.isNotBlank(imdb)) {
+        setId(MediaMetadata.IMDB, imdb);
+        dirty = true;
+      }
+
+      String tmdb = mediaFile.getExtraData().get("tmdbId");
+      if (StringUtils.isNotBlank(tmdb)) {
+        int id = MetadataUtil.parseInt(tmdb, 0);
+        if (id > 0) {
+          setId(MediaMetadata.TMDB, id);
+          dirty = true;
+        }
       }
 
       String plot = mediaFile.getExtraData().get("plot");

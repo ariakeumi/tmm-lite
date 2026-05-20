@@ -35,15 +35,43 @@ public class MediaStreamInfo extends AbstractModelObject {
    */
   public enum Flags {
     // FLAG_NONE, // just empty
+    /**
+     * The Default flag is a hint for a Matroska Player indicating that a given track SHOULD be eligible to be automatically selected as the default
+     * track for a given language. If no tracks in a given language have the Default flag set, then all tracks in that language are eligible for
+     * automatic selection. This can be used to indicate that a track provides "regular service" that is suitable for users with default settings, as
+     * opposed to specialized services, such as commentary, captions for users with hearing impairments, or descriptive audio.
+     * 
+     * The Matroska Player MAY override the Default flag for any reason, including user preferences to prefer tracks providing accessibility services.
+     */
     @JsonEnumDefaultValue
     FLAG_DEFAULT("Default", "metatag.default"),
     FLAG_DUB("Dubbed"),
+    /**
+     * The Original flag tells the Matroska Player that this track is in the original language and that it SHOULD prefer this track if configured to
+     * prefer original-language tracks of this track's type.
+     */
     FLAG_ORIGINAL("Original"),
+    /**
+     * The Commentary flag tells the Matroska Player that this track contains commentary on the content.
+     */
     FLAG_COMMENT("Commentary"),
     FLAG_LYRICS("Lyrics"),
     FLAG_KARAOKE("Karaoke"),
+    /**
+     * The Forced flag tells the Matroska Player that it SHOULD display this subtitle track, even if user preferences usually would not call for any
+     * subtitles to be displayed alongside the audio track that is currently selected. This can be used to indicate that a track contains translations
+     * of on-screen text or dialogue spoken in a different language than the track's primary language.
+     */
     FLAG_FORCED("Forced", "metatag.forced"),
-    FLAG_HEARING_IMPAIRED("SDH", "metatag.sdh"), // subtitles for the deaf and hard of hearing
+    /**
+     * The Hearing-Impaired flag tells the Matroska Player that it SHOULD prefer this track when selecting a default track for a user with a hearing
+     * impairment and that it MAY prefer to select a different track when selecting a default track for a user that is not hearing impaired.
+     */
+    FLAG_HEARING_IMPAIRED("SDH", "metatag.sdh"),
+    /**
+     * The Visual-Impaired flag tells the Matroska Player that it SHOULD prefer this track when selecting a default track for a user with a visual
+     * impairment and that it MAY prefer to select a different track when selecting a default track for a user that is not visually impaired.
+     */
     FLAG_VISUAL_IMPAIRED("Audio description for the visually impaired");
 
     private final String displayName;

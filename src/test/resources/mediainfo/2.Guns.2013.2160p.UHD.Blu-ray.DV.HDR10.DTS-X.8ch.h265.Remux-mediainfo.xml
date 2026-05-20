@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MediaInfo xmlns="https://mediaarea.net/mediainfo"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="https://mediaarea.net/mediainfo https://mediaarea.net/mediainfo/mediainfo_2_0.xsd"
+           version="2.0">
+	<creatingLibrary version="26.05"
+	                 url="https://mediaarea.net/MediaInfo">MediaInfoLib</creatingLibrary>
+	<media ref="M:\Movies\2 Guns (2013)\2.Guns.2013.2160p.UHD.Blu-ray.DV.HDR10.DTS-X.8ch.h265.Remux.mkv">
+		<track type="General">
+			<UniqueID>306001085379042838785574802276186057984</UniqueID>
+			<VideoCount>1</VideoCount>
+			<AudioCount>1</AudioCount>
+			<TextCount>2</TextCount>
+			<MenuCount>1</MenuCount>
+			<FileExtension>mkv</FileExtension>
+			<Format>Matroska</Format>
+			<Format_Version>4</Format_Version>
+			<FileSize>46868598956</FileSize>
+			<Duration>6549.001</Duration>
+			<OverallBitRate_Mode>VBR</OverallBitRate_Mode>
+			<OverallBitRate>57252822</OverallBitRate>
+			<FrameRate>23.976</FrameRate>
+			<FrameCount>157019</FrameCount>
+			<StreamSize>3631263</StreamSize>
+			<IsStreamable>Yes</IsStreamable>
+			<Title>2 Guns</Title>
+			<Movie>2 Guns</Movie>
+			<Genre>Crime</Genre>
+			<Released_Date>2013-08-02</Released_Date>
+			<Encoded_Date>2026-02-17 00:43:13 UTC</Encoded_Date>
+			<File_Created_Date>2026-02-17 00:43:13.893 UTC</File_Created_Date>
+			<File_Created_Date_Local>2026-02-16 20:43:13.893</File_Created_Date_Local>
+			<File_Modified_Date>2026-02-17 00:51:56.297 UTC</File_Modified_Date>
+			<File_Modified_Date_Local>2026-02-16 20:51:56.297</File_Modified_Date_Local>
+			<Encoded_Application>mkvmerge v97.0 (&apos;You Don&apos;t Have A Clue&apos;) 64-bit</Encoded_Application>
+			<Encoded_Library>libebml v1.4.5 + libmatroska v1.7.1</Encoded_Library>
+			<extra>
+				<ACTOR>Ricardo Vargas</ACTOR>
+				<DIRECTOR>Baltasar Kormákur</DIRECTOR>
+				<IMDB>tt1272878</IMDB>
+				<SUBTITLE>2 Guns, 1 Bank.</SUBTITLE>
+				<SUMMARY>A DEA agent and an undercover Naval Intelligence officer who have been tasked with investigating one another find they have been set up by the mob -- the very organization the two men believe they have been stealing money from.</SUMMARY>
+				<TMDB>movie/136400</TMDB>
+			</extra>
+		</track>
+		<track type="Video">
+			<StreamOrder>0</StreamOrder>
+			<ID>1</ID>
+			<UniqueID>13869487507311711617</UniqueID>
+			<Format>HEVC</Format>
+			<Format_Profile>Main 10</Format_Profile>
+			<Format_Level>5.1</Format_Level>
+			<Format_Tier>High</Format_Tier>
+			<HDR_Format>Dolby Vision / SMPTE ST 2086</HDR_Format>
+			<HDR_Format_Version>1.0 / </HDR_Format_Version>
+			<HDR_Format_Profile>dvhe.08 / </HDR_Format_Profile>
+			<HDR_Format_Level>06 / </HDR_Format_Level>
+			<HDR_Format_Settings>BL+RPU / </HDR_Format_Settings>
+			<HDR_Format_Compression>None / </HDR_Format_Compression>
+			<HDR_Format_Compatibility>HDR10 / HDR10</HDR_Format_Compatibility>
+			<CodecID>V_MPEGH/ISO/HEVC</CodecID>
+			<Duration>6549.001000000</Duration>
+			<BitRate>51115023</BitRate>
+			<Width>3840</Width>
+			<Height>2160</Height>
+			<Sampled_Width>3840</Sampled_Width>
+			<Sampled_Height>2160</Sampled_Height>
+			<PixelAspectRatio>1.000</PixelAspectRatio>
+			<DisplayAspectRatio>1.778</DisplayAspectRatio>
+			<FrameRate_Mode>CFR</FrameRate_Mode>
+			<FrameRate>23.976</FrameRate>
+			<FrameRate_Num>24000</FrameRate_Num>
+			<FrameRate_Den>1001</FrameRate_Den>
+			<FrameCount>157019</FrameCount>
+			<ColorSpace>YUV</ColorSpace>
+			<ChromaSubsampling>4:2:0</ChromaSubsampling>
+			<ChromaSubsampling_Position>Type 2</ChromaSubsampling_Position>
+			<BitDepth>10</BitDepth>
+			<Delay>0.000</Delay>
+			<Delay_Source>Container</Delay_Source>
+			<StreamSize>41844042470</StreamSize>
+			<Title>4K HDR10</Title>
+			<Encoded_Library>ATEME Titan File 3.9.6 (4.9.6.2)        </Encoded_Library>
+			<Encoded_Library_Name>ATEME Titan File</Encoded_Library_Name>
+			<Encoded_Library_Version>3.9.6 (4.9.6.2)        </Encoded_Library_Version>
+			<Default>Yes</Default>
+			<Forced>No</Forced>
+			<colour_description_present>Yes</colour_description_present>
+			<colour_description_present_Source>Stream</colour_description_present_Source>
+			<colour_range>Limited</colour_range>
+			<colour_range_Source>Stream</colour_range_Source>
+			<colour_primaries>BT.2020</colour_primaries>
+			<colour_primaries_Source>Stream</colour_primaries_Source>
+			<transfer_characteristics>PQ</transfer_characteristics>
+			<transfer_characteristics_Source>Stream</transfer_characteristics_Source>
+			<matrix_coefficients>BT.2020 non-constant</matrix_coefficients>
+			<matrix_coefficients_Source>Stream</matrix_coefficients_Source>
+			<MasteringDisplay_ColorPrimaries>Display P3</MasteringDisplay_ColorPrimaries>
+			<MasteringDisplay_ColorPrimaries_Source>Stream</MasteringDisplay_ColorPrimaries_Source>
+			<MasteringDisplay_Luminance>min: 0.0050 cd/m2, max: 1000 cd/m2</MasteringDisplay_Luminance>
+			<MasteringDisplay_Luminance_Source>Stream</MasteringDisplay_Luminance_Source>
+			<MasteringDisplay_Luminance_Min>0.0050</MasteringDisplay_Luminance_Min>
+			<MasteringDisplay_Luminance_Max>1000</MasteringDisplay_Luminance_Max>
+			<MaxCLL>988</MaxCLL>
+			<MaxCLL_Source>Stream</MaxCLL_Source>
+			<MaxFALL>152</MaxFALL>
+			<MaxFALL_Source>Stream</MaxFALL_Source>
+		</track>
+		<track type="Audio">
+			<StreamOrder>1</StreamOrder>
+			<ID>2</ID>
+			<UniqueID>2960089512688549723</UniqueID>
+			<Format>DTS</Format>
+			<Format_Commercial_IfAny>DTS-HD MA + DTS:X</Format_Commercial_IfAny>
+			<Format_Settings_Mode>16</Format_Settings_Mode>
+			<Format_Settings_Endianness>Big</Format_Settings_Endianness>
+			<Format_AdditionalFeatures>XLL X</Format_AdditionalFeatures>
+			<CodecID>A_DTS</CodecID>
+			<Duration>6548.961000000</Duration>
+			<BitRate_Mode>VBR</BitRate_Mode>
+			<BitRate>6054915</BitRate>
+			<Channels>8</Channels>
+			<ChannelPositions>Front: L C R, Side: L R, Back: L R, LFE, Objects</ChannelPositions>
+			<ChannelLayout>C L R LFE Lb Rb Lss Rss Objects</ChannelLayout>
+			<SamplesPerFrame>512</SamplesPerFrame>
+			<SamplingRate>48000</SamplingRate>
+			<SamplingCount>314350128</SamplingCount>
+			<FrameRate>93.750</FrameRate>
+			<FrameCount>613965</FrameCount>
+			<BitDepth>24</BitDepth>
+			<Compression_Mode>Lossless</Compression_Mode>
+			<Delay>0.000</Delay>
+			<Delay_Source>Container</Delay_Source>
+			<Video_Delay>0.000</Video_Delay>
+			<StreamSize>4956675496</StreamSize>
+			<Title>DTS:X 7.1</Title>
+			<Language>en</Language>
+			<Default>Yes</Default>
+			<Forced>No</Forced>
+		</track>
+		<track type="Text"
+		       typeorder="1">
+			<StreamOrder>2</StreamOrder>
+			<ID>3</ID>
+			<UniqueID>14401698997755061766</UniqueID>
+			<Format>PGS</Format>
+			<CodecID>S_HDMV/PGS</CodecID>
+			<Duration>5974.761000000</Duration>
+			<BitRate>36314</BitRate>
+			<FrameRate>0.463</FrameRate>
+			<FrameCount>2768</FrameCount>
+			<ElementCount>2768</ElementCount>
+			<StreamSize>27121601</StreamSize>
+			<Title>Full dialogue</Title>
+			<Language>en</Language>
+			<Default>Yes</Default>
+			<Forced>No</Forced>
+		</track>
+		<track type="Text"
+		       typeorder="2">
+			<StreamOrder>3</StreamOrder>
+			<ID>4</ID>
+			<UniqueID>12031455319699290717</UniqueID>
+			<Format>PGS</Format>
+			<CodecID>S_HDMV/PGS</CodecID>
+			<Duration>6024.060000000</Duration>
+			<BitRate>49306</BitRate>
+			<FrameRate>0.594</FrameRate>
+			<FrameCount>3580</FrameCount>
+			<ElementCount>3580</ElementCount>
+			<StreamSize>37128126</StreamSize>
+			<Title>SDH</Title>
+			<Language>en</Language>
+			<ServiceKind>HI</ServiceKind>
+			<Default>No</Default>
+			<Forced>No</Forced>
+		</track>
+		<track type="Menu">
+			<extra>
+				<_00_00_00_000>en:Chapter 1</_00_00_00_000>
+				<_00_05_36_711>en:Chapter 2</_00_05_36_711>
+				<_00_10_44_853>en:Chapter 3</_00_10_44_853>
+				<_00_15_15_873>en:Chapter 4</_00_15_15_873>
+				<_00_20_42_950>en:Chapter 5</_00_20_42_950>
+				<_00_24_48_404>en:Chapter 6</_00_24_48_404>
+				<_00_29_21_510>en:Chapter 7</_00_29_21_510>
+				<_00_36_24_766>en:Chapter 8</_00_36_24_766>
+				<_00_40_57_038>en:Chapter 9</_00_40_57_038>
+				<_00_45_39_946>en:Chapter 10</_00_45_39_946>
+				<_00_52_17_718>en:Chapter 11</_00_52_17_718>
+				<_00_58_14_449>en:Chapter 12</_00_58_14_449>
+				<_01_05_50_655>en:Chapter 13</_01_05_50_655>
+				<_01_10_29_350>en:Chapter 14</_01_10_29_350>
+				<_01_14_36_055>en:Chapter 15</_01_14_36_055>
+				<_01_20_15_227>en:Chapter 16</_01_20_15_227>
+				<_01_24_47_582>en:Chapter 17</_01_24_47_582>
+				<_01_31_12_592>en:Chapter 18</_01_31_12_592>
+				<_01_38_24_315>en:Chapter 19</_01_38_24_315>
+				<_01_41_03_307>en:End Credits</_01_41_03_307>
+			</extra>
+		</track>
+	</media>
+</MediaInfo>

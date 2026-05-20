@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MediaInfo xmlns="https://mediaarea.net/mediainfo"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="https://mediaarea.net/mediainfo https://mediaarea.net/mediainfo/mediainfo_2_0.xsd"
+           version="2.0">
+	<creatingLibrary version="26.05"
+	                 url="https://mediaarea.net/MediaInfo">MediaInfoLib</creatingLibrary>
+	<media ref="M:\Movies\Twister (1996)\Twister.1996.2160p.UHD.Blu-ray.DV.HDR10P.TrueHD.Atmos.8ch.h265.Remux.mkv">
+		<track type="General">
+			<UniqueID>169361001205290719268332022000967436870</UniqueID>
+			<VideoCount>1</VideoCount>
+			<AudioCount>2</AudioCount>
+			<TextCount>2</TextCount>
+			<MenuCount>1</MenuCount>
+			<FileExtension>mkv</FileExtension>
+			<Format>Matroska</Format>
+			<Format_Version>4</Format_Version>
+			<FileSize>52579242030</FileSize>
+			<Duration>6783.735</Duration>
+			<OverallBitRate_Mode>VBR</OverallBitRate_Mode>
+			<OverallBitRate>62006245</OverallBitRate>
+			<FrameRate>23.976</FrameRate>
+			<FrameCount>162647</FrameCount>
+			<StreamSize>59403883</StreamSize>
+			<IsStreamable>Yes</IsStreamable>
+			<Title>Twister</Title>
+			<Movie>Twister</Movie>
+			<Genre>Drama</Genre>
+			<Released_Date>1996-05-10</Released_Date>
+			<Encoded_Date>2025-12-19 12:43:33 UTC</Encoded_Date>
+			<File_Created_Date>2025-12-19 12:43:33.644 UTC</File_Created_Date>
+			<File_Created_Date_Local>2025-12-19 08:43:33.644</File_Created_Date_Local>
+			<File_Modified_Date>2025-12-19 12:46:43.349 UTC</File_Modified_Date>
+			<File_Modified_Date_Local>2025-12-19 08:46:43.349</File_Modified_Date_Local>
+			<Encoded_Application>mkvmerge v96.0 (&apos;It&apos;s My Life&apos;) 64-bit</Encoded_Application>
+			<Encoded_Application_Name>mkvmerge</Encoded_Application_Name>
+			<Encoded_Application_Version>96.0 (&apos;It&apos;s My Life&apos;) 64-bit</Encoded_Application_Version>
+			<Encoded_Library>libebml v1.4.5 + libmatroska v1.7.1</Encoded_Library>
+			<extra>
+				<ACTOR>April Warren</ACTOR>
+				<DIRECTOR>Jan de Bont</DIRECTOR>
+				<IMDB>tt0117998</IMDB>
+				<SUBTITLE>Don&apos;t breathe. Don&apos;t look back.</SUBTITLE>
+				<SUMMARY>An unprecedented series of violent tornadoes is sweeping across Oklahoma. Tornado chasers, headed by Dr. Jo Harding, attempt to release a groundbreaking device that will allow them to track them and create a more advanced warning system. They are joined by Jo&apos;s soon to be ex-husband Bill, a former tornado chaser himself, and his girlfriend Melissa.</SUMMARY>
+				<TMDB>movie/664</TMDB>
+			</extra>
+		</track>
+		<track type="Video">
+			<StreamOrder>0</StreamOrder>
+			<ID>1</ID>
+			<UniqueID>15910190464304692828</UniqueID>
+			<Format>HEVC</Format>
+			<Format_Profile>Main 10</Format_Profile>
+			<Format_Level>5.1</Format_Level>
+			<Format_Tier>High</Format_Tier>
+			<HDR_Format>Dolby Vision / SMPTE ST 2094 App 4</HDR_Format>
+			<HDR_Format_Version>1.0 / 1</HDR_Format_Version>
+			<HDR_Format_Profile>dvhe.07 / </HDR_Format_Profile>
+			<HDR_Format_Level>06 / </HDR_Format_Level>
+			<HDR_Format_Settings>BL+EL+RPU / </HDR_Format_Settings>
+			<HDR_Format_Compression>None / </HDR_Format_Compression>
+			<HDR_Format_Compatibility>Blu-ray / HDR10+ Profile B</HDR_Format_Compatibility>
+			<CodecID>V_MPEGH/ISO/HEVC</CodecID>
+			<Duration>6783.735000000</Duration>
+			<BitRate>56473094</BitRate>
+			<Width>3840</Width>
+			<Height>2160</Height>
+			<Sampled_Width>3840</Sampled_Width>
+			<Sampled_Height>2160</Sampled_Height>
+			<PixelAspectRatio>1.000</PixelAspectRatio>
+			<DisplayAspectRatio>1.778</DisplayAspectRatio>
+			<FrameRate_Mode>CFR</FrameRate_Mode>
+			<FrameRate>23.976</FrameRate>
+			<FrameRate_Num>24000</FrameRate_Num>
+			<FrameRate_Den>1001</FrameRate_Den>
+			<FrameCount>162647</FrameCount>
+			<ColorSpace>YUV</ColorSpace>
+			<ChromaSubsampling>4:2:0</ChromaSubsampling>
+			<ChromaSubsampling_Position>Type 2</ChromaSubsampling_Position>
+			<BitDepth>10</BitDepth>
+			<Delay>0.000</Delay>
+			<Delay_Source>Container</Delay_Source>
+			<TimeCode_FirstFrame>00:59:59:23</TimeCode_FirstFrame>
+			<StreamSize>47887313596</StreamSize>
+			<Title>4K DV HDR10+</Title>
+			<Encoded_Library>ATEME Titan File 3.9.7 (4.9.7.0)        </Encoded_Library>
+			<Encoded_Library_Name>ATEME Titan File</Encoded_Library_Name>
+			<Encoded_Library_Version>3.9.7 (4.9.7.0)        </Encoded_Library_Version>
+			<Default>Yes</Default>
+			<Forced>No</Forced>
+			<colour_description_present>Yes</colour_description_present>
+			<colour_description_present_Source>Stream</colour_description_present_Source>
+			<colour_range>Limited</colour_range>
+			<colour_range_Source>Stream</colour_range_Source>
+			<colour_primaries>BT.2020</colour_primaries>
+			<colour_primaries_Source>Stream</colour_primaries_Source>
+			<transfer_characteristics>PQ</transfer_characteristics>
+			<transfer_characteristics_Source>Stream</transfer_characteristics_Source>
+			<matrix_coefficients>BT.2020 non-constant</matrix_coefficients>
+			<matrix_coefficients_Source>Stream</matrix_coefficients_Source>
+			<MasteringDisplay_ColorPrimaries>Display P3</MasteringDisplay_ColorPrimaries>
+			<MasteringDisplay_ColorPrimaries_Source>Stream</MasteringDisplay_ColorPrimaries_Source>
+			<MasteringDisplay_Luminance>min: 0.0001 cd/m2, max: 1000 cd/m2</MasteringDisplay_Luminance>
+			<MasteringDisplay_Luminance_Source>Stream</MasteringDisplay_Luminance_Source>
+			<MasteringDisplay_Luminance_Min>0.0001</MasteringDisplay_Luminance_Min>
+			<MasteringDisplay_Luminance_Max>1000</MasteringDisplay_Luminance_Max>
+			<MaxCLL>995</MaxCLL>
+			<MaxCLL_Source>Stream</MaxCLL_Source>
+			<MaxFALL>693</MaxFALL>
+			<MaxFALL_Source>Stream</MaxFALL_Source>
+		</track>
+		<track type="Audio"
+		       typeorder="1">
+			<StreamOrder>1</StreamOrder>
+			<ID>2</ID>
+			<UniqueID>16070758430634444415</UniqueID>
+			<Format>MLP FBA</Format>
+			<Format_Commercial_IfAny>Dolby TrueHD with Dolby Atmos</Format_Commercial_IfAny>
+			<Format_AdditionalFeatures>16-ch</Format_AdditionalFeatures>
+			<CodecID>A_TRUEHD</CodecID>
+			<Duration>6775.269000000</Duration>
+			<BitRate_Mode>VBR</BitRate_Mode>
+			<BitRate>3866878</BitRate>
+			<BitRate_Maximum>6732000</BitRate_Maximum>
+			<Channels>8</Channels>
+			<ChannelPositions>Front: L C R, Side: L R, Back: L R, LFE</ChannelPositions>
+			<ChannelLayout>L R C LFE Ls Rs Lb Rb</ChannelLayout>
+			<SamplesPerFrame>40</SamplesPerFrame>
+			<SamplingRate>48000</SamplingRate>
+			<SamplingCount>325212912</SamplingCount>
+			<FrameRate>1200.000</FrameRate>
+			<FrameRate_Num>1200</FrameRate_Num>
+			<FrameRate_Den>1</FrameRate_Den>
+			<FrameCount>8130322</FrameCount>
+			<Compression_Mode>Lossless</Compression_Mode>
+			<Delay>0.000</Delay>
+			<Delay_Source>Container</Delay_Source>
+			<Video_Delay>0.000</Video_Delay>
+			<StreamSize>3274893136</StreamSize>
+			<Title>TrueHD Atmos 7.1</Title>
+			<Language>en</Language>
+			<Default>Yes</Default>
+			<Forced>No</Forced>
+			<extra>
+				<NumberOfDynamicObjects>13</NumberOfDynamicObjects>
+				<BedChannelCount>1</BedChannelCount>
+				<BedChannelConfiguration>LFE</BedChannelConfiguration>
+			</extra>
+		</track>
+		<track type="Audio"
+		       typeorder="2">
+			<StreamOrder>2</StreamOrder>
+			<ID>3</ID>
+			<UniqueID>13468622699331206046</UniqueID>
+			<Format>AC-3</Format>
+			<Format_Commercial_IfAny>Dolby Digital Plus</Format_Commercial_IfAny>
+			<Format_Profile>Blu-ray Disc</Format_Profile>
+			<Format_Settings_Endianness>Big</Format_Settings_Endianness>
+			<Format_AdditionalFeatures>Dep</Format_AdditionalFeatures>
+			<CodecID>A_EAC3</CodecID>
+			<Duration>6775.264000000</Duration>
+			<BitRate_Mode>CBR</BitRate_Mode>
+			<BitRate>1536000</BitRate>
+			<Channels>8</Channels>
+			<ChannelPositions>Front: L C R, Side: L R, Back: L R, LFE</ChannelPositions>
+			<ChannelLayout>L R C LFE Ls Rs Lb Rb</ChannelLayout>
+			<SamplesPerFrame>1536</SamplesPerFrame>
+			<SamplingRate>48000</SamplingRate>
+			<SamplingCount>325212672</SamplingCount>
+			<FrameRate>31.250</FrameRate>
+			<FrameCount>211727</FrameCount>
+			<Compression_Mode>Lossy</Compression_Mode>
+			<Delay>0.023</Delay>
+			<Delay_Source>Container</Delay_Source>
+			<Video_Delay>0.023</Video_Delay>
+			<StreamSize>1300850688</StreamSize>
+			<Title>DD Plus 7.1</Title>
+			<Language>en</Language>
+			<ServiceKind>CM</ServiceKind>
+			<Default>No</Default>
+			<Forced>No</Forced>
+			<extra>
+				<bsid>16</bsid>
+				<dialnorm>-31</dialnorm>
+				<compr>-0.28</compr>
+				<acmod>7 / 5</acmod>
+				<lfeon>1 / 0</lfeon>
+				<cmixlev>-3.0</cmixlev>
+				<surmixlev>-3 dB</surmixlev>
+				<mixlevel>105</mixlevel>
+				<roomtyp>Small</roomtyp>
+				<dmixmod>Lt/Rt</dmixmod>
+				<ltrtcmixlev>-3.0</ltrtcmixlev>
+				<ltrtsurmixlev>-3.0</ltrtsurmixlev>
+				<lorocmixlev>-3.0</lorocmixlev>
+				<lorosurmixlev>-3.0</lorosurmixlev>
+				<dialnorm_Average>-31</dialnorm_Average>
+				<dialnorm_Minimum>-31</dialnorm_Minimum>
+			</extra>
+		</track>
+		<track type="Text"
+		       typeorder="1">
+			<StreamOrder>3</StreamOrder>
+			<ID>4</ID>
+			<UniqueID>259041780574398534</UniqueID>
+			<Format>PGS</Format>
+			<CodecID>S_HDMV/PGS</CodecID>
+			<Duration>6242.945000000</Duration>
+			<BitRate>35862</BitRate>
+			<FrameRate>0.431</FrameRate>
+			<FrameCount>2690</FrameCount>
+			<ElementCount>2690</ElementCount>
+			<StreamSize>27985916</StreamSize>
+			<Title>Full dialogue</Title>
+			<Language>en</Language>
+			<ServiceKind>O</ServiceKind>
+			<Default>Yes</Default>
+			<Forced>No</Forced>
+		</track>
+		<track type="Text"
+		       typeorder="2">
+			<StreamOrder>4</StreamOrder>
+			<ID>5</ID>
+			<UniqueID>10672980878616891156</UniqueID>
+			<Format>PGS</Format>
+			<CodecID>S_HDMV/PGS</CodecID>
+			<Duration>6275.602000000</Duration>
+			<BitRate>36706</BitRate>
+			<FrameRate>0.473</FrameRate>
+			<FrameCount>2970</FrameCount>
+			<ElementCount>2970</ElementCount>
+			<StreamSize>28794811</StreamSize>
+			<Title>SDH</Title>
+			<Language>en</Language>
+			<ServiceKind>HI / O</ServiceKind>
+			<Default>No</Default>
+			<Forced>No</Forced>
+		</track>
+		<track type="Menu">
+			<extra>
+				<_00_00_00_000>en:1960 Prologue</_00_00_00_000>
+				<_00_04_44_576>en:A Long Day Ahead</_00_04_44_576>
+				<_00_05_40_882>en:One More Signature</_00_05_40_882>
+				<_00_12_45_306>en:Dorothy</_00_12_45_306>
+				<_00_15_45_820>en:Tagging Along</_00_15_45_820>
+				<_00_18_52_631>en:Corporate Kissbutt</_00_18_52_631>
+				<_00_21_07_558>en:Storm Chaser Medley</_00_21_07_558>
+				<_00_26_41_183>en:Getting Better at This</_00_26_41_183>
+				<_00_29_00_989>en:Intercept Course...In a Rut</_00_29_00_989>
+				<_00_31_42_567>en:Braced for Action</_00_31_42_567>
+				<_00_33_23_668>en:&quot;Where&apos;s My Truck?&quot;</_00_33_23_668>
+				<_00_35_54_903>en:Battle Zone</_00_35_54_903>
+				<_00_41_33_741>en:Cow in the Core</_00_41_33_741>
+				<_00_45_07_204>en:Tall Tales of the Extreme</_00_45_07_204>
+				<_00_49_32_344>en:Like Old Times</_00_49_32_344>
+				<_00_53_06_266>en:Rabbit Tracks</_00_53_06_266>
+				<_00_56_35_475>en:The Fun Part</_00_56_35_475>
+				<_00_59_04_541>en:In Harm&apos;s Way</_00_59_04_541>
+				<_01_02_10_810>en:In Front of Jo and...</_01_02_10_810>
+				<_01_05_13_618>en:The Shining and the...</_01_05_13_618>
+				<_01_11_27_158>en:Helter Skelter Shelter</_01_11_27_158>
+				<_01_15_10_881>en:&quot;I Can&apos;t Compete With...&quot;</_01_15_10_881>
+				<_01_18_13_063>en:Rescuing Meg</_01_18_13_063>
+				<_01_22_43_584>en:What Jo Does</_01_22_43_584>
+				<_01_24_31_733>en:Making Dorothy Fly</_01_24_31_733>
+				<_01_27_51_308>en:Out on a Limb</_01_27_51_308>
+				<_01_30_07_444>en:Heavy Traffic</_01_30_07_444>
+				<_01_31_17_514>en:Right at Jonas</_01_31_17_514>
+				<_01_34_29_956>en:Dodging Deadly Debris</_01_34_29_956>
+				<_01_36_12_809>en:Launch Complete</_01_36_12_809>
+				<_01_38_50_675>en:Had a Farm</_01_38_50_675>
+				<_01_41_06_811>en:Hang On!</_01_41_06_811>
+				<_01_43_26_617>en:Seen Enough Sky</_01_43_26_617>
+				<_01_45_35_496>en:Landscape/End Credits</_01_45_35_496>
+			</extra>
+		</track>
+	</media>
+</MediaInfo>

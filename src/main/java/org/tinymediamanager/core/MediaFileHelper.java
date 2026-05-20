@@ -899,6 +899,9 @@ public class MediaFileHelper {
       try {
         // just parse via XML
         Path xmlFile = Paths.get(mediaFile.getPath(), mediaFile.getMediaInfoXmlFilename());
+        if (!Files.exists(xmlFile)) {
+          xmlFile = Paths.get(mediaFile.getPath(), mediaFile.getMediaInfoXmlFilename2());
+        }
         mediaInfoFiles.addAll(detectRelevantFiles(parseMediaInfoXml(xmlFile)));
 
         if (!mediaInfoFiles.isEmpty()) {
@@ -2053,6 +2056,35 @@ public class MediaFileHelper {
     boolean b = forced.equalsIgnoreCase("true") || forced.equalsIgnoreCase("yes");
     stream.setForced(b);
 
+    String svcKind = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.Text, i, "ServiceKind");
+    if (StringUtils.isNotBlank(svcKind)) {
+      // can be multiple - see Twister example
+      String[] vals = svcKind.split("/");
+      for (String val : vals) {
+        switch (val.strip()) {
+          case "HI":
+            stream.set(MediaStreamInfo.Flags.FLAG_HEARING_IMPAIRED);
+            break;
+
+          case "VI":
+            stream.set(MediaStreamInfo.Flags.FLAG_VISUAL_IMPAIRED);
+            break;
+
+          case "C":
+            stream.set(MediaStreamInfo.Flags.FLAG_COMMENT);
+            break;
+
+          case "O":
+            stream.set(MediaStreamInfo.Flags.FLAG_ORIGINAL);
+            break;
+
+          case "TD":
+          default:
+            break;
+        }
+      }
+    }
+
     String title = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.Text, i, "Title");
     if (StringUtils.isNotBlank(title)) {
       stream.setTitle(title);
@@ -2418,9 +2450,27 @@ public class MediaFileHelper {
   }
 
   private static void gatherExtraData(MediaFile mediaFile, Map<MediaInfo.StreamKind, List<Map<String, String>>> miSnapshot) {
-    String imdbId = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.General, 0, "id");
+    String imdbId = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.General, 0, "id", "extra/IMDB");
     if (MediaIdUtil.isValidImdbId(imdbId)) {
       mediaFile.addExtraData("imdbId", imdbId);
+    }
+
+    String tmdbId = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.General, 0, "id", "extra/TMDB");
+    if (tmdbId.matches("^\\d+$")) {
+      // number only
+      mediaFile.addExtraData("tmdbId", tmdbId);
+    }
+    else {
+      // text like movie/1234
+      String[] parts = tmdbId.split("/");
+      for (String part : parts) {
+        if (part.matches("^\\d+$")) {
+          int id = MetadataUtil.parseInt(part, 0);
+          if (id > 0) {
+            mediaFile.addExtraData("tmdbId", part);
+          }
+        }
+      }
     }
 
     String title = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.General, 0, "Title", "Movie");
@@ -2433,9 +2483,15 @@ public class MediaFileHelper {
       mediaFile.addExtraData("originalTitle", originalTitle);
     }
 
-    String plot = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.General, 0, "extra/LongDescription", "Summary", "Description", "Comment");
+    String plot = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.General, 0, "extra/LongDescription", "Summary", "extra/SUMMARY", "Description",
+        "Comment");
     if (StringUtils.isNotBlank(plot)) {
       mediaFile.addExtraData("plot", plot);
+    }
+
+    String tagline = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.General, 0, "extra/SUBTITLE");
+    if (StringUtils.isNotBlank(tagline)) {
+      mediaFile.addExtraData("tagline", tagline);
     }
 
     String genre = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.General, 0, "Genre");

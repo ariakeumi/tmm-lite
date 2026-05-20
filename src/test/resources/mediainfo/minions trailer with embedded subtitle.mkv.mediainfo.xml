@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MediaInfo xmlns="https://mediaarea.net/mediainfo"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="https://mediaarea.net/mediainfo https://mediaarea.net/mediainfo/mediainfo_2_0.xsd"
+           version="2.0">
+	<creatingLibrary version="26.05"
+	                 url="https://mediaarea.net/MediaInfo">MediaInfoLib</creatingLibrary>
+	<media ref="minions trailer with embedded subtitle.mkv">
+		<track type="General">
+			<UniqueID>181143727353194661513033994223802500024</UniqueID>
+			<VideoCount>1</VideoCount>
+			<AudioCount>2</AudioCount>
+			<TextCount>1</TextCount>
+			<MenuCount>2</MenuCount>
+			<FileExtension>mkv</FileExtension>
+			<Format>Matroska</Format>
+			<Format_Version>4</Format_Version>
+			<FileSize>28369673</FileSize>
+			<Duration>60.238</Duration>
+			<OverallBitRate>3767678</OverallBitRate>
+			<FrameRate>23.976</FrameRate>
+			<FrameCount>1444</FrameCount>
+			<StreamSize>25080</StreamSize>
+			<IsStreamable>Yes</IsStreamable>
+			<Encoded_Date>2015-10-24 07:21:38 UTC</Encoded_Date>
+			<File_Created_Date>2025-02-10 13:22:40.440 UTC</File_Created_Date>
+			<File_Created_Date_Local>2025-02-10 15:22:40.440</File_Created_Date_Local>
+			<File_Modified_Date>2015-10-24 06:20:26.000 UTC</File_Modified_Date>
+			<File_Modified_Date_Local>2015-10-24 08:20:26.000</File_Modified_Date_Local>
+			<Encoded_Application>mkvmerge v8.0.0 (&apos;Til The Day That I Die&apos;) 64bit</Encoded_Application>
+			<Encoded_Application_Name>mkvmerge</Encoded_Application_Name>
+			<Encoded_Application_Version>8.0.0 (&apos;Til The Day That I Die&apos;) 64bit</Encoded_Application_Version>
+			<Encoded_Library>libebml v1.3.1 + libmatroska v1.4.2</Encoded_Library>
+		</track>
+		<track type="Video">
+			<StreamOrder>0</StreamOrder>
+			<ID>1</ID>
+			<UniqueID>1</UniqueID>
+			<Format>AVC</Format>
+			<Format_Profile>High</Format_Profile>
+			<Format_Level>4.1</Format_Level>
+			<Format_Settings_CABAC>Yes</Format_Settings_CABAC>
+			<Format_Settings_RefFrames>5</Format_Settings_RefFrames>
+			<CodecID>V_MPEG4/ISO/AVC</CodecID>
+			<Duration>60.227000000</Duration>
+			<BitRate>2485098</BitRate>
+			<Width>1280</Width>
+			<Height>688</Height>
+			<Sampled_Width>1280</Sampled_Width>
+			<Sampled_Height>688</Sampled_Height>
+			<PixelAspectRatio>1.000</PixelAspectRatio>
+			<DisplayAspectRatio>1.860</DisplayAspectRatio>
+			<FrameRate_Mode>CFR</FrameRate_Mode>
+			<FrameRate>23.976</FrameRate>
+			<FrameRate_Num>24000</FrameRate_Num>
+			<FrameRate_Den>1001</FrameRate_Den>
+			<FrameCount>1444</FrameCount>
+			<ColorSpace>YUV</ColorSpace>
+			<ChromaSubsampling>4:2:0</ChromaSubsampling>
+			<BitDepth>8</BitDepth>
+			<ScanType>Progressive</ScanType>
+			<Delay>0.000</Delay>
+			<Delay_Source>Container</Delay_Source>
+			<StreamSize>18708753</StreamSize>
+			<Language>en</Language>
+			<Default>Yes</Default>
+			<Forced>No</Forced>
+		</track>
+		<track type="Audio"
+		       typeorder="1">
+			<StreamOrder>1</StreamOrder>
+			<ID>2</ID>
+			<UniqueID>17110954263475967638</UniqueID>
+			<Format>AC-3</Format>
+			<Format_Commercial_IfAny>Dolby Digital</Format_Commercial_IfAny>
+			<Format_Settings_Endianness>Big</Format_Settings_Endianness>
+			<CodecID>A_AC3</CodecID>
+			<Duration>60.224000000</Duration>
+			<BitRate_Mode>CBR</BitRate_Mode>
+			<BitRate>640000</BitRate>
+			<Channels>6</Channels>
+			<ChannelPositions>Front: L C R, Side: L R, LFE</ChannelPositions>
+			<ChannelLayout>L R C LFE Ls Rs</ChannelLayout>
+			<SamplesPerFrame>1536</SamplesPerFrame>
+			<SamplingRate>48000</SamplingRate>
+			<SamplingCount>2890752</SamplingCount>
+			<FrameRate>31.250</FrameRate>
+			<FrameCount>1882</FrameCount>
+			<Compression_Mode>Lossy</Compression_Mode>
+			<Delay>0.014</Delay>
+			<Delay_Source>Container</Delay_Source>
+			<Video_Delay>0.014</Video_Delay>
+			<StreamSize>4817920</StreamSize>
+			<Language>de</Language>
+			<ServiceKind>CM</ServiceKind>
+			<Default>Yes</Default>
+			<Forced>No</Forced>
+			<extra>
+				<bsid>8</bsid>
+				<dialnorm>-31</dialnorm>
+				<acmod>7</acmod>
+				<lfeon>1</lfeon>
+				<cmixlev>-3.0</cmixlev>
+				<surmixlev>-3 dB</surmixlev>
+				<dialnorm_Average>-31</dialnorm_Average>
+				<dialnorm_Minimum>-31</dialnorm_Minimum>
+			</extra>
+		</track>
+		<track type="Audio"
+		       typeorder="2">
+			<StreamOrder>2</StreamOrder>
+			<ID>3</ID>
+			<UniqueID>12458153872726293924</UniqueID>
+			<Format>AC-3</Format>
+			<Format_Commercial_IfAny>Dolby Digital</Format_Commercial_IfAny>
+			<Format_Settings_Mode>Dolby Surround EX</Format_Settings_Mode>
+			<Format_Settings_Endianness>Big</Format_Settings_Endianness>
+			<CodecID>A_AC3</CodecID>
+			<Duration>60.224000000</Duration>
+			<BitRate_Mode>CBR</BitRate_Mode>
+			<BitRate>640000</BitRate>
+			<Channels>6</Channels>
+			<ChannelPositions>Front: L C R, Side: L R, LFE</ChannelPositions>
+			<ChannelLayout>L R C LFE Ls Rs</ChannelLayout>
+			<SamplesPerFrame>1536</SamplesPerFrame>
+			<SamplingRate>48000</SamplingRate>
+			<SamplingCount>2890752</SamplingCount>
+			<FrameRate>31.250</FrameRate>
+			<FrameCount>1882</FrameCount>
+			<Compression_Mode>Lossy</Compression_Mode>
+			<Delay>0.014</Delay>
+			<Delay_Source>Container</Delay_Source>
+			<Video_Delay>0.014</Video_Delay>
+			<StreamSize>4817920</StreamSize>
+			<Language>en</Language>
+			<ServiceKind>CM</ServiceKind>
+			<Default>No</Default>
+			<Forced>No</Forced>
+			<extra>
+				<bsid>6</bsid>
+				<dialnorm>-31</dialnorm>
+				<compr>-0.28</compr>
+				<dynrng>-0.14</dynrng>
+				<acmod>7</acmod>
+				<lfeon>1</lfeon>
+				<cmixlev>-3.0</cmixlev>
+				<surmixlev>-3 dB</surmixlev>
+				<dmixmod>Lt/Rt</dmixmod>
+				<ltrtcmixlev>-3.0</ltrtcmixlev>
+				<ltrtsurmixlev>-3.0</ltrtsurmixlev>
+				<lorocmixlev>-3.0</lorocmixlev>
+				<lorosurmixlev>-3.0</lorosurmixlev>
+				<dialnorm_Average>-31</dialnorm_Average>
+				<dialnorm_Minimum>-31</dialnorm_Minimum>
+				<compr_Average>-1.37</compr_Average>
+				<compr_Minimum>-5.00</compr_Minimum>
+				<compr_Maximum>0.53</compr_Maximum>
+				<compr_Count>634</compr_Count>
+				<dynrng_Average>-1.18</dynrng_Average>
+				<dynrng_Minimum>-2.87</dynrng_Minimum>
+				<dynrng_Maximum>0.27</dynrng_Maximum>
+				<dynrng_Count>667</dynrng_Count>
+			</extra>
+		</track>
+		<track type="Text">
+			<StreamOrder>3</StreamOrder>
+			<ID>4</ID>
+			<UniqueID>5055276877683484311</UniqueID>
+			<Format>UTF-8</Format>
+			<CodecID>S_TEXT/UTF8</CodecID>
+			<Duration>0.000000000</Duration>
+			<BitRate>0</BitRate>
+			<FrameCount>0</FrameCount>
+			<ElementCount>0</ElementCount>
+			<StreamSize>0</StreamSize>
+			<Language>de</Language>
+			<Default>Yes</Default>
+			<Forced>Yes</Forced>
+		</track>
+		<track type="Menu"
+		       typeorder="1">
+			<extra>
+				<_00_00_00_000>en:00:05:39.839</_00_00_00_000>
+			</extra>
+		</track>
+		<track type="Menu"
+		       typeorder="2">
+			<extra>
+				<_00_00_00_000>en:00:05:39.839</_00_00_00_000>
+			</extra>
+		</track>
+	</media>
+</MediaInfo>

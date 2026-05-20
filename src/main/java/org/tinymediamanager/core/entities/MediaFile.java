@@ -589,6 +589,16 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
     return getBasename() + "-mediainfo.xml";
   }
 
+  /**
+   * returns the (possible) MediaInfo XML cache filename<br>
+   * &lt;basename&gt;.mediainfo.xml
+   * 
+   * @return
+   */
+  public String getMediaInfoXmlFilename2() {
+    return getFilename() + ".mediainfo.xml"; // MediaInfo sidecar naming... file WITH extension
+  }
+
   public void setFiledate(long newValue) {
     long oldValue = this.filedate;
     this.filedate = newValue;
