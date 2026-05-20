@@ -37,6 +37,7 @@ import org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType;
 import org.tinymediamanager.scraper.entities.MediaEpisodeGroup;
 import org.tinymediamanager.scraper.entities.MediaEpisodeNumber;
 import org.tinymediamanager.scraper.entities.MediaType;
+import org.tinymediamanager.scraper.exceptions.HttpException;
 import org.tinymediamanager.scraper.exceptions.MissingIdException;
 import org.tinymediamanager.scraper.exceptions.NothingFoundException;
 import org.tinymediamanager.scraper.exceptions.ScrapeException;
@@ -553,6 +554,15 @@ class FernsehserienParser {
 
       } // end doc==null
     } // end inputStream
+    catch (HttpException e) {
+      // Silently ignore the not-found error
+      if (e.getStatusCode() == 404) {
+        LOGGER.debug("No cast/crew found - skipping.");
+        return;
+      }
+      LOGGER.debug("problem scraping: {}", e.getMessage());
+      throw new ScrapeException(e);
+    }
     catch (InterruptedException | InterruptedIOException e) {
       // do not swallow these Exceptions
       Thread.currentThread().interrupt();
