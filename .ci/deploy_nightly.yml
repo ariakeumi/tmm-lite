@@ -14,7 +14,7 @@ cache:
 
 build:
   stage: build
-  image: tinymediamanager/packaging:20221121194626
+  image: tinymediamanager/packaging:20260520101239
   environment:
     name: nightly
     url: https://nightly.tinymediamanager.org

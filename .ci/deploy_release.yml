@@ -15,7 +15,7 @@ cache:
 
 build:
   stage: build
-  image: tinymediamanager/packaging:20221121194626
+  image: tinymediamanager/packaging:20260520101239
   environment:
     name: release
     url: https://release.tinymediamanager.org
