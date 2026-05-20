@@ -19,6 +19,7 @@ package org.tinymediamanager.ui.tvshows.dialogs;
 import static org.tinymediamanager.ui.TmmFontHelper.L1;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -139,6 +140,7 @@ public class TvShowFilterDialog extends TmmDialog {
   public TvShowFilterDialog(TmmTreeTable treeTable) {
     super(TmmResourceBundle.getString("movieextendedsearch.options") + " - " + TmmResourceBundle.getString("tmm.tvshows"), "tvShowFilter");
     setModalityType(ModalityType.MODELESS);
+    setMinimumSize(new Dimension(500, 500));
 
     this.treeTable = treeTable;
     this.filterMap = new HashMap<>();

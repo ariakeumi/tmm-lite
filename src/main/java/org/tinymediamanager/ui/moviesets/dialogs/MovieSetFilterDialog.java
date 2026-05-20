@@ -19,6 +19,7 @@ package org.tinymediamanager.ui.moviesets.dialogs;
 import static org.tinymediamanager.ui.TmmFontHelper.L1;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -80,6 +81,7 @@ public class MovieSetFilterDialog extends TmmDialog {
   public MovieSetFilterDialog(TmmTreeTable treeTable) {
     super(TmmResourceBundle.getString("movieextendedsearch.options") + " - " + TmmResourceBundle.getString("tmm.moviesets"), "movieSetFilter");
     setModalityType(ModalityType.MODELESS);
+    setMinimumSize(new Dimension(500, 500));
 
     this.treeTable = treeTable;
 

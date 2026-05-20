@@ -17,6 +17,7 @@ package org.tinymediamanager.ui.dialogs;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
@@ -118,6 +119,9 @@ public abstract class TmmDialog extends JDialog implements IModalPopupPanelProvi
     else {
       setIconImage(MainWindow.LOGOS);
     }
+
+    // set a reasonable minimum size to prevent dialogs from becoming unusably small
+    setMinimumSize(new Dimension(400, 300));
 
     initBottomPanel();
 
