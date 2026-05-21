@@ -37,6 +37,7 @@ Compression=lzma2/ultra
 SolidCompression=yes
 WizardStyle=modern
 ShowLanguageDialog=no
+UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Languages]
 ; use language codes, else "auto" does not work!
