@@ -35,22 +35,33 @@ OutputBaseFilename={#MyAppName}-{#MyAppVersionText}-Setup
 SetupIconFile=tmm.ico
 Compression=lzma2/ultra
 SolidCompression=yes
-WizardStyle=modern
+; https://jrsoftware.org/ishelp/index.php?topic=setup_wizardstyle
+WizardStyle=modern windows11 dynamic
+; When set to auto, the dialog will only be displayed if Setup does not find a language identifier match. Simple drop-down, not fancy enough to activate :p
 ShowLanguageDialog=no
 UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Languages]
-; use language codes, else "auto" does not work!
+; use all official languages from InnoSetup.
+; remove the ones, where TMM does not have a resource bundle for.
+; so that you cannot choose a language which is not available afterwards ;)
 Name: "en"; MessagesFile: "compiler:Default.isl"
+Name: "ar"; MessagesFile: "compiler:Languages\Arabic.isl"
+;Name: "hy"; MessagesFile: "compiler:Languages\Armenian.isl"
+;Name: "bg"; MessagesFile: "compiler:Languages\Bulgarian.isl"
 Name: "ca"; MessagesFile: "compiler:Languages\Catalan.isl"
-Name: "cz"; MessagesFile: "compiler:Languages\Czech.isl"
+;Name: "co"; MessagesFile: "compiler:Languages\Corsican.isl"
+Name: "cs"; MessagesFile: "compiler:Languages\Czech.isl"
 Name: "da"; MessagesFile: "compiler:Languages\Danish.isl"
 Name: "nl"; MessagesFile: "compiler:Languages\Dutch.isl"
 Name: "fi"; MessagesFile: "compiler:Languages\Finnish.isl"
 Name: "fr"; MessagesFile: "compiler:Languages\French.isl"
 Name: "de"; MessagesFile: "compiler:Languages\German.isl"
 Name: "he"; MessagesFile: "compiler:Languages\Hebrew.isl"
+Name: "hu"; MessagesFile: "compiler:Languages\Hungarian.isl"
 Name: "it"; MessagesFile: "compiler:Languages\Italian.isl"
+Name: "ja"; MessagesFile: "compiler:Languages\Japanese.isl"
+Name: "ko"; MessagesFile: "compiler:Languages\Korean.isl"
 Name: "no"; MessagesFile: "compiler:Languages\Norwegian.isl"
 Name: "pl"; MessagesFile: "compiler:Languages\Polish.isl"
 Name: "pt"; MessagesFile: "compiler:Languages\Portuguese.isl"
@@ -58,6 +69,11 @@ Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
 Name: "sk"; MessagesFile: "compiler:Languages\Slovak.isl"
 Name: "sl"; MessagesFile: "compiler:Languages\Slovenian.isl"
 Name: "es"; MessagesFile: "compiler:Languages\Spanish.isl"
+Name: "sv"; MessagesFile: "compiler:Languages\Swedish.isl"
+Name: "ta"; MessagesFile: "compiler:Languages\Tamil.isl"
+Name: "th"; MessagesFile: "compiler:Languages\Thai.isl"
+Name: "tr"; MessagesFile: "compiler:Languages\Turkish.isl"
+Name: "uk"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
