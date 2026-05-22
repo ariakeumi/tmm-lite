@@ -22,6 +22,7 @@ public class ParserUtilsTest extends BasicTest {
   @Test
   public void testNamingDetection() {
     setTraceLogging();
+    assertEqual("Series S01E01 Title", detectTY("Series - S01E01 - Title AV1 AV1 AV1 [1080p.AV1]"));
     assertEqual("VIDEO_TS", detectTY("VIDEO_TS")); // do NOT replace "ts"
     assertEqual("this is a VIDEO_TS file with a TS", detectTY("this is a VIDEO_TS file with a TS"));
     assertEqual("Video is", detectTY("Video is TS quality")); // DO remove TS, and cut off
