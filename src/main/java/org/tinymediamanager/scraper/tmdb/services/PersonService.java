@@ -18,9 +18,9 @@ package org.tinymediamanager.scraper.tmdb.services;
 
 import org.tinymediamanager.scraper.tmdb.entities.AppendToResponse;
 import org.tinymediamanager.scraper.tmdb.entities.Changes;
+import org.tinymediamanager.scraper.tmdb.entities.ExternalIds;
 import org.tinymediamanager.scraper.tmdb.entities.Person;
 import org.tinymediamanager.scraper.tmdb.entities.PersonCredits;
-import org.tinymediamanager.scraper.tmdb.entities.PersonExternalIds;
 import org.tinymediamanager.scraper.tmdb.entities.PersonImages;
 import org.tinymediamanager.scraper.tmdb.entities.PersonResultsPage;
 
@@ -109,7 +109,7 @@ public interface PersonService {
    *          A Person TMDb id.
    */
   @GET("person/{person_id}/external_ids")
-  Call<PersonExternalIds> externalIds(@Path("person_id") int personId);
+  Call<ExternalIds> externalIds(@Path("person_id") int personId);
 
   /**
    * Get the changes for a person by id.

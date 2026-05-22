@@ -191,12 +191,10 @@ public class MovieInformationPanel extends InformationPanel {
     // other IDs
     panelOtherIds.removeAll();
     for (String key : movie.getIds().keySet()) {
-      // all but IMDB and TMDB
-      if (MediaMetadata.IMDB.equals(key) || MediaMetadata.TMDB.equals(key)) {
-        continue;
+      // we want at max the TMDB set here, since we're collecting too many ids now...
+      if (MediaMetadata.TMDB_SET.equals(key)) {
+        panelOtherIds.add(new IdLinkPanel(key, movie));
       }
-
-      panelOtherIds.add(new IdLinkPanel(key, movie));
     }
     panelOtherIds.invalidate();
     panelOtherIds.repaint();

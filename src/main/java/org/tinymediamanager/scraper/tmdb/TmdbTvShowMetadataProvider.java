@@ -15,9 +15,6 @@
  */
 package org.tinymediamanager.scraper.tmdb;
 
-import static org.tinymediamanager.core.entities.Person.Type.DIRECTOR;
-import static org.tinymediamanager.core.entities.Person.Type.PRODUCER;
-import static org.tinymediamanager.core.entities.Person.Type.WRITER;
 import static org.tinymediamanager.scraper.MediaMetadata.IMDB;
 import static org.tinymediamanager.scraper.MediaMetadata.TMDB;
 import static org.tinymediamanager.scraper.MediaMetadata.TVDB;
@@ -79,7 +76,6 @@ import org.tinymediamanager.scraper.tmdb.entities.BaseTvShow;
 import org.tinymediamanager.scraper.tmdb.entities.CastMember;
 import org.tinymediamanager.scraper.tmdb.entities.Certifications;
 import org.tinymediamanager.scraper.tmdb.entities.ContentRating;
-import org.tinymediamanager.scraper.tmdb.entities.CrewMember;
 import org.tinymediamanager.scraper.tmdb.entities.FindResults;
 import org.tinymediamanager.scraper.tmdb.entities.Genre;
 import org.tinymediamanager.scraper.tmdb.entities.Image;
@@ -1023,32 +1019,8 @@ public final class TmdbTvShowMetadataProvider extends TmdbMetadataProvider imple
     }
 
     // crew
-    for (CrewMember crewMember : ListUtils.nullSafe(episode.crew)) {
-      Person cm = new Person();
-      if ("Director".equals(crewMember.job)) {
-        cm.setType(DIRECTOR);
-      }
-      else if ("Writing".equals(crewMember.department)) {
-        cm.setType(WRITER);
-      }
-      else if ("Production".equals(crewMember.department)) {
-        cm.setType(PRODUCER);
-      }
-      else {
-        continue;
-      }
-      cm.setRole(crewMember.job);
-      cm.setId(getProviderInfo().getId(), crewMember.id);
-      cm.setName(crewMember.name);
-
-      if (StringUtils.isNotBlank(crewMember.profile_path)) {
-        cm.setThumbUrl(artworkBaseUrl + "h632" + crewMember.profile_path);
-      }
-      if (crewMember.id != null) {
-        cm.setProfileUrl("https://www.themoviedb.org/person/" + crewMember.id);
-      }
-
-      md.addCastMember(cm);
+    for (Person crew : parseCrew(episode.crew)) {
+      md.addCastMember(crew);
     }
 
     // Thumbs

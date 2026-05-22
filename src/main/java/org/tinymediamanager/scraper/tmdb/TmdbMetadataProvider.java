@@ -46,7 +46,6 @@ import org.tinymediamanager.scraper.tmdb.entities.Configuration;
 import org.tinymediamanager.scraper.tmdb.entities.CrewMember;
 import org.tinymediamanager.scraper.tmdb.entities.ExternalIds;
 import org.tinymediamanager.scraper.tmdb.entities.Genre;
-import org.tinymediamanager.scraper.tmdb.entities.PersonExternalIds;
 import org.tinymediamanager.scraper.tmdb.entities.Translations;
 import org.tinymediamanager.scraper.util.ListUtils;
 import org.tinymediamanager.scraper.util.MetadataUtil;
@@ -271,167 +270,48 @@ abstract class TmdbMetadataProvider implements IMediaProvider {
       return null;
     }
 
-    MediaGenres g = null;
-    switch (genre.id) {
-      case 28:
-      case 10759:
-        g = MediaGenres.ACTION;
-        break;
-
-      case 12:
-        g = MediaGenres.ADVENTURE;
-        break;
-
-      case 16:
-        g = MediaGenres.ANIMATION;
-        break;
-
-      case 35:
-        g = MediaGenres.COMEDY;
-        break;
-
-      case 80:
-        g = MediaGenres.CRIME;
-        break;
-
-      case 105:
-        g = MediaGenres.DISASTER;
-        break;
-
-      case 99:
-        g = MediaGenres.DOCUMENTARY;
-        break;
-
-      case 18:
-        g = MediaGenres.DRAMA;
-        break;
-
-      case 82:
-        g = MediaGenres.EASTERN;
-        break;
-
-      case 2916:
-        g = MediaGenres.EROTIC;
-        break;
-
-      case 10751:
-        g = MediaGenres.FAMILY;
-        break;
-
-      case 10750:
-        g = MediaGenres.FAN_FILM;
-        break;
-
-      case 14:
-        g = MediaGenres.FANTASY;
-        break;
-
-      case 10753:
-        g = MediaGenres.FILM_NOIR;
-        break;
-
-      case 10769:
-        g = MediaGenres.FOREIGN;
-        break;
-
-      case 36:
-        g = MediaGenres.HISTORY;
-        break;
-
-      case 10595:
-        g = MediaGenres.HOLIDAY;
-        break;
-
-      case 27:
-        g = MediaGenres.HORROR;
-        break;
-
-      case 10756:
-        g = MediaGenres.INDIE;
-        break;
-
-      case 10402:
-        g = MediaGenres.MUSIC;
-        break;
-
-      case 22:
-        g = MediaGenres.MUSICAL;
-        break;
-
-      case 9648:
-        g = MediaGenres.MYSTERY;
-        break;
-
-      case 10754:
-        g = MediaGenres.NEO_NOIR;
-        break;
-
-      case 10763:
-        g = MediaGenres.NEWS;
-        break;
-
-      case 10764:
-        g = MediaGenres.REALITY_TV;
-        break;
-
-      case 1115:
-        g = MediaGenres.ROAD_MOVIE;
-        break;
-
-      case 10749:
-        g = MediaGenres.ROMANCE;
-        break;
-
-      case 878:
-      case 10765:
-        g = MediaGenres.SCIENCE_FICTION;
-        break;
-
-      case 10755:
-        g = MediaGenres.SHORT;
-        break;
-
-      case 10766:
-        g = MediaGenres.SOAP;
-        break;
-
-      case 9805:
-        g = MediaGenres.SPORT;
-        break;
-
-      case 10758:
-        g = MediaGenres.SPORTING_EVENT;
-        break;
-
-      case 10757:
-        g = MediaGenres.SPORTS_FILM;
-        break;
-
-      case 10748:
-        g = MediaGenres.SUSPENSE;
-        break;
-
-      case 10767:
-        g = MediaGenres.TALK_SHOW;
-        break;
-
-      case 10770:
-        g = MediaGenres.TV_MOVIE;
-        break;
-
-      case 53:
-        g = MediaGenres.THRILLER;
-        break;
-
-      case 10752:
-      case 10768:
-        g = MediaGenres.WAR;
-        break;
-
-      case 37:
-        g = MediaGenres.WESTERN;
-        break;
-    }
+    MediaGenres g = switch (genre.id) {
+      case 28, 10759 -> MediaGenres.ACTION;
+      case 12 -> MediaGenres.ADVENTURE;
+      case 16 -> MediaGenres.ANIMATION;
+      case 35 -> MediaGenres.COMEDY;
+      case 80 -> MediaGenres.CRIME;
+      case 105 -> MediaGenres.DISASTER;
+      case 99 -> MediaGenres.DOCUMENTARY;
+      case 18 -> MediaGenres.DRAMA;
+      case 82 -> MediaGenres.EASTERN;
+      case 2916 -> MediaGenres.EROTIC;
+      case 10751 -> MediaGenres.FAMILY;
+      case 10750 -> MediaGenres.FAN_FILM;
+      case 14 -> MediaGenres.FANTASY;
+      case 10753 -> MediaGenres.FILM_NOIR;
+      case 10769 -> MediaGenres.FOREIGN;
+      case 36 -> MediaGenres.HISTORY;
+      case 10595 -> MediaGenres.HOLIDAY;
+      case 27 -> MediaGenres.HORROR;
+      case 10756 -> MediaGenres.INDIE;
+      case 10402 -> MediaGenres.MUSIC;
+      case 22 -> MediaGenres.MUSICAL;
+      case 9648 -> MediaGenres.MYSTERY;
+      case 10754 -> MediaGenres.NEO_NOIR;
+      case 10763 -> MediaGenres.NEWS;
+      case 10764 -> MediaGenres.REALITY_TV;
+      case 1115 -> MediaGenres.ROAD_MOVIE;
+      case 10749 -> MediaGenres.ROMANCE;
+      case 878, 10765 -> MediaGenres.SCIENCE_FICTION;
+      case 10755 -> MediaGenres.SHORT;
+      case 10766 -> MediaGenres.SOAP;
+      case 9805 -> MediaGenres.SPORT;
+      case 10758 -> MediaGenres.SPORTING_EVENT;
+      case 10757 -> MediaGenres.SPORTS_FILM;
+      case 10748 -> MediaGenres.SUSPENSE;
+      case 10767 -> MediaGenres.TALK_SHOW;
+      case 10770 -> MediaGenres.TV_MOVIE;
+      case 53 -> MediaGenres.THRILLER;
+      case 10752, 10768 -> MediaGenres.WAR;
+      case 37 -> MediaGenres.WESTERN;
+      default -> null;
+    };
     if (g == null) {
       g = MediaGenres.getGenre(genre.name);
     }
@@ -453,6 +333,21 @@ abstract class TmdbMetadataProvider implements IMediaProvider {
       if (ids.tvrage_id != null && ids.tvrage_id > 0) {
         ret.put(MediaMetadata.TVRAGE, ids.tvrage_id);
       }
+      if (StringUtils.isNotBlank(ids.facebook_id)) {
+        ret.put("facebook", ids.facebook_id);
+      }
+      if (StringUtils.isNotBlank(ids.instagram_id)) {
+        ret.put("instagram", ids.instagram_id);
+      }
+      if (StringUtils.isNotBlank(ids.twitter_id)) {
+        ret.put("twitter", ids.twitter_id);
+      }
+      if (StringUtils.isNotBlank(ids.tiktok_id)) {
+        ret.put("tiktok", ids.tiktok_id);
+      }
+      if (StringUtils.isNotBlank(ids.youtube_id)) {
+        ret.put("youtube", ids.youtube_id);
+      }
     }
     return ret;
   }
@@ -460,8 +355,8 @@ abstract class TmdbMetadataProvider implements IMediaProvider {
   /**
    * tmdb works better if we send a "real" language tag (containing language AND country); since we have only the language tag we do the same hack as
    * described in the tmdb api (By default, a bare ISO-639-1 language will default to its matching pair, ie. pt-PT - source
-   * https://developers.themoviedb.org/3/getting-started/languages), but without the bug they have ;)
-   * 
+   * <a href="https://developers.themoviedb.org/3/getting-started/languages">TMDB</a>), but without the bug they have ;)
+   *
    * @param language
    *          the {@link MediaLanguages} to parse
    * @return a {@link String} containing the language and country code
@@ -572,32 +467,11 @@ abstract class TmdbMetadataProvider implements IMediaProvider {
 
       try {
 
-        Response<PersonExternalIds> response = api.peopleService().externalIds(tmdbId).execute();
+        Response<ExternalIds> response = api.peopleService().externalIds(tmdbId).execute();
         if (response.isSuccessful() && response.body() != null) {
-          PersonExternalIds ids = response.body();
-          if (StringUtils.isNotBlank(ids.imdb_id)) {
-            person.setId(MediaMetadata.IMDB, ids.imdb_id);
-          }
-          if (StringUtils.isNotBlank(ids.facebook_id)) {
-            person.setId("facebook", ids.facebook_id);
-          }
-          if (StringUtils.isNotBlank(ids.instagram_id)) {
-            person.setId("instagram", ids.instagram_id);
-          }
-          if (StringUtils.isNotBlank(ids.twitter_id)) {
-            person.setId("twitter", ids.twitter_id);
-          }
-          if (StringUtils.isNotBlank(ids.tiktok_id)) {
-            person.setId("tiktok", ids.tiktok_id);
-          }
-          if (StringUtils.isNotBlank(ids.youtube_id)) {
-            person.setId("youtube", ids.youtube_id);
-          }
-          if (StringUtils.isNotBlank(ids.wikidata_id)) {
-            person.setId(MediaMetadata.WIKIDATA, ids.wikidata_id);
-          }
-          if (ids.tvrage_id != null && ids.tvrage_id > 0) {
-            person.setId("tvrage", ids.tvrage_id);
+          Map<String, Object> ids = parseExternalIDs(response.body());
+          for (Map.Entry<String, Object> entry : ids.entrySet()) {
+            person.setId(entry.getKey(), entry.getValue());
           }
         }
       }

@@ -6,6 +6,7 @@ x [UI] darken the foreground of inactive dialogs/windows
 x [UI] fixed layouting of the task list dialog
 x [UI] added a reasonable minimum size for every dialog
 x [IMDB] refresh rating data once per day
+x [TMDB] fetch more ID types for movies/TV shows and cast/crew members
 x [Library] upgraded libmediainfo to 26.05
 x [Scraper] Fernsehserien.de - ignore unavailable cast/crew
 x [Trailer] fix downloading TvShow trailers #3283 thx @gamebeaker

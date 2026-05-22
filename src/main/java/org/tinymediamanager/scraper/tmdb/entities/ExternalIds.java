@@ -13,5 +13,6 @@ public class ExternalIds {
   public String  facebook_id;
   public String  instagram_id;
   public String  twitter_id;
-
+  public String  tiktok_id;
+  public String  youtube_id;
 }

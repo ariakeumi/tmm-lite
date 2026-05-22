@@ -208,12 +208,10 @@ public class TvShowInformationPanel extends InformationPanel {
         // other IDs
         panelOtherIds.removeAll();
         for (String key : tvShow.getIds().keySet()) {
-          // all but IMDB and TVDB
-          if (MediaMetadata.IMDB.equals(key) || MediaMetadata.TVDB.equals(key)) {
-            continue;
+          // we want at max the TMDB id here, since we're collecting too many ids now...
+          if (MediaMetadata.TMDB.equals(key)) {
+            panelOtherIds.add(new IdLinkPanel(key, tvShow));
           }
-
-          panelOtherIds.add(new IdLinkPanel(key, tvShow));
         }
         panelOtherIds.invalidate();
         panelOtherIds.repaint();
