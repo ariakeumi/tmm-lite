@@ -74,7 +74,7 @@ public class MediaTrailer extends AbstractModelObject implements Comparable<Medi
   }
 
   public String getUrl() {
-    return url;
+    return url == null ? "" : url; // just in case
   }
 
   public void setUrl(String newValue) {

@@ -49,15 +49,15 @@ public abstract class TrailerDownloadTask extends DownloadTask {
       return;
     }
 
-    String url = mediaTrailer.getUrl(); // null, empty
+    String url = mediaTrailer.getUrl();
 
     // we cannot download from Apple Trailer anymore (closed on 01.09.2023)
-    if (url != null && url.contains("trailers.apple.com")) {
+    if (url.contains("trailers.apple.com")) {
       LOGGER.warn("Could not download trailer: Apple Trailers has been shut down on 01.09.2023");
       return;
     }
 
-    if (url != null && !url.startsWith("http")) {
+    if (!url.startsWith("http")) {
       // we have an ID - lets check if it is a known one:
       String id = mediaTrailer.getId();
       if (!id.matches("vi\\d+")) { // IMDB
