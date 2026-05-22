@@ -45,19 +45,19 @@ public abstract class TrailerDownloadTask extends DownloadTask {
 
   @Override
   protected void doInBackground() {
-    if (!isFeatureEnabled() || StringUtils.isBlank(mediaTrailer.getUrl())) {
+    if (!isFeatureEnabled()) {
       return;
     }
 
-    String url = mediaTrailer.getUrl();
+    String url = mediaTrailer.getUrl(); // null, empty
 
     // we cannot download from Apple Trailer anymore (closed on 01.09.2023)
-    if (url.contains("trailers.apple.com")) {
+    if (url != null && url.contains("trailers.apple.com")) {
       LOGGER.warn("Could not download trailer: Apple Trailers has been shut down on 01.09.2023");
       return;
     }
 
-    if (!url.startsWith("http")) {
+    if (url != null && !url.startsWith("http")) {
       // we have an ID - lets check if it is a known one:
       String id = mediaTrailer.getId();
       if (!id.matches("vi\\d+")) { // IMDB
@@ -76,6 +76,10 @@ public abstract class TrailerDownloadTask extends DownloadTask {
       this.url = url;
     }
 
+    if (StringUtils.isBlank(url)) {
+      // NOW we can return if empty
+      return;
+    }
     super.doInBackground();
   }
 
