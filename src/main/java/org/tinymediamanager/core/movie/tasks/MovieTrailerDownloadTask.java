@@ -19,9 +19,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
-import java.util.regex.Matcher;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -124,16 +122,10 @@ public class MovieTrailerDownloadTask extends TmmTask {
         continue;
       }
 
-      // skip local files - we only want to download online trailers
-      if (StringUtils.isNotBlank(url) && !url.toLowerCase(Locale.ROOT).startsWith("http")) {
-        continue;
-      }
-
       try {
         LOGGER.debug("try to download trailer '{}'", trailer);
 
-        Matcher matcher = Utils.YOUTUBE_PATTERN.matcher(url);
-        if (matcher.matches()) {
+        if (StringUtils.isNotBlank(url) && Utils.YOUTUBE_PATTERN.matcher(url).matches()) {
           task = new YtDownloadTask(trailer, desiredQuality, MovieModuleManager.getInstance().getSettings().isUseYtDlp()) {
             @Override
             protected Path getDestinationWoExtension() {

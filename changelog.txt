@@ -8,6 +8,7 @@ x [UI] added a reasonable minimum size for every dialog
 x [IMDB] refresh rating data once per day
 x [Library] upgraded libmediainfo to 26.05
 x [Scraper] Fernsehserien.de - ignore unavailable cast/crew
+x [Trailer] fix downloading TvShow trailers #3283 thx @gamebeaker
 
 
 Version 5.2.12
