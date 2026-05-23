@@ -86,10 +86,6 @@ public class TvShowSubtitleSearchAndDownloadTask extends TmmThreadPool {
 
   @Override
   protected void doInBackground() {
-    if (!isFeatureEnabled()) {
-      return;
-    }
-
     LOGGER.info("Downloading subtitles for {} episodes", episodes.size());
 
     initThreadPool(3, "searchAndDownloadSubtitles");

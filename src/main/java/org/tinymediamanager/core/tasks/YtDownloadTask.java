@@ -112,10 +112,6 @@ public abstract class YtDownloadTask extends TmmTask {
 
   @Override
   protected void doInBackground() {
-    if (!isFeatureEnabled()) {
-      return;
-    }
-
     try {
       YtDownloader downloader = YtDownloader.getInstance();
 

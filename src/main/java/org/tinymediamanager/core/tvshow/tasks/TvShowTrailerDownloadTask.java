@@ -65,10 +65,6 @@ public class TvShowTrailerDownloadTask extends TmmTask {
 
   @Override
   protected void doInBackground() {
-    if (!isFeatureEnabled()) {
-      return;
-    }
-
     Set<MediaTrailer> trailers = new LinkedHashSet<>();
 
     // prepare the list of desired trailers

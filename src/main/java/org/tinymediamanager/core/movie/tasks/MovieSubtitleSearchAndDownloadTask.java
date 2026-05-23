@@ -90,10 +90,6 @@ public class MovieSubtitleSearchAndDownloadTask extends TmmThreadPool {
 
   @Override
   protected void doInBackground() {
-    if (!isFeatureEnabled()) {
-      return;
-    }
-
     LOGGER.info("Downloading subtitles for {} movies", movies.size());
 
     initThreadPool(3, "searchAndDownloadSubtitles");
