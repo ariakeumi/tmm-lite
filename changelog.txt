@@ -1,5 +1,7 @@
 Version 5.2.13
 =======================
++ [HTTP API] added the new scope parameter "path" to provide more control over the scope of the API calls #3269
+---
 x [Movies, TV shows] make checksum calculation abortable
 x [Movies, TV shows] enhanced parsing of media information (subtitle types and additional data)
 x [UI] darken the foreground of inactive dialogs/windows

@@ -65,6 +65,16 @@ public class TvShowUpdateDatasourceTaskTest extends BasicTvShowTest {
     check();
   }
 
+  @Test
+  public void udsFolder() throws Exception {
+    TvShowUpdateDatasourceTask task = new TvShowUpdateDatasourceTask(List.of(getWorkFolder().resolve("testtvshows").resolve("Breaking Bad")));
+    task.run();
+
+    TvShowList tvShowList = TvShowModuleManager.getInstance().getTvShowList();
+    assertThat(tvShowList.getTvShows()).hasSize(1);
+    assertThat(tvShowList.getTvShows().get(0).getTitle()).isEqualTo("Breaking Bad");
+  }
+
   private void check() throws Exception {
     TvShowList tvShowList = TvShowModuleManager.getInstance().getTvShowList();
 

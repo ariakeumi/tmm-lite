@@ -109,7 +109,7 @@ class MovieCommandTask extends TmmThreadPool {
   }
 
   private void updateDataSources() {
-    Set<String> dataSources = new TreeSet<>();
+    Set<Path> dataSources = new TreeSet<>();
     List<Movie> existingMovies = new ArrayList<>(movieList.getMovies());
 
     for (AbstractCommandHandler.Command command : commands) {
@@ -137,8 +137,8 @@ class MovieCommandTask extends TmmThreadPool {
     }
   }
 
-  private List<String> getDataSourcesForScope(CommandScope scope) {
-    List<String> dataSources = new ArrayList<>();
+  private Set<Path> getDataSourcesForScope(CommandScope scope) {
+    Set<Path> dataSources = new TreeSet<>();
 
     if (StringUtils.isBlank(scope.name)) {
       scope.name = "all";
@@ -146,7 +146,11 @@ class MovieCommandTask extends TmmThreadPool {
 
     switch (scope.name) {
       case "all":
-        dataSources.addAll(movieSettings.getMovieDataSource());
+        for (String datasource : movieSettings.getMovieDataSource()) {
+          if (StringUtils.isNotBlank(datasource)) {
+            dataSources.add(Paths.get(datasource).toAbsolutePath());
+          }
+        }
         break;
 
       case "single":
@@ -154,13 +158,19 @@ class MovieCommandTask extends TmmThreadPool {
           try {
             int i = Integer.parseInt(index);
             if (movieSettings.getMovieDataSource().size() >= i - 1) {
-              dataSources.add(movieSettings.getMovieDataSource().get(i - 1));
+              dataSources.add(Paths.get(movieSettings.getMovieDataSource().get(i - 1)).toAbsolutePath());
             }
 
           }
           catch (Exception e) {
             LOGGER.debug("Could not parse data source index from command - '{}'", e.getMessage());
           }
+        }
+        break;
+
+      case "path":
+        for (String path : ListUtils.nullSafe(Arrays.asList(scope.args))) {
+          dataSources.add(Paths.get(path.strip()).toAbsolutePath());
         }
         break;
 

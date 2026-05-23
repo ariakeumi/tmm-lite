@@ -122,8 +122,7 @@ class TvShowCommandTask extends TmmThreadPool {
   }
 
   private void updateDataSources() {
-    Set<String> dataSources = new TreeSet<>();
-    Set<TvShow> tvShowFolders = new HashSet<>();
+    Set<Path> dataSources = new TreeSet<>();
 
     List<TvShow> existingTvShows = new ArrayList<>(tvShowList.getTvShows());
     List<TvShowEpisode> existingEpisodes = new ArrayList<>();
@@ -134,7 +133,6 @@ class TvShowCommandTask extends TmmThreadPool {
     for (AbstractCommandHandler.Command command : commands) {
       if ("update".equals(command.action)) {
         dataSources.addAll(getDataSourcesForScope(command.scope));
-        tvShowFolders.addAll(getTvShowFoldersForScope(command.scope));
       }
     }
 
@@ -143,17 +141,6 @@ class TvShowCommandTask extends TmmThreadPool {
       publishState(TmmResourceBundle.getString("update.datasource"), getProgressDone());
 
       activeTask = new TvShowUpdateDatasourceTask(dataSources);
-      activeTask.run(); // blocking
-
-      // done
-      activeTask = null;
-    }
-
-    if (!tvShowFolders.isEmpty()) {
-      setTaskName(TmmResourceBundle.getString("update.datasource"));
-      publishState(TmmResourceBundle.getString("update.datasource"), getProgressDone());
-
-      activeTask = new TvShowUpdateDatasourceTask(new ArrayList<>(tvShowFolders));
       activeTask.run(); // blocking
 
       // done
@@ -174,8 +161,8 @@ class TvShowCommandTask extends TmmThreadPool {
     }
   }
 
-  private List<String> getDataSourcesForScope(CommandScope scope) {
-    List<String> dataSources = new ArrayList<>();
+  private Set<Path> getDataSourcesForScope(CommandScope scope) {
+    Set<Path> dataSources = new TreeSet<>();
 
     if (StringUtils.isBlank(scope.name)) {
       scope.name = "all";
@@ -183,7 +170,11 @@ class TvShowCommandTask extends TmmThreadPool {
 
     switch (scope.name) {
       case "all":
-        dataSources.addAll(tvShowSettings.getTvShowDataSource());
+        for (String datasource : tvShowSettings.getTvShowDataSource()) {
+          if (StringUtils.isNotBlank(datasource)) {
+            dataSources.add(Paths.get(datasource).toAbsolutePath());
+          }
+        }
         break;
 
       case "single":
@@ -191,13 +182,30 @@ class TvShowCommandTask extends TmmThreadPool {
           try {
             int i = Integer.parseInt(index);
             if (tvShowSettings.getTvShowDataSource().size() >= i - 1) {
-              dataSources.add(tvShowSettings.getTvShowDataSource().get(i - 1));
+              dataSources.add(Paths.get(tvShowSettings.getTvShowDataSource().get(i - 1)).toAbsolutePath());
             }
 
           }
           catch (Exception e) {
             LOGGER.debug("Could not parse index from command - {}", e.getMessage());
           }
+        }
+        break;
+
+      case "show":
+        for (String path : ListUtils.nullSafe(Arrays.asList(scope.args))) {
+          for (TvShow tvShow : tvShowList.getTvShows()) {
+            if (tvShow.getPathNIO().toAbsolutePath().toString().equals(path)) {
+              dataSources.add(tvShow.getPathNIO().toAbsolutePath());
+              break;
+            }
+          }
+        }
+        break;
+
+      case "path":
+        for (String path : ListUtils.nullSafe(Arrays.asList(scope.args))) {
+          dataSources.add(Paths.get(path.strip()).toAbsolutePath());
         }
         break;
 
@@ -245,25 +253,6 @@ class TvShowCommandTask extends TmmThreadPool {
         }
       }
     }
-  }
-
-  private List<TvShow> getTvShowFoldersForScope(CommandScope scope) {
-    List<TvShow> tvShows = new ArrayList<>();
-
-    switch (scope.name) {
-      case "show":
-        for (String path : ListUtils.nullSafe(Arrays.asList(scope.args))) {
-          for (TvShow tvShow : tvShowList.getTvShows()) {
-            if (tvShow.getPathNIO().toAbsolutePath().toString().equals(path)) {
-              tvShows.add(tvShow);
-              break;
-            }
-          }
-        }
-        break;
-    }
-
-    return tvShows;
   }
 
   private void scrape() {

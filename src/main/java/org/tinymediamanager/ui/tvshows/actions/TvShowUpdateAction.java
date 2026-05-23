@@ -16,6 +16,8 @@
 package org.tinymediamanager.ui.tvshows.actions;
 
 import java.awt.event.ActionEvent;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -51,7 +53,14 @@ public class TvShowUpdateAction extends TmmAction {
       return;
     }
 
-    TmmThreadPool task = new TvShowUpdateDatasourceTask(selectedTvShows);
+    List<Path> foldersToUpdate = new ArrayList<>();
+    for (TvShow tvShow : selectedTvShows) {
+      if (tvShow.getPath() != null) {
+        foldersToUpdate.add(tvShow.getPathNIO());
+      }
+    }
+
+    TmmThreadPool task = new TvShowUpdateDatasourceTask(foldersToUpdate);
     TmmTaskManager.getInstance().addMainTask(task);
   }
 }

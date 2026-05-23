@@ -16,6 +16,8 @@
 package org.tinymediamanager.ui.moviesets.actions;
 
 import java.awt.event.ActionEvent;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.tinymediamanager.core.TmmResourceBundle;
@@ -47,7 +49,14 @@ public class MovieSetUpdateMovieAction extends TmmAction {
       return;
     }
 
-    TmmThreadPool task = new MovieUpdateDatasourceTask(selectedMovies);
+    List<Path> foldersToUpdate = new ArrayList<>();
+    for (Movie movie : selectedMovies) {
+      if (movie.getPath() != null) {
+        foldersToUpdate.add(movie.getPathNIO());
+      }
+    }
+
+    TmmThreadPool task = new MovieUpdateDatasourceTask(foldersToUpdate);
     TmmTaskManager.getInstance().addMainTask(task);
   }
 }

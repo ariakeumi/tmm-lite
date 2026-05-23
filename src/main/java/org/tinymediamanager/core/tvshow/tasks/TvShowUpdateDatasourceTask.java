@@ -80,6 +80,7 @@ import org.tinymediamanager.core.tvshow.TvShowEpisodeAndSeasonParser.EpisodeMatc
 import org.tinymediamanager.core.tvshow.TvShowHelpers;
 import org.tinymediamanager.core.tvshow.TvShowList;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
+import org.tinymediamanager.core.tvshow.TvShowSettings;
 import org.tinymediamanager.core.tvshow.connector.TvShowEpisodeNfoParser;
 import org.tinymediamanager.core.tvshow.connector.TvShowEpisodeNfoParser.Episode;
 import org.tinymediamanager.core.tvshow.connector.TvShowNfoParser;
@@ -109,84 +110,64 @@ import org.tinymediamanager.thirdparty.trakttv.TvShowSyncTraktTvTask;
  */
 
 public class TvShowUpdateDatasourceTask extends TmmThreadPool {
-  private static final Logger                    LOGGER         = LoggerFactory.getLogger(TvShowUpdateDatasourceTask.class);
+  private static final Logger                    LOGGER          = LoggerFactory.getLogger(TvShowUpdateDatasourceTask.class);
 
   // skip well-known, but unneeded folders (UPPERCASE)
-  private static final List<String>              SKIP_FOLDERS   = Arrays.asList(".", "..", "CERTIFICATE", "$RECYCLE.BIN", "RECYCLER",
+  private static final List<String>              SKIP_FOLDERS    = Arrays.asList(".", "..", "CERTIFICATE", "$RECYCLE.BIN", "RECYCLER",
       "SYSTEM VOLUME INFORMATION", "@EADIR", "ADV_OBJ", "EXTRATHUMB", "PLEX VERSIONS");
 
   // skip folders starting with a SINGLE "." or "._"
-  private static final String                    SKIP_REGEX     = "^[.][\\w@]+.*";
+  private static final String                    SKIP_REGEX      = "^[.][\\w@]+.*";
 
-  private static long                            preDir         = 0;
-  private static long                            postDir        = 0;
-  private static long                            visFile        = 0;
+  private static long                            preDir          = 0;
+  private static long                            postDir         = 0;
+  private static long                            visFile         = 0;
 
-  private final List<String>                     dataSources    = new ArrayList<>();
-  private final List<Pattern>                    skipFolders    = new ArrayList<>();
-  private final List<TvShow>                     showsToUpdate  = new ArrayList<>();
   private final TvShowList                       tvShowList;
-  private final Set<Path>                        filesFound     = new HashSet<>();
-  private final Map<String, BasicFileAttributes> fileAttributes = new HashMap<>();
-  private final ReentrantReadWriteLock           fileLock       = new ReentrantReadWriteLock();
+  private final TvShowSettings                   settings;
 
-  /**
-   * Instantiates a new scrape task - to update all datasources
-   * 
-   */
-  public TvShowUpdateDatasourceTask() {
-    super(TmmResourceBundle.getString("update.datasource"));
-    this.tvShowList = TvShowModuleManager.getInstance().getTvShowList();
-    this.dataSources.addAll(TvShowModuleManager.getInstance().getSettings().getTvShowDataSource());
+  private final List<Path>                       dataSources     = new ArrayList<>();
+  private final List<Path>                       foldersToUpdate = new ArrayList<>();
 
-    init();
-  }
+  private final List<Pattern>                    skipFolders     = new ArrayList<>();
+  private final Set<Path>                        filesFound      = new HashSet<>();
+  private final Map<String, BasicFileAttributes> fileAttributes  = new HashMap<>();
+  private final ReentrantReadWriteLock           fileLock        = new ReentrantReadWriteLock();
 
   /**
    * Instantiates a new scrape task - to update a single datasource
-   * 
-   * @param datasource
-   *          the data source to start the task for
    */
-  public TvShowUpdateDatasourceTask(String datasource) {
-    super(TmmResourceBundle.getString("update.datasource") + " (" + datasource + ")");
-    this.tvShowList = TvShowModuleManager.getInstance().getTvShowList();
-    this.dataSources.add(datasource);
+  public TvShowUpdateDatasourceTask() {
+    super(TmmResourceBundle.getString("update.datasource"));
+    tvShowList = TvShowModuleManager.getInstance().getTvShowList();
+    settings = TvShowModuleManager.getInstance().getSettings();
 
-    init();
+    List<Path> foldersToUpdate = new ArrayList<>();
+    for (String ds : settings.getTvShowDataSource()) {
+      if (StringUtils.isNotBlank(ds)) {
+        foldersToUpdate.add(Paths.get(ds));
+      }
+    }
+
+    init(foldersToUpdate);
   }
 
   /**
    * Instantiates a new scrape task - to update a single datasource
    *
-   * @param datasources
+   * @param folders
    *          the data sources to start the task for
    */
-  public TvShowUpdateDatasourceTask(Collection<String> datasources) {
-    this(datasources, Collections.emptyList());
-  }
-
-  /**
-   * Instantiates a new scrape task - to update given tv shows
-   * 
-   * @param tvShowFolders
-   *          a list of TV show folders to start the task for
-   */
-  public TvShowUpdateDatasourceTask(List<TvShow> tvShowFolders) {
-    this(Collections.emptyList(), tvShowFolders);
-  }
-
-  private TvShowUpdateDatasourceTask(Collection<String> dataSources, List<TvShow> tvShowFolders) {
+  public TvShowUpdateDatasourceTask(@NotNull Collection<Path> folders) {
     super(TmmResourceBundle.getString("update.datasource"));
-    this.tvShowList = TvShowModuleManager.getInstance().getTvShowList();
-    this.dataSources.addAll(dataSources);
-    this.showsToUpdate.addAll(tvShowFolders);
+    tvShowList = TvShowModuleManager.getInstance().getTvShowList();
+    settings = TvShowModuleManager.getInstance().getSettings();
 
-    init();
+    init(folders);
   }
 
-  private void init() {
-    for (String skipFolder : TvShowModuleManager.getInstance().getSettings().getSkipFolder()) {
+  private void init(Collection<Path> folders) {
+    for (String skipFolder : settings.getSkipFolder()) {
       try {
         Pattern pattern = Pattern.compile(skipFolder);
         skipFolders.add(pattern);
@@ -203,13 +184,59 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
         }
       }
     }
+
+    if (folders == null || folders.isEmpty()) {
+      return;
+    }
+
+    // get all datasources from the settings
+    List<Path> datasourcesFromSettings = new ArrayList<>();
+    for (String ds : settings.getTvShowDataSource()) {
+      if (StringUtils.isNotBlank(ds)) {
+        datasourcesFromSettings.add(Paths.get(ds).normalize().toAbsolutePath());
+      }
+    }
+
+    // classify each folder
+    for (Path folder : ListUtils.nullSafe(folders)) {
+      Path normalizedFolder = folder.normalize().toAbsolutePath();
+
+      // check if the folder is exactly a datasource from the settings
+      if (datasourcesFromSettings.contains(normalizedFolder)) {
+        // put the datasource into the datasource list
+        if (!dataSources.contains(normalizedFolder)) {
+          dataSources.add(normalizedFolder);
+        }
+        continue;
+      }
+
+      // check if the folder is a subpath of any datasource
+      for (Path ds : datasourcesFromSettings) {
+        if (normalizedFolder.startsWith(ds) && !normalizedFolder.equals(ds)) {
+          // it is a subfolder of this datasource
+          // if the parent datasource is already in the datasource list, skip
+          if (dataSources.contains(ds)) {
+            break;
+          }
+
+          // otherwise, put the first child folder of the datasource into folderToUpdate
+          Path relativePath = ds.relativize(normalizedFolder);
+          Path firstChild = ds.resolve(relativePath.getName(0));
+
+          if (!foldersToUpdate.contains(firstChild)) {
+            foldersToUpdate.add(firstChild);
+          }
+          break;
+        }
+      }
+      // not matching either condition -> silently skip this path
+    }
   }
 
   @Override
   public void doInBackground() {
     // check if there is at least one DS to update
-    Utils.removeEmptyStringsFromList(dataSources);
-    if (dataSources.isEmpty() && showsToUpdate.isEmpty()) {
+    if (dataSources.isEmpty() && foldersToUpdate.isEmpty()) {
       LOGGER.info("no datasource to update");
       MessageManager.getInstance().pushMessage(new Message(MessageLevel.ERROR, "update.datasource", "update.datasource.nonespecified"));
       return;
@@ -225,7 +252,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
       // here we have 2 ways of updating:
       // - per datasource -> update ds / remove orphaned / update MFs
       // - per TV show -> udpate TV show / update MFs
-      if (showsToUpdate.isEmpty()) {
+      if (!dataSources.isEmpty()) {
         // should we re-set all new flags?
         if (TvShowModuleManager.getInstance().getSettings().isResetNewFlagOnUds()) {
           for (TvShow tvShow : tvShowList.getTvShows()) {
@@ -238,18 +265,16 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
         }
 
         // update selected data sources
-        for (String ds : dataSources) {
-          Path dsAsPath = Paths.get(ds);
-
+        for (Path dsAsPath : dataSources) {
           // check the special case, that the data source is also an ignore folder
           if (isInSkipFolder(dsAsPath)) {
-            LOGGER.debug("datasource '{}' is also a skipfolder - skipping", ds);
+            LOGGER.debug("datasource '{}' is also a skipfolder - skipping", dsAsPath);
             continue;
           }
 
-          LOGGER.info("Starting \"update data sources\" on datasource: {}", ds);
+          LOGGER.info("Starting \"update data sources\" on datasource: {}", dsAsPath);
           initThreadPool(3, "update");
-          setTaskName(TmmResourceBundle.getString("update.datasource") + " '" + ds + "'");
+          setTaskName(TmmResourceBundle.getString("update.datasource") + " '" + dsAsPath + "'");
           publishState();
 
           // first of all check if the DS is available; we can take the
@@ -258,9 +283,10 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
           // true
           if (!Files.exists(dsAsPath)) {
             // error - continue with next datasource
-            LOGGER.warn("Datasource '{}' not available/empty", ds);
+            LOGGER.warn("Datasource '{}' not available/empty", dsAsPath);
             MessageManager.getInstance()
-                .pushMessage(new Message(MessageLevel.ERROR, "update.datasource", "update.datasource.unavailable", new String[] { ds }));
+                .pushMessage(
+                    new Message(MessageLevel.ERROR, "update.datasource", "update.datasource.unavailable", new String[] { dsAsPath.toString() }));
             continue;
           }
           publishState();
@@ -284,7 +310,8 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
             if (isEmpty) {
               // error - continue with next datasource
               MessageManager.getInstance()
-                  .pushMessage(new Message(MessageLevel.ERROR, "update.datasource", "update.datasource.unavailable", new String[] { ds }));
+                  .pushMessage(
+                      new Message(MessageLevel.ERROR, "update.datasource", "update.datasource.unavailable", new String[] { dsAsPath.toString() }));
               continue;
             }
           }
@@ -357,26 +384,29 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
           }
         } // end foreach datasource
       }
-      else { // for each selected show
-        LOGGER.info("Start \"update data sources\" for selected TV shows");
+
+      if (!foldersToUpdate.isEmpty()) { // for each selected show
+        LOGGER.info("Start \"update data sources\" for selected folders");
         initThreadPool(3, "update");
 
         // get distinct data sources
-        Set<String> showDatasources = new HashSet<>();
-        showsToUpdate.stream().filter(show -> !show.isLocked()).forEach(show -> showDatasources.add(show.getDataSource()));
+        Set<Path> showDatasources = new HashSet<>();
+        for (Path folder : foldersToUpdate) {
+          showDatasources.add(folder.getParent());
+        }
 
         List<TvShow> showsToCleanup = new ArrayList<>();
 
         // update shows grouped by data source
-        for (String ds : showDatasources) {
-          Path dsAsPath = Paths.get(ds);
+        for (Path dsAsPath : showDatasources) {
           // first of all check if the DS is available; we can take the
           // Files.exist here:
           // if the DS exists (and we have access to read it): Files.exist = true
           if (!Files.exists(dsAsPath)) {
             // error - continue with next datasource
             MessageManager.getInstance()
-                .pushMessage(new Message(MessageLevel.ERROR, "update.datasource", "update.datasource.unavailable", new String[] { ds }));
+                .pushMessage(
+                    new Message(MessageLevel.ERROR, "update.datasource", "update.datasource.unavailable", new String[] { dsAsPath.toString() }));
             continue;
           }
 
@@ -397,18 +427,28 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
             if (isEmpty) {
               // error - continue with next datasource
               MessageManager.getInstance()
-                  .pushMessage(new Message(MessageLevel.ERROR, "update.datasource", "update.datasource.unavailable", new String[] { ds }));
+                  .pushMessage(
+                      new Message(MessageLevel.ERROR, "update.datasource", "update.datasource.unavailable", new String[] { dsAsPath.toString() }));
               continue;
             }
           }
 
           // update selected TV shows
-          for (TvShow show : showsToUpdate) {
-            if (!show.getDataSource().equals(ds)) {
+          for (Path folder : foldersToUpdate) {
+            if (!folder.startsWith(dsAsPath)) {
               continue;
             }
-            showsToCleanup.add(show);
-            submitTask(new FindTvShowTask(show.getPathNIO(), Paths.get(ds)));
+
+            if (!rootList.contains(folder)) {
+              LOGGER.info("The given folder to update ({}) does not exist or is skipped", folder);
+              continue;
+            }
+
+            TvShow tvShow = tvShowList.getTvShowByPath(folder);
+            if (tvShow != null) {
+              showsToCleanup.add(tvShow);
+            }
+            submitTask(new FindTvShowTask(folder, dsAsPath));
           }
         }
         waitForCompletionOrCancel();
@@ -447,45 +487,48 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
       publishState();
 
       // gather MediaInformation for ALL shows - TBD
-      if (!cancel) {
-        if (showsToUpdate.isEmpty()) {
-          // get MI for selected DS
-          for (int i = tvShowList.getTvShows().size() - 1; i >= 0; i--) {
-            if (cancel) {
-              break;
-            }
-            TvShow tvShow = tvShowList.getTvShows().get(i);
-
-            // do not process locked TV shows
-            if (tvShow.isLocked() && !tvShow.isNewlyAdded()) {
-              continue;
-            }
-
-            if (dataSources.contains(tvShow.getDataSource())) {
-              gatherMediaInformationForUngatheredMediaFiles(tvShow);
-            }
-          }
-        }
-        else {
-          // get MI for selected TV shows
-          for (int i = tvShowList.getTvShows().size() - 1; i >= 0; i--) {
-            if (cancel) {
-              break;
-            }
-            TvShow tvShow = tvShowList.getTvShows().get(i);
-
-            // do not process locked TV shows
-            if (tvShow.isLocked() && !tvShow.isNewlyAdded()) {
-              continue;
-            }
-
-            if (showsToUpdate.contains(tvShow)) {
-              gatherMediaInformationForUngatheredMediaFiles(tvShow);
-            }
-          }
-        }
-        waitForCompletionOrCancel();
+      if (cancel) {
+        return;
       }
+
+      if (!dataSources.isEmpty()) {
+        // get MI for selected DS
+        for (int i = tvShowList.getTvShows().size() - 1; i >= 0; i--) {
+          if (cancel) {
+            break;
+          }
+          TvShow tvShow = tvShowList.getTvShows().get(i);
+
+          // do not process locked TV shows
+          if (tvShow.isLocked() && !tvShow.isNewlyAdded()) {
+            continue;
+          }
+
+          if (dataSources.contains(tvShow.getPathNIO().getParent())) {
+            gatherMediaInformationForUngatheredMediaFiles(tvShow);
+          }
+        }
+      }
+
+      if (!foldersToUpdate.isEmpty()) {
+        // get MI for selected TV shows
+        for (int i = tvShowList.getTvShows().size() - 1; i >= 0; i--) {
+          if (cancel) {
+            break;
+          }
+          TvShow tvShow = tvShowList.getTvShows().get(i);
+
+          // do not process locked TV shows
+          if (tvShow.isLocked() && !tvShow.isNewlyAdded()) {
+            continue;
+          }
+
+          if (foldersToUpdate.contains(tvShow.getPathNIO())) {
+            gatherMediaInformationForUngatheredMediaFiles(tvShow);
+          }
+        }
+      }
+      waitForCompletionOrCancel();
 
       if (cancel) {
         return;
@@ -687,7 +730,6 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
    */
   private class FindTvShowTask implements Callable<Object> {
     private final Path          showDir;
-    private final Path          datasource;
     private final long          uniqueId;
     private final List<Pattern> extraMfFiletypePatterns;
 
@@ -701,7 +743,6 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
      */
     public FindTvShowTask(Path showDir, Path datasource) {
       this.showDir = showDir;
-      this.datasource = datasource;
       this.uniqueId = TmmTaskManager.getInstance().GLOB_THRD_CNT.incrementAndGet();
 
       this.extraMfFiletypePatterns = new ArrayList<>();
@@ -839,7 +880,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
         }
 
         tvShow.setPath(showDir.toAbsolutePath().toString());
-        tvShow.setDataSource(datasource.toString());
+        tvShow.setDataSource(showDir.getParent().toAbsolutePath().toString());
         tvShow.setNewlyAdded(true);
         tvShowList.addTvShow(tvShow);
       }

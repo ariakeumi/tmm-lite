@@ -44,6 +44,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
+import org.apache.commons.lang3.StringUtils;
 import org.h2.mvstore.MVStoreException;
 import org.jdesktop.beansbinding.ELProperty;
 import org.slf4j.Logger;
@@ -234,7 +235,14 @@ public final class TinyMediaManager {
                     TmmTaskManager.getInstance().addMainTask(task);
                   }
                   if (!TvShowModuleManager.getInstance().getSettings().getTvShowDataSource().isEmpty()) {
-                    TmmThreadPool task = new TvShowUpdateDatasourceTask();
+                    List<Path> foldersToUpdate = new ArrayList<>();
+                    for (String ds : TvShowModuleManager.getInstance().getSettings().getTvShowDataSource()) {
+                      if (StringUtils.isNotBlank(ds)) {
+                        foldersToUpdate.add(Paths.get(ds));
+                      }
+                    }
+
+                    TmmThreadPool task = new TvShowUpdateDatasourceTask(foldersToUpdate);
                     TmmTaskManager.getInstance().addMainTask(task);
                   }
                 }

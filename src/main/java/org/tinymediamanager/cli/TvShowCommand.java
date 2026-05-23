@@ -172,7 +172,7 @@ class TvShowCommand implements Runnable {
       if (ListUtils.isNotEmpty(dataSources)) {
         for (Integer i : datasource.indices) {
           if (dataSources.size() >= i - 1) {
-            Runnable task = new TvShowUpdateDatasourceTask(dataSources.get(i - 1));
+            Runnable task = new TvShowUpdateDatasourceTask(List.of(Paths.get(dataSources.get(i - 1))));
             task.run(); // blocking
           }
         }

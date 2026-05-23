@@ -16,6 +16,8 @@
 package org.tinymediamanager.ui.tvshows.actions;
 
 import java.awt.event.ActionEvent;
+import java.nio.file.Paths;
+import java.util.List;
 
 import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.core.threading.TmmThreadPool;
@@ -40,7 +42,7 @@ public class TvShowUpdateSingleDatasourceAction extends TmmAction {
 
   @Override
   protected void processAction(ActionEvent e) {
-    TmmThreadPool task = new TvShowUpdateDatasourceTask(datasource);
+    TmmThreadPool task = new TvShowUpdateDatasourceTask(List.of(Paths.get(datasource)));
     TmmTaskManager.getInstance().addMainTask(task);
   }
 }

@@ -16,6 +16,8 @@
 
 package org.tinymediamanager.core.movie.tasks;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.nio.file.Path;
 import java.util.List;
 
@@ -27,6 +29,7 @@ import org.tinymediamanager.core.TmmModuleManager;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.movie.BasicMovieTest;
 import org.tinymediamanager.core.movie.MovieComparator;
+import org.tinymediamanager.core.movie.MovieList;
 import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.entities.Movie;
 
@@ -69,6 +72,15 @@ public class MovieUpdateDatasourceTaskTest extends BasicMovieTest {
     task.run();
 
     showEntries();
+  }
+
+  @Test
+  public void udsFolder() throws Exception {
+    MovieUpdateDatasourceTask task = new MovieUpdateDatasourceTask(List.of(getWorkFolder().resolve("testmovies").resolve("Harry Potter")));
+    task.run();
+
+    MovieList movieList = MovieModuleManager.getInstance().getMovieList();
+    assertThat(movieList.getMovies()).hasSize(4);
   }
 
   private void showEntries() throws Exception {
