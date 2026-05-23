@@ -70,10 +70,10 @@ class ImdbWorker implements Callable<Document> {
       url = new InMemoryCachedUrl(urlWithHeader);
 
       Path cookieFile = Paths.get(Globals.DATA_FOLDER, "imdb-cookies.txt");
-      if (Files.exists(cookieFile)) {
+      if (StringUtils.isBlank(cookie) && Files.exists(cookieFile)) {
         String token = CookieFileParser.parseCookieValue(cookieFile, decode("YXdzLXdhZi10b2tlbg==")).orElse("");
         if (StringUtils.isNotBlank(token)) {
-          url.addHeader("Cookie", decode("YXdzLXdhZi10b2tlbg==") + "=" + token);
+          cookie = decode("YXdzLXdhZi10b2tlbg==") + "=" + token;
         }
       }
 

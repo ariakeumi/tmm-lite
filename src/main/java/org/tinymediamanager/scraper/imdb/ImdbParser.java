@@ -355,17 +355,17 @@ abstract class ImdbParser {
     LOGGER.debug("========= BEGIN IMDB Scraper Search for: {}", searchTerm);
 
     // advanced search is blocked - skip it for now
-    // try {
-    // results.addAll(getSearchResultsAdvanced(searchTerm, options));
-    // }
-    // catch (InterruptedException | InterruptedIOException e) {
-    // // do not swallow these Exceptions
-    // Thread.currentThread().interrupt();
-    // }
-    // catch (Exception e) {
-    // LOGGER.debug("Error fetching advanced search via JSON", e.getMessage());
-    // // do not throw here YET
-    // }
+    try {
+      results.addAll(getSearchResultsAdvanced(searchTerm, options));
+    }
+    catch (InterruptedException | InterruptedIOException e) {
+      // do not swallow these Exceptions
+      Thread.currentThread().interrupt();
+    }
+    catch (Exception e) {
+      LOGGER.debug("Error fetching advanced search via JSON", e.getMessage());
+      // do not throw here YET
+    }
 
     // 2) exception? empty? Try basic search (has fuzzy search)
     if (results.isEmpty()) {
