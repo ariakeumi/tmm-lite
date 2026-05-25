@@ -155,7 +155,7 @@ public class TmmOsUtils {
 
         if (Files.exists(nativeDir) && !Utils.isFolderEmpty(nativeDir)) {
           if (StringUtils.isNotBlank(jnaLibraryPath)) {
-            jnaLibraryPath += ",";
+            jnaLibraryPath += ":";
           }
           jnaLibraryPath += nativeDir.getFileName().toString();
           // System.setProperty("jna.library.path", nativeDir.toString());
@@ -174,7 +174,7 @@ public class TmmOsUtils {
 
     // also add the shipped native folder
     if (StringUtils.isNotBlank(jnaLibraryPath)) {
-      jnaLibraryPath += ",";
+      jnaLibraryPath += ":";
     }
 
     jnaLibraryPath += tmmNativeDir.toString();
