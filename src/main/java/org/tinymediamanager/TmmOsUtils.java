@@ -140,7 +140,11 @@ public class TmmOsUtils {
     String nativepath = getNativeFolderName();
     Path tmmNativeDir = Paths.get(nativepath).toAbsolutePath();
 
-    boolean loaded = false;
+    // use user-defined JNA folder
+    String jnaLibraryPath = System.getProperty("jna.library.path");
+    if (jnaLibraryPath == null) {
+      jnaLibraryPath = "";
+    }
 
     // copy and load the native libs to the temp dir to avoid unforseeable issues - Windows only
     if (SystemUtils.IS_OS_WINDOWS) {
@@ -150,15 +154,17 @@ public class TmmOsUtils {
         Utils.copyDirectoryRecursive(tmmNativeDir, nativeDir);
 
         if (Files.exists(nativeDir) && !Utils.isFolderEmpty(nativeDir)) {
-          System.setProperty("jna.library.path", nativeDir.toString());
+          if (StringUtils.isNotBlank(jnaLibraryPath)) {
+            jnaLibraryPath += ",";
+          }
+          jnaLibraryPath += nativeDir.getFileName().toString();
+          // System.setProperty("jna.library.path", nativeDir.toString());
           LOGGER.debug("Loading native libs from: {}", nativeDir);
         }
         else {
           // to enter the fallback
           throw new FileNotFoundException(nativeDir.toString());
         }
-
-        loaded = true;
       }
       catch (Exception e) {
         // not possible somehow -> load directly from tmm folder
@@ -166,10 +172,14 @@ public class TmmOsUtils {
       }
     }
 
-    if (!loaded) {
-      System.setProperty("jna.library.path", tmmNativeDir.toString());
-      LOGGER.debug("Loading native libs from: {}", tmmNativeDir);
+    // also add the shipped native folder
+    if (StringUtils.isNotBlank(jnaLibraryPath)) {
+      jnaLibraryPath += ",";
     }
+
+    jnaLibraryPath += tmmNativeDir.toString();
+    System.setProperty("jna.library.path", jnaLibraryPath);
+    LOGGER.debug("Loading native libs from: {}", jnaLibraryPath);
 
     if (MediaInfoUtils.useMediaInfo()) {
       String miv = MediaInfo.version(); // load class
