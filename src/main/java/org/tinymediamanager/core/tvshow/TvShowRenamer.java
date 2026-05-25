@@ -926,7 +926,7 @@ public class TvShowRenamer {
       return;
     }
 
-    LOGGER.info("Renaming TvShow '{}', episode S{} E{}", episode.getTvShow().getTitle(), episode.getSeason(), episode.getEpisode());
+    LOGGER.info("Renaming/Cleanup TvShow '{}', episode S{} E{}", episode.getTvShow().getTitle(), episode.getSeason(), episode.getEpisode());
 
     if (episode.isDisc()) {
       renameEpisodeAsDisc(episode);
@@ -985,6 +985,7 @@ public class TvShowRenamer {
         episode.setPath(newMF.getPath());
       }
       else {
+        LOGGER.warn("Could not rename TvShow '{}', episode S{} E{}", episode.getTvShow().getTitle(), episode.getSeason(), episode.getEpisode());
         // not OK? just abort!
         return;
       }
