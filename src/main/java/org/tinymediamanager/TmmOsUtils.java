@@ -140,8 +140,6 @@ public class TmmOsUtils {
     String nativepath = getNativeFolderName();
     Path tmmNativeDir = Paths.get(nativepath).toAbsolutePath();
 
-    String separator = SystemUtils.IS_OS_WINDOWS ? ";" : ":";
-
     // use user-defined JNA folder
     String jnaLibraryPath = System.getProperty("jna.library.path");
     if (jnaLibraryPath == null) {
@@ -157,7 +155,7 @@ public class TmmOsUtils {
 
         if (Files.exists(nativeDir) && !Utils.isFolderEmpty(nativeDir)) {
           if (StringUtils.isNotBlank(jnaLibraryPath)) {
-            jnaLibraryPath += separator;
+            jnaLibraryPath += File.pathSeparator;
           }
           jnaLibraryPath += nativeDir.toAbsolutePath().toString();
           // System.setProperty("jna.library.path", nativeDir.toString());
@@ -175,7 +173,7 @@ public class TmmOsUtils {
 
     // also add the shipped native folder
     if (StringUtils.isNotBlank(jnaLibraryPath)) {
-      jnaLibraryPath += separator;
+      jnaLibraryPath += File.pathSeparator;
     }
 
     jnaLibraryPath += tmmNativeDir.toString();
