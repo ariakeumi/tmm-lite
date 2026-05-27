@@ -14,7 +14,7 @@ cache:
 
 build:
   stage: build
-  image: tinymediamanager/packaging:20260520101239
+  image: tinymediamanager/packaging:20260527164722
   environment:
     name: prerelease
     url: https://prerelease.tinymediamanager.org

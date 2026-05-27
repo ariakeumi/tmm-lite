@@ -25,7 +25,7 @@ AZURE_ACCESS_TOKEN=$(curl -s -X POST "https://login.microsoftonline.com/${AZURE_
   -d "grant_type=client_credentials" | jq -r .access_token)
 
 #2. sign the installer with jsign
-java -jar jsign.jar \
+java -jar ../../AppBundler/jsign.jar \
   --storetype TRUSTEDSIGNING \
   --keystore "${AZURE_KEYSTORE}" \
   --storepass "${AZURE_ACCESS_TOKEN}" \
