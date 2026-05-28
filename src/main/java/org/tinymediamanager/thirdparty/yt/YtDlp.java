@@ -270,11 +270,13 @@ public class YtDlp {
 
   /**
    * Checks for and performs yt-dlp updates if needed. Updates are limited to once every 2 days to avoid rate limiting. The update process runs as a
-   * background task.
+   * background task. Only trigger the self update, if yt-dlp is located in the user addon folder, otherwise we would mess with the installed version
+   * and also might not have permissions to update it.
+   *
    */
   public static void selfUpdateIfAvailable() {
     YtDlpAddon ytDlpAddon = new YtDlpAddon();
-    if (ytDlpAddon.isAvailable()) {
+    if (Paths.get(ytDlpAddon.getExecutablePath()).startsWith(Globals.ADDON_FOLDER)) {
       // we need an own logic here - just every 2 days is ok
       // (got blocked executing 3 updates in a row)
       String lastUpdateCheck = TmmProperties.getInstance().getProperty("lastYtDlpUpdateCheck", "0");
