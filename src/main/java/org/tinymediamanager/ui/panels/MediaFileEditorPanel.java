@@ -16,7 +16,6 @@
 package org.tinymediamanager.ui.panels;
 
 import static org.tinymediamanager.core.MediaFileType.AUDIO;
-import static org.tinymediamanager.core.MediaFileType.NFO;
 import static org.tinymediamanager.core.MediaFileType.SAMPLE;
 import static org.tinymediamanager.core.MediaFileType.SUBTITLE;
 import static org.tinymediamanager.core.MediaFileType.TRAILER;
@@ -155,12 +154,12 @@ public class MediaFileEditorPanel extends JPanel {
       {
         JPanel panelDetails = new JPanel();
         splitPane.setRightComponent(panelDetails);
-        panelDetails
-            .setLayout(new MigLayout("", "[][75lp:n][20lp:n][][75lp:n][20lp:n][][75lp:n][50lp:n,grow]", "[][][][][][][100lp:150lp][100lp:150lp]"));
+        panelDetails.setLayout(new MigLayout("", "[][75lp:n][20lp:n][][75lp:n][20lp:n][][100lp:n,grow]",
+            "[][][][][][10lp!][][][][][15lp!][100lp:150lp:200lp,grow][10lp!][100lp:150lp:200lp,grow]"));
         {
           lblFilename = new JLabel("");
           TmmFontHelper.changeFont(lblFilename, 1.167, Font.BOLD);
-          panelDetails.add(lblFilename, "cell 0 0 9 1,growx");
+          panelDetails.add(lblFilename, "cell 0 0 8 1,growx,wmin 0");
         }
         {
           JLabel lblCodec = new TmmLabel(TmmResourceBundle.getString("metatag.codec"));
@@ -197,25 +196,7 @@ public class MediaFileEditorPanel extends JPanel {
           tfHeight.setColumns(10);
         }
         {
-          btnARD = new JButton(new ScanAspectRationAction());
-          btnARD.setFocusable(false);
           MediaFile mf = MediaFileEditorPanel.this.mediaFiles.get(0).mediaFile;
-          btnARD.setEnabled(videoTypes.contains(mf.getType()));
-          panelDetails.add(btnARD, "cell 7 1");
-        }
-        {
-          JLabel lblAspectT = new TmmLabel(TmmResourceBundle.getString("metatag.aspect"));
-          panelDetails.add(lblAspectT, "cell 6 2,alignx right");
-
-          cbAspectRatio = new JComboBox(getAspectRatios().toArray(new AspectRatioContainer[0]));
-          panelDetails.add(cbAspectRatio, "cell 7 2");
-        }
-        {
-          JLabel lblAspectT = new TmmLabel(TmmResourceBundle.getString("metatag.aspect2"));
-          panelDetails.add(lblAspectT, "cell 6 3,alignx right");
-
-          cbAspectRatio2 = new JComboBox(getAspectRatios2().toArray(new AspectRatioContainer[0]));
-          panelDetails.add(cbAspectRatio2, "cell 7 3");
         }
         {
           JLabel lblFrameRate = new TmmLabel(TmmResourceBundle.getString("metatag.framerate"));
@@ -243,35 +224,53 @@ public class MediaFileEditorPanel extends JPanel {
           tfBitDepth.setColumns(10);
         }
         {
-          JLabel lblHdrFormatT = new TmmLabel(TmmResourceBundle.getString("metatag.hdrformat"));
-          panelDetails.add(lblHdrFormatT, "cell 3 4,alignx trailing");
-
-          tfHdrFormat = new JTextField();
-          panelDetails.add(tfHdrFormat, "cell 4 4,growx");
-          tfHdrFormat.setColumns(10);
-        }
-        {
           JLabel lblRuntimeT = new TmmLabel(TmmResourceBundle.getString("metatag.runtime"));
-          panelDetails.add(lblRuntimeT, "cell 0 5,alignx trailing");
+          panelDetails.add(lblRuntimeT, "cell 3 4,alignx trailing");
 
           tfRuntime = new JTextField();
-          panelDetails.add(tfRuntime, "cell 1 5");
+          panelDetails.add(tfRuntime, "cell 4 4");
           tfRuntime.setColumns(5);
           tfRuntime.setInputVerifier(new IntegerInputVerifier());
         }
+
         {
           JLabel lbl3d = new TmmLabel(TmmResourceBundle.getString("metatag.3dformat"));
-          panelDetails.add(lbl3d, "cell 3 5,alignx right");
+          panelDetails.add(lbl3d, "cell 0 6,alignx right");
 
-          cb3dFormat = new JComboBox<MediaInfo3D>(MediaInfo3D.values());
-          panelDetails.add(cb3dFormat, "cell 4 5");
+          cb3dFormat = new JComboBox<>(MediaInfo3D.values());
+          panelDetails.add(cb3dFormat, "cell 1 6 4 1,growx");
+
+          JLabel lblHdrFormatT = new TmmLabel(TmmResourceBundle.getString("metatag.hdrformat"));
+          panelDetails.add(lblHdrFormatT, "cell 0 7,alignx trailing");
+        }
+
+        {
+          tfHdrFormat = new JTextField();
+          panelDetails.add(tfHdrFormat, "cell 1 7 4 1,growx");
+          tfHdrFormat.setColumns(10);
+        }
+        {
+          JLabel lblAspectT = new TmmLabel(TmmResourceBundle.getString("metatag.aspect"));
+          panelDetails.add(lblAspectT, "cell 0 8,alignx right");
+
+          cbAspectRatio = new JComboBox(getAspectRatios().toArray(new AspectRatioContainer[0]));
+          panelDetails.add(cbAspectRatio, "cell 1 8 4 1,growx");
+
+          btnARD = new JButton(new ScanAspectRationAction());
+          btnARD.setFocusable(false);
+          panelDetails.add(btnARD, "cell 6 8 2 1");
+          JLabel lblAspectT_1 = new TmmLabel(TmmResourceBundle.getString("metatag.aspect2"));
+          panelDetails.add(lblAspectT_1, "cell 0 9,alignx right");
+
+          cbAspectRatio2 = new JComboBox(getAspectRatios2().toArray(new AspectRatioContainer[0]));
+          panelDetails.add(cbAspectRatio2, "cell 1 9 4 1,growx");
         }
         {
           JLabel lblAudiostreams = new TmmLabel(TmmResourceBundle.getString("metatag.countAudioStreams"));
-          panelDetails.add(lblAudiostreams, "flowy,cell 0 6,alignx right,aligny top");
+          panelDetails.add(lblAudiostreams, "flowy,cell 0 11,alignx right,aligny top");
 
           JScrollPane scrollPane = new JScrollPane();
-          panelDetails.add(scrollPane, "cell 1 6 8 1,grow");
+          panelDetails.add(scrollPane, "cell 1 11 7 1,grow");
 
           tableAudioStreams = new MediaFileAudioStreamEditTable(audioStreams) {
             @Override
@@ -288,10 +287,10 @@ public class MediaFileEditorPanel extends JPanel {
         }
         {
           JLabel lblSubtitles = new TmmLabel(TmmResourceBundle.getString("metatag.subtitles"));
-          panelDetails.add(lblSubtitles, "flowy,cell 0 7,alignx right,aligny top");
+          panelDetails.add(lblSubtitles, "flowy,cell 0 13,alignx right,aligny top");
 
           JScrollPane scrollPane = new JScrollPane();
-          panelDetails.add(scrollPane, "cell 1 7 8 1,grow");
+          panelDetails.add(scrollPane, "cell 1 13 7 1,grow");
 
           tableSubtitles = new MediaFileSubtitleEditTable(subtitles) {
 
@@ -309,17 +308,17 @@ public class MediaFileEditorPanel extends JPanel {
         }
         {
           btnAddAudioStream = new SquareIconButton(new AddAudioStreamAction());
-          panelDetails.add(btnAddAudioStream, "cell 0 6,alignx right,aligny top");
+          panelDetails.add(btnAddAudioStream, "cell 0 11,alignx right,aligny top");
 
           btnRemoveAudioStream = new SquareIconButton(new RemoveAudioStreamAction());
-          panelDetails.add(btnRemoveAudioStream, "cell 0 6,alignx right,aligny top");
+          panelDetails.add(btnRemoveAudioStream, "cell 0 11,alignx right,aligny top");
         }
         {
           btnAddSubtitle = new SquareIconButton(new AddSubtitleAction());
-          panelDetails.add(btnAddSubtitle, "cell 0 7,alignx right,aligny top");
+          panelDetails.add(btnAddSubtitle, "cell 0 13,alignx right,aligny top");
 
           btnRemoveSubtitle = new SquareIconButton(new RemoveSubtitleAction());
-          panelDetails.add(btnRemoveSubtitle, "cell 0 7,alignx right,aligny top");
+          panelDetails.add(btnRemoveSubtitle, "cell 0 13,alignx right,aligny top");
         }
       }
     }
@@ -333,21 +332,31 @@ public class MediaFileEditorPanel extends JPanel {
         int selectedRow = tableMediaFiles.convertRowIndexToModel(tableMediaFiles.getSelectedRow());
         if (selectedRow > -1) {
           MediaFileContainer container = MediaFileEditorPanel.this.mediaFiles.get(selectedRow);
-          // codec should not be enabled for NFOs
-          tfCodec.setEnabled(container.mediaFile.getType() != NFO);
+          boolean isVideoType = videoTypes.contains(container.mediaFile.getType());
+          boolean isAudioType = container.mediaFile.getType() == AUDIO;
+          boolean isSubtitleType = container.mediaFile.getType() == SUBTITLE;
+          boolean isGraphicType = container.mediaFile.isGraphic();
+
+          tfCodec.setEnabled(isVideoType || isAudioType || isSubtitleType || isGraphicType);
+          tfHeight.setEnabled(isVideoType || isGraphicType);
+          tfWidth.setEnabled(isVideoType || isGraphicType);
 
           // audio streams and subtitles should not be enabled for anything except VIDEOS/TRAILER/SAMPLES/AUDIO/SUBTITLES
-          btnAddAudioStream.setEnabled(videoTypes.contains(container.mediaFile.getType()) || container.mediaFile.getType() == AUDIO);
-          btnRemoveAudioStream.setEnabled(videoTypes.contains(container.mediaFile.getType()) || container.mediaFile.getType() == AUDIO);
-          btnAddSubtitle.setEnabled(videoTypes.contains(container.mediaFile.getType()) || container.mediaFile.getType() == SUBTITLE);
-          btnRemoveSubtitle.setEnabled(videoTypes.contains(container.mediaFile.getType()) || container.mediaFile.getType() == SUBTITLE);
+          btnAddAudioStream.setEnabled(isVideoType || isAudioType);
+          btnRemoveAudioStream.setEnabled(isVideoType || isAudioType);
+          btnAddSubtitle.setEnabled(isVideoType || isSubtitleType);
+          btnRemoveSubtitle.setEnabled(isVideoType || isSubtitleType);
 
-          // 3D is only available for video types
-          cb3dFormat.setEnabled(videoTypes.contains(container.mediaFile.getType()));
-
-          // runtime is also only available for video types
-          tfRuntime.setEnabled(videoTypes.contains(container.mediaFile.getType()));
-          btnARD.setEnabled(videoTypes.contains(container.mediaFile.getType()) && FFmpeg.isAvailable());
+          // video related infos are only enabled for video types
+          spFrameRate.setEnabled(isVideoType);
+          tfRuntime.setEnabled(isVideoType);
+          tfVideoBitrate.setEnabled(isVideoType);
+          tfBitDepth.setEnabled(isVideoType);
+          cb3dFormat.setEnabled(isVideoType);
+          tfHdrFormat.setEnabled(isVideoType);
+          cbAspectRatio.setEnabled(isVideoType);
+          cbAspectRatio2.setEnabled(isVideoType);
+          btnARD.setEnabled(isVideoType && FFmpeg.isAvailable());
 
           audioStreams.clear();
           audioStreams.addAll(container.getAudioStreams());

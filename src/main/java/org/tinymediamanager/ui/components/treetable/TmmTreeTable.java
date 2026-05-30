@@ -140,6 +140,7 @@ public class TmmTreeTable extends TmmTable {
 
     // install the keyadapter for navigation
     addKeyListener(new TmmTreeTableKeyAdapter(this));
+
   }
 
   /**
