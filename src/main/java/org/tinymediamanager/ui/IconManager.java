@@ -113,6 +113,7 @@ public class IconManager {
   public static final ImageIcon              DELETE_FOREVER_RED           = createSVGIcon("trash-alt.svg", RED, TmmFontHelper.H3);
   public static final ImageIcon              DISCONNECT                   = createMenuIcon("unlink.svg");
   public static final ImageIcon              DOWNLOAD                     = createMenuIcon("download.svg");
+  public static final ImageIcon              DOWNLOAD_GREY                = createSVGIcon("download.svg");
   public static final ImageIcon              FEEDBACK                     = createMenuIcon("envelope.svg");
   public static final ImageIcon              EDIT                         = createMenuIcon("edit.svg");
   public static final ImageIcon              EXPORT                       = createMenuIcon("share-square.svg");

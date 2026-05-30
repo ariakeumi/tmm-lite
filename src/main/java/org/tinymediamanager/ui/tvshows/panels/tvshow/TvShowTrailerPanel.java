@@ -38,7 +38,7 @@ public class TvShowTrailerPanel extends TrailerPanel {
 
     createLayout();
 
-    table.setName("movies.trailerTable");
+    table.setName("tvshow.trailerTable");
     TmmUILayoutStore.getInstance().install(table);
 
     // install the propertychangelistener

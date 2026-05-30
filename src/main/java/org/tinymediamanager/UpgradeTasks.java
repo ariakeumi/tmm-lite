@@ -37,6 +37,7 @@ import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.Settings;
+import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.entities.MediaEntity;
@@ -138,6 +139,28 @@ public abstract class UpgradeTasks {
       // remove old addons from the native folder (only Windows & Linux)
       if (!SystemUtils.IS_OS_MAC) {
         Utils.deleteDirectorySafely(Paths.get(TmmOsUtils.getNativeFolderName(), "addons"));
+      }
+    }
+
+    if (StrgUtils.compareVersion(v, "5.1.3") < 0) {
+      // unhide trailer download button
+      TmmProperties properties = TmmProperties.getInstance();
+      String property = properties.getProperty("movie.movietrailer.table.visibleColumns");
+      if (property != null && !property.startsWith("download")) {
+        property = "download:31," + property;
+        properties.putProperty("movie.movietrailer.table.visibleColumns", property);
+      }
+
+      property = properties.getProperty("movieset.movietrailer.table.visibleColumns");
+      if (property != null && !property.startsWith("download")) {
+        property = "download:31," + property;
+        properties.putProperty("movieset.movietrailer.table.visibleColumns", property);
+      }
+
+      property = properties.getProperty("tvshow.trailerTable.table.visibleColumns");
+      if (property != null && !property.startsWith("download")) {
+        property = "download:31," + property;
+        properties.putProperty("tvshow.trailerTable.table.visibleColumns", property);
       }
     }
   }

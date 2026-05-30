@@ -50,6 +50,7 @@ public class MediaTrailerTable extends TmmEditorTable {
 
   private final EventList<MediaTrailer> trailerEventList;
   private final boolean                 editable;
+  private final boolean                 downloadEnabled;
 
   public MediaTrailerTable(EventList<MediaTrailer> trailerEventList) {
     this(trailerEventList, false);
@@ -60,6 +61,7 @@ public class MediaTrailerTable extends TmmEditorTable {
 
     this.trailerEventList = trailerEventList;
     this.editable = editable;
+    this.downloadEnabled = License.getInstance().isValidLicense();
 
     setModel(new TmmTableModel<>(GlazedListsSwing.swingThreadProxyList(trailerEventList),
         new TrailerTableFormat(editable, License.getInstance().isValidLicense())));
@@ -131,8 +133,8 @@ public class MediaTrailerTable extends TmmEditorTable {
 
   @Override
   protected boolean isLinkCell(int row, int column) {
-    return this.editable && isNfoColumn(column) || isEditorColumn(column) || (isDownloadColumn(column) && isDownloadUrlAvailable(row))
-        || isPlayColumn(column);
+    return this.editable && isNfoColumn(column) || isEditorColumn(column)
+        || (isDownloadColumn(column) && isDownloadUrlAvailable(row) && downloadEnabled) || isPlayColumn(column);
   }
 
   /**
@@ -256,24 +258,34 @@ public class MediaTrailerTable extends TmmEditorTable {
       Comparator<Boolean> booleanComparator = new BooleanComparator();
       Comparator<ImageIcon> imageComparator = new ImageComparator();
 
-      Column col;
-
       /*
        * download (note available in editor or if there is no valid license)
        */
-      if (!editable && downloadEnabled) {
-        col = new Column("", "download", trailer -> {
-          if ((StringUtils.isNotBlank(trailer.getUrl()) && trailer.getUrl().toLowerCase(Locale.ROOT).startsWith("http"))
-              || !StringUtils.isBlank(trailer.getId())) {
+      Column col = new Column("", "download", trailer -> {
+        if ((StringUtils.isNotBlank(trailer.getUrl()) && trailer.getUrl().toLowerCase(Locale.ROOT).startsWith("http"))
+            || !StringUtils.isBlank(trailer.getId())) {
+          if (downloadEnabled) {
             return IconManager.DOWNLOAD;
           }
+          else {
+            return IconManager.DOWNLOAD_GREY;
+          }
+        }
+        return null;
+      }, ImageIcon.class);
+      col.setColumnResizeable(false);
+      col.setColumnComparator(imageComparator);
+      col.setHeaderTooltip(TmmResourceBundle.getString("trailer.download.header"));
+      if (!downloadEnabled) {
+        col.setCellTooltip(trailer -> {
+          if ((StringUtils.isNotBlank(trailer.getUrl()) && trailer.getUrl().toLowerCase(Locale.ROOT).startsWith("http"))
+              || !StringUtils.isBlank(trailer.getId())) {
+            return TmmResourceBundle.getString("Toolbar.upgrade.desc");
+          }
           return null;
-        }, ImageIcon.class);
-        col.setColumnResizeable(false);
-        col.setColumnComparator(imageComparator);
-        col.setHeaderTooltip(TmmResourceBundle.getString("trailer.download.header"));
-        addColumn(col);
+        });
       }
+      addColumn(col);
 
       /*
        * play
