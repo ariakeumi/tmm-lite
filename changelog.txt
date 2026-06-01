@@ -9,12 +9,13 @@ x [UI] fixed layouting of the task list dialog
 x [UI] added a reasonable minimum size for every dialog
 x [UI] unhide trailer download button
 x [UI] re-aligned media file editor dialog #3288
+x [UI] fixed arrow key navigation on Safari/Docker #3292 - thx @shadypayload
 x [IMDB] refresh rating data once per day
 x [TMDB] fetch more ID types for movies/TV shows and cast/crew members
 x [Library] upgraded libmediainfo to 26.05
 x [Library] upgraded libtinyfiledialogs to v3.21.3
 x [Scraper] Fernsehserien.de - ignore unavailable cast/crew
-x [Trailer] fix downloading TvShow trailers #3283 thx @gamebeaker
+x [Trailer] fix downloading TvShow trailers #3283 - thx @gamebeaker
 
 
 Version 5.2.12
