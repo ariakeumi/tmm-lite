@@ -40,7 +40,7 @@ Feature requests are also accepted via the [Issue Tracker][2] when made politely
 
 [1]: https://gitlab.com/tinyMediaManager/tinyMediaManager/-/work_items/new?description_template=Default
 
-[2]: https://gitlab.com/tinyMediaManager/tinyMediaManager/-/work_itemssort=updated_desc&state=all&first_page_size=100
+[2]: https://gitlab.com/tinyMediaManager/tinyMediaManager/-/work_items?sort=updated_desc&state=all&first_page_size=100
 
 [3]: https://www.reddit.com/r/tinyMediaManager/
 
