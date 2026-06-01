@@ -1192,10 +1192,14 @@ public class TmmTreeTable extends TmmTable {
       }
 
       try {
-        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+        // FIX (#3292): also accept the keypad arrow codes. Some VNC clients (e.g. noVNC when the
+        // browser reports KeyboardEvent.location=3 for the cursor keys, as Safari does) deliver the
+        // arrows as XK_KP_Left/Right -> VK_KP_LEFT/VK_KP_RIGHT, which the plain VK_LEFT/VK_RIGHT
+        // checks would otherwise miss.
+        if (e.getKeyCode() == KeyEvent.VK_RIGHT || e.getKeyCode() == KeyEvent.VK_KP_RIGHT) {
           toggleRows(selectedRows, true);
         }
-        else if (e.getKeyCode() == KeyEvent.VK_LEFT) {
+        else if (e.getKeyCode() == KeyEvent.VK_LEFT || e.getKeyCode() == KeyEvent.VK_KP_LEFT) {
           toggleRows(selectedRows, false);
         }
         else if (e.getKeyCode() == KeyEvent.VK_SPACE) {
