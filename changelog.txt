@@ -1,5 +1,6 @@
 Version 5.2.13
 =======================
++ [UI] Movie set table: show the latest date added from assigned movies on movie set level #3291
 + [HTTP API] added the new scope parameter "path" to provide more control over the scope of the API calls #3269
 ---
 x [Movies, TV shows] make checksum calculation abortable

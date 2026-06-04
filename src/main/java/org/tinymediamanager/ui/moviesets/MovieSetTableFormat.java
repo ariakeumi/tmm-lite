@@ -17,6 +17,7 @@ package org.tinymediamanager.ui.moviesets;
 
 import java.awt.FontMetrics;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -653,11 +654,19 @@ public class MovieSetTableFormat extends TmmTreeTableFormat<TmmTreeNode> {
   private Date getDateAdded(TmmTreeNode node) {
     Object userObject = node.getUserObject();
 
-    if (userObject instanceof MovieSet || userObject instanceof MovieSet.MovieSetMovie) {
+    if (userObject instanceof MovieSet.MovieSetMovie) {
       return null;
     }
-
-    if (userObject instanceof Movie movie) {
+    else if (userObject instanceof MovieSet movieSet) {
+      // get the latest date added from the movies in the set
+      List<Movie> modifyableList = new ArrayList<>(movieSet.getMovies());
+      if (!modifyableList.isEmpty()) {
+        Movie latest = Collections.max(modifyableList, Comparator.comparing(Movie::getDateAddedForUi));
+        return latest.getDateAddedForUi();
+      }
+      return null;
+    }
+    else if (userObject instanceof Movie movie) {
       return movie.getDateAddedForUi();
     }
 
