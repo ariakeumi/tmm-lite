@@ -218,7 +218,8 @@ public abstract class TvShowGenericXmlConnector implements ITvShowConnector {
         newNfos.add(mf);
       }
       catch (Exception e) {
-        LOGGER.error("Could not write TV show NFO file '{}' - '{}'", tvShow.getPathNIO().resolve(nfoFilename), e.getMessage());
+        LOGGER.error("Could not write TV show NFO file '{}' - '{}' [{}]", tvShow.getPathNIO().resolve(nfoFilename), e.getMessage(),
+            e.getClass().getSimpleName());
         MessageManager.getInstance()
             .pushMessage(new Message(Message.MessageLevel.ERROR, tvShow, "message.nfo.writeerror", new String[] { ":", e.getLocalizedMessage() }));
       }

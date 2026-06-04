@@ -240,7 +240,8 @@ public abstract class TvShowEpisodeGenericXmlConnector implements ITvShowEpisode
         newNfos.add(mf);
       }
       catch (Exception e) {
-        LOGGER.error("Could not write epsiode NFO file '{}' - '{}'", firstEpisode.getPathNIO().resolve(nfoFilename), e.getMessage());
+        LOGGER.error("Could not write epsiode NFO file '{}' - '{}' [{}]", firstEpisode.getPathNIO().resolve(nfoFilename), e.getMessage(),
+            e.getClass().getSimpleName());
         MessageManager.getInstance()
             .pushMessage(
                 new Message(Message.MessageLevel.ERROR, firstEpisode, "message.nfo.writeerror", new String[] { ":", e.getLocalizedMessage() }));

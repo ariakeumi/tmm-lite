@@ -176,7 +176,8 @@ public abstract class TvShowSeasonGenericXmlConnector implements ITvShowSeasonCo
         newNfos.add(mf);
       }
       catch (Exception e) {
-        LOGGER.error("Could not write season NFO file '{}' - '{}'", tvShowSeason.getTvShow().getPathNIO().resolve(nfoFilename), e.getMessage());
+        LOGGER.error("Could not write season NFO file '{}' - '{}' [{}]", tvShowSeason.getTvShow().getPathNIO().resolve(nfoFilename), e.getMessage(),
+            e.getClass().getSimpleName());
         MessageManager.getInstance()
             .pushMessage(
                 new Message(Message.MessageLevel.ERROR, tvShowSeason, "message.nfo.writeerror", new String[] { ":", e.getLocalizedMessage() }));

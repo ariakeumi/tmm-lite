@@ -112,7 +112,7 @@ public class ImageCache {
         Files.createDirectories(CACHE_DIR);
       }
       catch (IOException e) {
-        LOGGER.warn("Could not create cache dir '{}' - '{}'", CACHE_DIR, e.getMessage());
+        LOGGER.warn("Could not create cache dir '{}' - '{}' [{}]", CACHE_DIR, e.getMessage(), e.getClass().getSimpleName());
       }
     }
 
@@ -158,7 +158,7 @@ public class ImageCache {
       return HexFormat.of().withUpperCase().formatHex(key);
     }
     catch (Exception e) {
-      LOGGER.debug("Failed to create cached filename for image: {} - {}", path, e.getMessage());
+      LOGGER.debug("Failed to create cached filename for image: {} - {} [{}]", path, e.getMessage(), e.getClass().getSimpleName());
     }
     return "";
   }
@@ -272,7 +272,7 @@ public class ImageCache {
           LOGGER.debug("hit memory cap: {}", e.getMessage());
         }
         catch (IOException e) {
-          LOGGER.debug("{}", e.getMessage());
+          LOGGER.debug("{} [{}]", e.getMessage(), e.getClass().getSimpleName());
         }
 
         ThreadUtils.sleep(500);
@@ -471,7 +471,7 @@ public class ImageCache {
       cacheImage(mediaFile, overwrite);
     }
     catch (Exception e) {
-      LOGGER.debug("could not cache image: {}", e.getMessage());
+      LOGGER.debug("could not cache image: {} [{}]", e.getMessage(), e.getClass().getSimpleName());
     }
   }
 
@@ -539,7 +539,7 @@ public class ImageCache {
       }
     }
     catch (Exception e) {
-      LOGGER.trace("Problem getting cached file for url {}", e.getMessage());
+      LOGGER.trace("Problem getting cached file for url {} [{}]", url, e.getClass().getSimpleName());
     }
 
     return null;
@@ -600,7 +600,7 @@ public class ImageCache {
       // no need to log anything here
     }
     catch (Exception e) {
-      LOGGER.debug("problem caching file: {}", e.getMessage());
+      LOGGER.debug("problem caching file: {} [{}]", e.getMessage(), e.getClass().getSimpleName());
     }
 
     // need to return null, else the caller couldn't distinguish between cached/original file
@@ -652,5 +652,4 @@ public class ImageCache {
       }
     });
   }
-
 }
