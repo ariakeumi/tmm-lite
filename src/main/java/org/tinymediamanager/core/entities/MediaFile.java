@@ -520,9 +520,16 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
    *          the new path
    */
   public void replacePathForRenamedFolder(Path oldPath, Path newPath) {
-    if (oldPath == null || newPath == null || oldPath.equals(newPath)) {
+    if (oldPath == null || newPath == null) {
       return;
     }
+    String oldStr = oldPath.toAbsolutePath().toString();
+    String newStr = newPath.toAbsolutePath().toString();
+    if (oldStr.equals(newStr)) {
+      // in same CASE!
+      return;
+    }
+
     int oldCnt = oldPath.getNameCount();
     Path remaining = getFileAsPath().subpath(oldCnt, getFileAsPath().getNameCount());
     Path newPathToSet = null;
