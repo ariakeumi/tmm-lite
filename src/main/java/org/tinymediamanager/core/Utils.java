@@ -70,7 +70,6 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.HexFormat;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -681,7 +680,11 @@ public class Utils {
     if (destDir == null) {
       throw new NullPointerException("Destination must not be null"); // NOSONAR
     }
-    if (!srcDir.toAbsolutePath().toString().equals(destDir.toAbsolutePath().toString())) {
+
+    String srcStr = srcDir.toAbsolutePath().toString();
+    String dstStr = destDir.toAbsolutePath().toString();
+
+    if (!srcStr.equals(dstStr)) {
       LOGGER.debug("try to move folder {} to {}", srcDir, destDir);
       if (!Files.isDirectory(srcDir)) {
         throw new FileNotFoundException("Source '{}" + srcDir + "' does not exist, or is not a directory"); // NOSONAR
@@ -708,57 +711,50 @@ public class Utils {
         }
       }
 
+      // detect case-only rename for case-insensitive filesystems
+      // !srcStr.equals(dstStr) has been checked above already
+      boolean caseOnlyRename = srcDir.equals(destDir) && srcStr.equalsIgnoreCase(dstStr);
+
       // rename folder; try 5 times and wait a sec
       boolean rename = false;
+      boolean atomicMoveSupported = true;
       for (int i = 0; i < 5; i++) {
         try {
           // need atomic fs move for changing cASE
-          Files.move(srcDir, destDir, StandardCopyOption.ATOMIC_MOVE);
+          if (atomicMoveSupported) {
+            Files.move(srcDir, destDir, StandardCopyOption.ATOMIC_MOVE);
+          }
+          else {
+            if (caseOnlyRename) {
+              // On case-insensitive filesystems a direct move may not change the
+              // case, so we do a two-step rename via a temporary name to force it
+              Path tempDir = destDir.resolveSibling(destDir.getFileName().toString() + ".tmm_" + Long.toHexString(System.nanoTime()));
+              LOGGER.debug("case-only rename on case-insensitive filesystem, using two-step rename via '{}'", tempDir);
+
+              // Move temp file to the target partition (so it's on the same file store)
+              Files.move(srcDir, tempDir, StandardCopyOption.REPLACE_EXISTING);
+              try {
+                // Attempt atomic move first (guaranteed instant rename if on the same drive)
+                Files.move(tempDir, destDir, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+              }
+              catch (AtomicMoveNotSupportedException ee) {
+                // Fallback for SMB shares, cross-device, or unsupported network filesystems
+                Files.move(tempDir, destDir, StandardCopyOption.REPLACE_EXISTING);
+              }
+            }
+            else {
+              Files.move(srcDir, destDir);
+            }
+          }
           rename = true;// no exception
         }
         catch (AccessDeniedException e) {
           // propagate to UI by logging with error
           LOGGER.error("ACCESS DENIED (move folder) for '{}' to '{}' - '{}' [{}]", srcDir, destDir, e.getMessage(), e.getClass().getSimpleName());
         }
-        catch (AtomicMoveNotSupportedException a) {
-          // if it fails (b/c not on same file system) use that; original documentation
-          /*
-           * When moving a directory requires that its entries be moved then this method fails (by throwing an {@code IOException}). To move a <i>file
-           * tree</i> may involve copying rather than moving directories and this can be done using the {@link #copy copy} method in conjunction with
-           * the {@link #walkFileTree Files.walkFileTree} utility method.
-           */
-          // in this case we do a recursive copy & delete
-          // copy all files (with re-creating symbolic links if there are some)
-          try (Stream<Path> stream = Files.walk(srcDir)) {
-            Iterator<Path> srcFiles = stream.iterator();
-            while (srcFiles.hasNext()) {
-              Path source = srcFiles.next();
-              Path destination = destDir.resolve(srcDir.relativize(source));
-              if (Files.isSymbolicLink(source)) {
-                Files.createSymbolicLink(destination, source.toRealPath());
-                continue;
-              }
-              if (Files.isDirectory(source)) {
-                if (!Files.exists(destination)) {
-                  Files.createDirectory(destination);
-                }
-                continue;
-              }
-              Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
-              fixDateAttributes(source, destination);
-            }
-
-            // delete source files
-            Utils.deleteDirectoryRecursive(srcDir);
-            rename = true;
-          }
-          catch (AccessDeniedException e) {
-            // propagate to UI by logging with error
-            LOGGER.error("ACCESS DENIED (move folder) for '{}' - '{}' [{}]", srcDir, e.getMessage(), e.getClass().getSimpleName());
-          }
-          catch (IOException e) {
-            LOGGER.warn("Rename problem (fallback) for '{}' - '{}' [{}]", srcDir, e.getMessage(), e.getClass().getSimpleName());
-          }
+        catch (AtomicMoveNotSupportedException e) {
+          LOGGER.debug("Atomic move not supported - '{}'", e.getMessage());
+          atomicMoveSupported = false; // no need to try it 5 times, just remember this
         }
         catch (IOException e) {
           LOGGER.warn("Rename problem for '{} - '{}' [{}]", srcDir, e.getMessage(), e.getClass().getSimpleName());
@@ -837,7 +833,11 @@ public class Utils {
     if (destFile == null) {
       throw new NullPointerException("Destination must not be null");
     }
-    if (!srcFile.toAbsolutePath().toString().equals(destFile.toAbsolutePath().toString())) {
+
+    String srcStr = srcFile.toAbsolutePath().toString();
+    String dstStr = destFile.toAbsolutePath().toString();
+
+    if (!srcStr.equals(dstStr)) {
       LOGGER.debug("try to move file '{}' to '{}'", srcFile, destFile);
       if (!Files.exists(srcFile)) {
         // allow moving of symlinks
@@ -850,7 +850,7 @@ public class Utils {
         throw new IOException("Source '" + srcFile + "' is a directory"); // NOSONAR
       }
       if (Files.exists(destFile) && !Files.isSameFile(destFile, srcFile)) {
-        // extra check for windows, where the File.equals is case insensitive
+        // extra check for windows, where the File.equals is case-insensitive
         // so we know now, that the File is the same, but the absolute name does not match
         throw new FileExistsException("Destination '" + destFile + "' already exists");
       }
@@ -858,33 +858,50 @@ public class Utils {
         throw new IOException("Destination '" + destFile + "' is a directory");
       }
 
+      // detect case-only rename for case-insensitive filesystems
+      // !srcStr.equals(dstStr) has been checked above already
+      boolean caseOnlyRename = srcFile.equals(destFile) && srcStr.equalsIgnoreCase(dstStr);
+
       // rename folder; try 5 times and wait a sec
       boolean rename = false;
+      boolean atomicMoveSupported = true;
       for (int i = 0; i < 5; i++) {
         try {
-          // need atomic fs move for changing cASE
-          Files.move(srcFile, destFile, StandardCopyOption.ATOMIC_MOVE);
+          if (atomicMoveSupported) {
+            Files.move(srcFile, destFile, StandardCopyOption.ATOMIC_MOVE);
+          }
+          else {
+            if (caseOnlyRename) {
+              // On case-insensitive filesystems a direct move may not change the
+              // case, so we do a two-step rename via a temporary name to force it
+              Path tempFile = destFile.resolveSibling(destFile.getFileName().toString() + ".tmm_" + Long.toHexString(System.nanoTime()));
+              LOGGER.debug("case-only rename on case-insensitive filesystem, using two-step rename via '{}'", tempFile);
+
+              // Move temp file to the target partition (so it's on the same file store)
+              Files.move(srcFile, tempFile, StandardCopyOption.REPLACE_EXISTING);
+              try {
+                // Attempt atomic move first (guaranteed instant rename if on the same drive)
+                Files.move(tempFile, destFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+              }
+              catch (AtomicMoveNotSupportedException ee) {
+                // Fallback for SMB shares, cross-device, or unsupported network filesystems
+                Files.move(tempFile, destFile, StandardCopyOption.REPLACE_EXISTING);
+              }
+            }
+            else {
+              // need atomic fs move for changing cASE
+              Files.move(srcFile, destFile);
+            }
+          }
           rename = true;// no exception
         }
         catch (AccessDeniedException e) {
           // propagate to UI by logging with error
           LOGGER.error("ACCESS DENIED (move file) for '{}' to '{}' - '{}' [{}]", srcFile, destFile, e.getMessage(), e.getClass().getSimpleName());
         }
-        catch (AtomicMoveNotSupportedException a) {
-          // if it fails (b/c not on same file system) use that
-          try {
-            Files.copy(srcFile, destFile, StandardCopyOption.REPLACE_EXISTING);
-            fixDateAttributes(srcFile, destFile);
-            Files.delete(srcFile);
-            rename = true; // no exception
-          }
-          catch (AccessDeniedException e) {
-            // propagate to UI by logging with error
-            LOGGER.error("ACCESS DENIED (move file) for '{}' - '{}' [{}]", srcFile, e.getMessage(), e.getClass().getSimpleName());
-          }
-          catch (IOException e) {
-            LOGGER.warn("Rename problem (fallback) for '{}' - '{}' [{}]", srcFile, e.getMessage(), e.getClass().getSimpleName());
-          }
+        catch (AtomicMoveNotSupportedException e) {
+          LOGGER.debug("Atomic move not supported - '{}'", e.getMessage());
+          atomicMoveSupported = false; // no need to try it 5 times, just remember this
         }
         catch (IOException e) {
           LOGGER.warn("Rename problem for '{}' - '{}' [{}]", srcFile, e.getMessage(), e.getClass().getSimpleName());
