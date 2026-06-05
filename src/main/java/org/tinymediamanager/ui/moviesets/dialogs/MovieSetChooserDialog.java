@@ -175,7 +175,7 @@ public class MovieSetChooserDialog extends TmmDialog implements ActionListener {
     {
       JPanel panelContent = new JPanel();
       getContentPane().add(panelContent, BorderLayout.CENTER);
-      panelContent.setLayout(new MigLayout("", "[500lp:600lp,grow]", "[500,grow][][][]"));
+      panelContent.setLayout(new MigLayout("", "[500lp:600lp,grow]", "[500,grow][shrink 0][][]"));
 
       JSplitPane splitPane = new JSplitPane();
       splitPane.setName(getName() + ".splitPane");
@@ -183,7 +183,7 @@ public class MovieSetChooserDialog extends TmmDialog implements ActionListener {
       panelContent.add(splitPane, "cell 0 0,grow");
       {
         JPanel panelResults = new JPanel();
-        panelResults.setLayout(new MigLayout("", "[350lp:400lp,grow]", "[150lp:300lp,grow]"));
+        panelResults.setLayout(new MigLayout("", "[350lp:400lp,grow]", "[150lp:200lp,grow]"));
         JScrollPane panelSearchResults = new JScrollPane();
         panelResults.add(panelSearchResults, "cell 0 0,grow");
         splitPane.setLeftComponent(panelResults);
