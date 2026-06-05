@@ -29,11 +29,11 @@ import org.tinymediamanager.scraper.util.StrgUtils;
 import org.tinymediamanager.ui.components.label.TmmLabel;
 
 /**
- * the class {@link TvShowPathFilter} provides a filter for TV show paths
+ * the class {@link TvShowEpisodePathFilter} provides a filter for episode paths
  * 
- * @author Wolfgang Janes
+ * @author Manuel Laggner
  */
-public class TvShowPathFilter extends AbstractTextTvShowUIFilter {
+public class TvShowEpisodePathFilter extends AbstractTextTvShowUIFilter {
   @Override
   protected boolean accept(TvShow tvShow, List<TvShowEpisode> episodes, boolean invert) {
     if (StringUtils.isBlank(normalizedFilterText)) {
@@ -41,20 +41,22 @@ public class TvShowPathFilter extends AbstractTextTvShowUIFilter {
     }
 
     try {
-      // TV show
-      boolean foundTvShow = false;
+      // episodes
+      for (TvShowEpisode episode : episodes) {
+        boolean foundEpisode = false;
 
-      Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(tvShow.getPath()));
-      if (matcher.find()) {
-        foundTvShow = true;
-      }
+        Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(episode.getPath()));
+        if (matcher.find()) {
+          foundEpisode = true;
+        }
 
-      // if there is a match in this episode, we can stop
-      if (invert && !foundTvShow) {
-        return true;
-      }
-      else if (!invert && foundTvShow) {
-        return true;
+        // if there is a match in this episode, we can stop
+        if (invert && !foundEpisode) {
+          return true;
+        }
+        else if (!invert && foundEpisode) {
+          return true;
+        }
       }
     }
     catch (Exception e) {
@@ -67,11 +69,11 @@ public class TvShowPathFilter extends AbstractTextTvShowUIFilter {
 
   @Override
   protected JLabel createLabel() {
-    return new TmmLabel(TmmResourceBundle.getString("metatag.path") + " (" + TmmResourceBundle.getString("metatag.tvshow") + ")");
+    return new TmmLabel(TmmResourceBundle.getString("metatag.path") + " (" + TmmResourceBundle.getString("metatag.episode") + ")");
   }
 
   @Override
   public String getId() {
-    return "tvShowPath";
+    return "tvShowEpisodePath";
   }
 }
