@@ -1938,6 +1938,11 @@ public class TvShow extends MediaEntity implements IMediaInformation {
         episodeFound = true;
         watched = watched && episode.isWatched();
       }
+
+      // short-cut = episode is found and at least one episode not watched - abort
+      if (episodeFound && !watched) {
+        break;
+      }
     }
 
     // at least 1 non-dummy found -> pass the collected watched state

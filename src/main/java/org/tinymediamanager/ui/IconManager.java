@@ -149,6 +149,8 @@ public class IconManager {
   public static final ImageIcon              TABLE_PROBLEM                = createSVGIcon("triangle-exclamation.svg", new Color(204, 120, 50));
   public static final ImageIcon              TABLE_NOT_OK                 = createSVGIcon("xmark.svg", RED);
   public static final ImageIcon              TABLE_ALERT                  = createSVGIcon("icn_alert_active.svg", Color.RED);
+  public static final ImageIcon              TABLE_WATCHED                = createSVGIcon("play.svg", "Component.focusColor", TmmFontHelper.H2);
+
   public static final ImageIcon              RENAMER_ADDED                = createSVGIcon("plus.svg", "Component.successColor", TmmFontHelper.L1);
   public static final ImageIcon              RENAMER_SPACER               = createSVGIcon("spacer.svg", TmmFontHelper.L1);
   public static final ImageIcon              RENAMER_REMOVED              = createSVGIcon("minus.svg", "Component.errorColor", TmmFontHelper.L1);
