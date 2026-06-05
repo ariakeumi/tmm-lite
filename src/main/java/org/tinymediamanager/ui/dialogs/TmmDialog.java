@@ -284,7 +284,9 @@ public abstract class TmmDialog extends JDialog implements IModalPopupPanelProvi
       TmmUILayoutStore.getInstance().loadSettings(this);
 
       // darken the owner window when this modal dialog becomes visible
-      DarkenGlassPane.install(getOwner());
+      if (isModal()) {
+        DarkenGlassPane.install(getOwner());
+      }
 
       super.setVisible(true);
       toFront();
