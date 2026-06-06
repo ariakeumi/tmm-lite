@@ -35,7 +35,7 @@ import javax.swing.event.ChangeListener;
 import org.tinymediamanager.ui.IconManager;
 
 /**
- * The class DatePicker is used to provide a HTML like date picker
+ * The class DatePicker is used to provide an HTML like date picker
  * 
  * @author Manuel Laggner
  */
@@ -49,6 +49,7 @@ public class DatePicker extends JPanel implements PropertyChangeListener {
   protected JPopupMenu        popup;
 
   private boolean             dateSelected;
+  private boolean             allowNull = false;
 
   private ChangeListener      changeListener;
 
@@ -85,6 +86,7 @@ public class DatePicker extends JPanel implements PropertyChangeListener {
 
     calendarPanel = new CalendarPanel(date);
     calendarPanel.addPropertyChangeListener("day", this);
+    calendarPanel.setAllowNull(this.allowNull);
 
     setDate(date);
 
@@ -165,9 +167,12 @@ public class DatePicker extends JPanel implements PropertyChangeListener {
       dateSelected = true;
       popup.setVisible(false);
       if ((Integer) evt.getNewValue() > 0) {
-        setDate(calendarPanel.getCalendar().getTime());
+        Calendar cal = calendarPanel.getCalendar();
+        if (cal != null) {
+          setDate(cal.getTime());
+        }
       }
-      else {
+      else if (allowNull) {
         setDate(null);
       }
     }
@@ -208,12 +213,15 @@ public class DatePicker extends JPanel implements PropertyChangeListener {
   }
 
   /**
-   * Sets the date. Fires the property change "date" if date != null.
+   * Sets the date.
    * 
    * @param date
-   *          the new date.
+   *          the new date (or null to clear, if allowed).
    */
   public void setDate(Date date) {
+    if (date == null && !allowNull) {
+      return;
+    }
     dateEditor.setDate(date);
     if (getParent() != null) {
       getParent().invalidate();
@@ -236,18 +244,41 @@ public class DatePicker extends JPanel implements PropertyChangeListener {
   }
 
   /**
-   * Sets the calendar. Value null will set the null date on the date editor.
+   * Sets the calendar. Value null will clear the date if null values are allowed.
    * 
    * @param calendar
    *          the calendar.
    */
   public void setCalendar(Calendar calendar) {
     if (calendar == null) {
+      if (!allowNull) {
+        return;
+      }
       dateEditor.setDate(null);
     }
     else {
       dateEditor.setDate(calendar.getTime());
     }
+  }
+
+  /**
+   * Returns whether null values (no date) are allowed.
+   *
+   * @return true if null values are allowed, false otherwise
+   */
+  public boolean isAllowNull() {
+    return allowNull;
+  }
+
+  /**
+   * Sets whether null values (no date) are allowed. When disabled, the "No date" button is hidden and setting a null date is ignored.
+   *
+   * @param allowNull
+   *          true if null values are allowed (default), false otherwise
+   */
+  public void setAllowNull(boolean allowNull) {
+    this.allowNull = allowNull;
+    calendarPanel.setAllowNull(allowNull);
   }
 
   /**

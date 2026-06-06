@@ -44,13 +44,17 @@ import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import javax.swing.SpinnerDateModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jdesktop.beansbinding.AutoBinding;
+import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
+import org.jdesktop.beansbinding.BeanProperty;
+import org.jdesktop.beansbinding.Bindings;
+import org.jdesktop.beansbinding.Property;
 import org.tinymediamanager.core.AbstractModelObject;
 import org.tinymediamanager.core.MediaAiredStatus;
 import org.tinymediamanager.core.TmmResourceBundle;
@@ -77,6 +81,7 @@ import org.tinymediamanager.thirdparty.trakttv.TvShowSyncTraktTvTask;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.components.button.SquareIconButton;
 import org.tinymediamanager.ui.components.combobox.AutocompleteComboBox;
+import org.tinymediamanager.ui.components.datepicker.DatePicker;
 import org.tinymediamanager.ui.components.label.TmmLabel;
 import org.tinymediamanager.ui.components.tabbedpane.TmmTabbedPane;
 import org.tinymediamanager.ui.components.table.MediaRatingTable;
@@ -118,6 +123,8 @@ public class TvShowBulkEditorDialog extends TmmDialog {
 
   private boolean                         episodesChanged = false;
   private boolean                         tvShowsChanged  = false;
+  private DatePicker                      dpLastWatched;
+  private JCheckBox                       chckbxWatched;
 
   /**
    * Instantiates a new movie batch editor.
@@ -387,15 +394,15 @@ public class TvShowBulkEditorDialog extends TmmDialog {
         JLabel lblDateAddedT = new TmmLabel(TmmResourceBundle.getString("metatag.dateadded"));
         panelContent.add(lblDateAddedT, "cell 0 7,alignx right");
 
-        JSpinner spDateAdded = new JSpinner(new SpinnerDateModel());
-        panelContent.add(spDateAdded, "cell 1 7");
+        DatePicker dpDateAdded = new DatePicker();
+        panelContent.add(dpDateAdded, "cell 1 7");
 
         JButton btnDateAdded = new SquareIconButton(IconManager.APPLY_INV);
         btnDateAdded.addActionListener(e -> {
           tvShowsChanged = true;
           setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
           for (TvShow tvShow : tvShowsToEdit) {
-            tvShow.setDateAdded((Date) spDateAdded.getValue());
+            tvShow.setDateAdded(dpDateAdded.getDate());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         });
@@ -575,8 +582,12 @@ public class TvShowBulkEditorDialog extends TmmDialog {
         JLabel lblWatched = new TmmLabel(TmmResourceBundle.getString("metatag.watched"));
         panelContent.add(lblWatched, "cell 0 1,alignx right");
 
-        JCheckBox chckbxWatched = new JCheckBox("");
-        panelContent.add(chckbxWatched, "cell 1 1");
+        chckbxWatched = new JCheckBox("");
+        panelContent.add(chckbxWatched, "flowx,cell 1 1");
+
+        dpLastWatched = new DatePicker(new Date());
+        dpLastWatched.setAllowNull(true);
+        panelContent.add(dpLastWatched, "cell 1 1");
 
         JButton btnWatched = new SquareIconButton(IconManager.APPLY_INV);
         panelContent.add(btnWatched, "cell 2 1");
@@ -589,7 +600,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
               episode.setWatched(true);
               if (episode.getPlaycount() == 0) {
                 episode.setPlaycount(1);
-                episode.setLastWatched(new Date());
+                episode.setLastWatched(dpLastWatched.getDate());
               }
             }
             else {
@@ -786,15 +797,15 @@ public class TvShowBulkEditorDialog extends TmmDialog {
         JLabel lblDateAdded = new TmmLabel(TmmResourceBundle.getString("metatag.dateadded"));
         panelContent.add(lblDateAdded, "cell 0 9,alignx right");
 
-        JSpinner spDateAdded = new JSpinner(new SpinnerDateModel());
-        panelContent.add(spDateAdded, "cell 1 9");
+        DatePicker dpDateAdded = new DatePicker();
+        panelContent.add(dpDateAdded, "cell 1 9");
 
         JButton btnDateAdded = new SquareIconButton(IconManager.APPLY_INV);
         btnDateAdded.addActionListener(e -> {
           episodesChanged = true;
           setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
           for (TvShowEpisode episode : tvShowEpisodesToEdit) {
-            episode.setDateAdded((Date) spDateAdded.getValue());
+            episode.setDateAdded(dpDateAdded.getDate());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         });
@@ -1133,6 +1144,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
         scrollPane.setViewportView(tableValues);
       }
     }
+    initDataBindings();
   }
 
   private boolean isDeleteConfirmed(String attribute) {
@@ -1355,5 +1367,13 @@ public class TvShowBulkEditorDialog extends TmmDialog {
       col = new Column(TmmResourceBundle.getString("bulkedit.newvalue"), "newValue", EpisodeValues::getPatternValue, String.class);
       addColumn(col);
     }
+  }
+
+  protected void initDataBindings() {
+    Property jCheckBoxBeanProperty = BeanProperty.create("selected");
+    Property jCheckBoxBeanProperty_1 = BeanProperty.create("enabled");
+    AutoBinding autoBinding = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxWatched, jCheckBoxBeanProperty, dpLastWatched,
+        jCheckBoxBeanProperty_1);
+    autoBinding.bind();
   }
 }

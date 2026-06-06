@@ -39,7 +39,6 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,13 +61,16 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.SpinnerDateModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jdesktop.beansbinding.AutoBinding;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
+import org.jdesktop.beansbinding.BeanProperty;
 import org.jdesktop.beansbinding.BindingGroup;
+import org.jdesktop.beansbinding.Bindings;
+import org.jdesktop.beansbinding.Property;
 import org.jdesktop.observablecollections.ObservableCollections;
 import org.jdesktop.swingbinding.JListBinding;
 import org.jdesktop.swingbinding.SwingBindings;
@@ -175,6 +177,7 @@ public class MovieEditorDialog extends AbstractEditorDialog {
   private JSpinner                                 spRating;
   private JComboBox<MediaCertification>            cbCertification;
   private JCheckBox                                cbWatched;
+  private DatePicker                               dpLastPlayed;
   private JTextArea                                tfTagline;
   private JTextArea                                taNote;
 
@@ -183,7 +186,7 @@ public class MovieEditorDialog extends AbstractEditorDialog {
   private AutocompleteComboBox                     cbTags;
   private JList<String>                            listTags;
   private JList<String>                            listShowlink;
-  private JSpinner                                 spDateAdded;
+  private DatePicker                               dpDateAdded;
   private JComboBox                                cbMovieSet;
   private JTextArea                                tfSorttitle;
   private JTextArea                                tfSpokenLanguages;
@@ -284,7 +287,8 @@ public class MovieEditorDialog extends AbstractEditorDialog {
       tfEnglishTitle.setText(movieToEdit.getEnglishTitle());
       tfSorttitle.setText(movieToEdit.getSortTitle());
       spYear.setValue(year);
-      spDateAdded.setValue(movieToEdit.getDateAdded());
+      dpReleaseDate.setDate(movieToEdit.getReleaseDate());
+      dpDateAdded.setDate(movieToEdit.getDateAdded());
       tfPoster.setText(movieToEdit.getArtworkUrl(MediaFileType.POSTER));
       tfFanart.setText(movieToEdit.getArtworkUrl(MediaFileType.FANART));
       tfClearLogo.setText(movieToEdit.getArtworkUrl(MediaFileType.CLEARLOGO));
@@ -306,6 +310,7 @@ public class MovieEditorDialog extends AbstractEditorDialog {
       chckbxVideo3D.setSelected(movieToEdit.isVideoIn3D());
       cbSource.setSelectedItem(movieToEdit.getMediaSource());
       cbWatched.setSelected(movieToEdit.isWatched());
+      dpLastPlayed.setDate(movieToEdit.getLastWatched());
       tfTagline.setText(movieToEdit.getTagline());
       taPlot.setText(movieToEdit.getPlot());
       taPlot.setCaretPosition(0);
@@ -487,7 +492,7 @@ public class MovieEditorDialog extends AbstractEditorDialog {
         JLabel lblReleaseDate = new TmmLabel(TmmResourceBundle.getString("metatag.releasedate"));
         details1Panel.add(lblReleaseDate, "cell 3 6,alignx right");
 
-        dpReleaseDate = new DatePicker(movieToEdit.getReleaseDate());
+        dpReleaseDate = new DatePicker();
         details1Panel.add(dpReleaseDate, "cell 4 6 2 1,growx");
       }
       {
@@ -632,14 +637,14 @@ public class MovieEditorDialog extends AbstractEditorDialog {
       JPanel details2Panel = new JPanel();
       tabbedPane.addTab(TmmResourceBundle.getString("metatag.details2"), details2Panel);
 
-      details2Panel.setLayout(new MigLayout("", "[][150lp:n][20lp:50lp][][50lp:100lp][20lp:n][grow][300lp:300lp,grow]",
+      details2Panel.setLayout(new MigLayout("", "[][150lp:n][20lp!][][50lp:100lp,grow][20lp:n][][300lp:300lp,grow]",
           "[][][][][][75lp][pref!][20lp:n][100lp:150lp,grow][][grow]"));
       {
         JLabel lblDateAdded = new TmmLabel(TmmResourceBundle.getString("metatag.dateadded"));
         details2Panel.add(lblDateAdded, "cell 0 0,alignx right");
 
-        spDateAdded = new JSpinner(new SpinnerDateModel());
-        details2Panel.add(spDateAdded, "cell 1 0,growx");
+        dpDateAdded = new DatePicker();
+        details2Panel.add(dpDateAdded, "cell 1 0,growx");
       }
       {
         JLabel lblWatched = new TmmLabel(TmmResourceBundle.getString("metatag.watched"));
@@ -647,6 +652,10 @@ public class MovieEditorDialog extends AbstractEditorDialog {
 
         cbWatched = new JCheckBox("");
         details2Panel.add(cbWatched, "cell 3 0");
+
+        dpLastPlayed = new DatePicker();
+        dpLastPlayed.setAllowNull(true);
+        details2Panel.add(dpLastPlayed, "cell 4 0");
       }
       {
         JLabel label = new TmmLabel("3D");
@@ -1263,6 +1272,7 @@ public class MovieEditorDialog extends AbstractEditorDialog {
       movieToEdit.setRuntime((Integer) spRuntime.getValue());
       movieToEdit.setTop250((Integer) spTop250.getValue());
       movieToEdit.setWatched(cbWatched.isSelected());
+      movieToEdit.setLastWatched(dpLastPlayed.getDate());
       movieToEdit.setSpokenLanguages(tfSpokenLanguages.getText());
       movieToEdit.setCountry(tfCountry.getText());
       movieToEdit.setVideoIn3D(chckbxVideo3D.isSelected());
@@ -1378,7 +1388,7 @@ public class MovieEditorDialog extends AbstractEditorDialog {
       movieToEdit.removeAllShowlinks();
       movieToEdit.setShowlinks(showlinks);
 
-      movieToEdit.setDateAdded((Date) spDateAdded.getValue());
+      movieToEdit.setDateAdded(dpDateAdded.getDate());
       movieToEdit.setSortTitle(tfSorttitle.getText());
 
       // movie set
@@ -1957,19 +1967,26 @@ public class MovieEditorDialog extends AbstractEditorDialog {
   }
 
   protected BindingGroup initDataBindings() {
-    JListBinding<MediaGenres, List<MediaGenres>, JList> jListBinding = SwingBindings.createJListBinding(UpdateStrategy.READ, genres, listGenres);
+    JListBinding jListBinding = SwingBindings.createJListBinding(UpdateStrategy.READ, genres, listGenres);
     jListBinding.bind();
     //
-    JListBinding<String, List<String>, JList> jListBinding_1 = SwingBindings.createJListBinding(UpdateStrategy.READ, tags, listTags);
+    JListBinding jListBinding_1 = SwingBindings.createJListBinding(UpdateStrategy.READ, tags, listTags);
     jListBinding_1.bind();
     //
-    JListBinding<String, List<String>, JList> jListBinding_2 = SwingBindings.createJListBinding(UpdateStrategy.READ, showlinks, listShowlink);
+    JListBinding jListBinding_2 = SwingBindings.createJListBinding(UpdateStrategy.READ, showlinks, listShowlink);
     jListBinding_2.bind();
+    //
+    Property jCheckBoxBeanProperty = BeanProperty.create("selected");
+    Property datePickerBeanProperty = BeanProperty.create("enabled");
+    AutoBinding autoBinding = Bindings.createAutoBinding(UpdateStrategy.READ, cbWatched, jCheckBoxBeanProperty, dpLastPlayed, datePickerBeanProperty);
+    autoBinding.bind();
     //
     BindingGroup bindingGroup = new BindingGroup();
     //
     bindingGroup.addBinding(jListBinding);
     bindingGroup.addBinding(jListBinding_1);
+    bindingGroup.addBinding(jListBinding_2);
+    bindingGroup.addBinding(autoBinding);
     return bindingGroup;
   }
 }

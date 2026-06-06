@@ -42,12 +42,16 @@ import javax.swing.JSpinner;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import javax.swing.SpinnerDateModel;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jdesktop.beansbinding.AutoBinding;
+import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
+import org.jdesktop.beansbinding.BeanProperty;
+import org.jdesktop.beansbinding.Bindings;
+import org.jdesktop.beansbinding.Property;
 import org.tinymediamanager.core.AbstractModelObject;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.entities.MediaGenres;
@@ -67,6 +71,7 @@ import org.tinymediamanager.thirdparty.trakttv.MovieSyncTraktTvTask;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.components.button.SquareIconButton;
 import org.tinymediamanager.ui.components.combobox.AutocompleteComboBox;
+import org.tinymediamanager.ui.components.datepicker.DatePicker;
 import org.tinymediamanager.ui.components.datepicker.YearSpinner;
 import org.tinymediamanager.ui.components.label.TmmLabel;
 import org.tinymediamanager.ui.components.tabbedpane.TmmTabbedPane;
@@ -101,6 +106,8 @@ public class MovieBulkEditorDialog extends TmmDialog {
   private final JComboBox<MovieProperty> cbProperty;
 
   private final EventList<MovieValues>   movieValuesEventList;
+  private DatePicker                     dpLastWatched;
+  private JCheckBox                      chckbxWatched;
 
   /**
    * Instantiates a new movie batch editor.
@@ -366,8 +373,12 @@ public class MovieBulkEditorDialog extends TmmDialog {
         JLabel lblWatchedT = new TmmLabel(TmmResourceBundle.getString("metatag.watched"));
         panelContent.add(lblWatchedT, "cell 0 6,alignx right");
 
-        JCheckBox chckbxWatched = new JCheckBox("");
-        panelContent.add(chckbxWatched, "cell 1 6,aligny top");
+        chckbxWatched = new JCheckBox("");
+        panelContent.add(chckbxWatched, "flowx,cell 1 6,aligny top");
+
+        dpLastWatched = new DatePicker(new Date());
+        dpLastWatched.setAllowNull(true);
+        panelContent.add(dpLastWatched, "cell 1 6");
 
         JButton btnWatched = new SquareIconButton(IconManager.APPLY_INV);
         btnWatched.addActionListener(e -> {
@@ -379,7 +390,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
               movie.setWatched(true);
               if (movie.getPlaycount() == 0) {
                 movie.setPlaycount(1);
-                movie.setLastWatched(new Date());
+                movie.setLastWatched(dpLastWatched.getDate());
               }
             }
             else {
@@ -490,15 +501,15 @@ public class MovieBulkEditorDialog extends TmmDialog {
         JLabel lblDateAddedT = new TmmLabel(TmmResourceBundle.getString("metatag.dateadded"));
         panelContent.add(lblDateAddedT, "cell 0 12,alignx trailing");
 
-        JSpinner spDateAdded = new JSpinner(new SpinnerDateModel());
-        panelContent.add(spDateAdded, "cell 1 12");
+        DatePicker dpDateAdded = new DatePicker(new Date());
+        panelContent.add(dpDateAdded, "cell 1 12");
 
         JButton btnDateAdded = new SquareIconButton(IconManager.APPLY_INV);
         btnDateAdded.addActionListener(e -> {
           changed = true;
           setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
           for (Movie movie : moviesToEdit) {
-            movie.setDateAdded((Date) spDateAdded.getValue());
+            movie.setDateAdded(dpDateAdded.getDate());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
         });
@@ -777,6 +788,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
       };
       movieList.addPropertyChangeListener(listener);
     }
+    initDataBindings();
   }
 
   private void setMovieSets() {
@@ -926,5 +938,13 @@ public class MovieBulkEditorDialog extends TmmDialog {
     public String toString() {
       return description;
     }
+  }
+
+  protected void initDataBindings() {
+    Property jCheckBoxBeanProperty = BeanProperty.create("selected");
+    Property datePickerBeanProperty = BeanProperty.create("enabled");
+    AutoBinding autoBinding = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxWatched, jCheckBoxBeanProperty, dpLastWatched,
+        datePickerBeanProperty);
+    autoBinding.bind();
   }
 }

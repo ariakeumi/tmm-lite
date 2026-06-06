@@ -40,11 +40,15 @@ import org.tinymediamanager.core.TmmResourceBundle;
  */
 class CalendarPanel extends JPanel implements PropertyChangeListener {
   private Calendar calendar;
+  private boolean  noDate;
+  private boolean  allowNull = false;
   protected Locale locale;
 
   MonthComboBox    monthComboBox;
   YearSpinner      yearSpinner;
   DayPanel         dayPanel;
+
+  private JButton  noDateButton;
 
   public CalendarPanel(Date date) {
     setLayout(new BorderLayout());
@@ -94,8 +98,9 @@ class CalendarPanel extends JPanel implements PropertyChangeListener {
     JButton todayButton = new JButton();
     todayButton.addActionListener(e -> setDate(new Date()));
 
-    JButton noDateButton = new JButton();
-    noDateButton.addActionListener(e -> firePropertyChange("day", 0, -1));
+    noDateButton = new JButton();
+    noDateButton.addActionListener(e -> setDate(null));
+    noDateButton.setVisible(allowNull);
 
     specialButtonPanel.setLayout(new GridLayout(1, 3));
     todayButton.setText(TmmResourceBundle.getString("Button.today"));
@@ -108,6 +113,8 @@ class CalendarPanel extends JPanel implements PropertyChangeListener {
 
     add(specialButtonPanel, BorderLayout.SOUTH);
 
+    noDate = (date == null) && allowNull;
+
     if (date != null) {
       calendar.setTime(date);
     }
@@ -117,27 +124,27 @@ class CalendarPanel extends JPanel implements PropertyChangeListener {
 
   @Override
   public void propertyChange(PropertyChangeEvent evt) {
-    if (calendar != null) {
+    if (evt.getPropertyName().equals("day")) {
+      noDate = false;
       Calendar c = (Calendar) calendar.clone();
-
-      if (evt.getPropertyName().equals("day")) {
-        c.set(Calendar.DAY_OF_MONTH, (Integer) evt.getNewValue());
-        setCalendar(c, false);
-        firePropertyChange("day", evt.getOldValue(), evt.getNewValue());
-      }
-      else if (evt.getPropertyName().equals("date")) {
-        c.setTime((Date) evt.getNewValue());
-        setCalendar(c, true);
-      }
+      c.set(Calendar.DAY_OF_MONTH, (Integer) evt.getNewValue());
+      setCalendar(c, false);
+      firePropertyChange("day", evt.getOldValue(), evt.getNewValue());
+    }
+    else if (evt.getPropertyName().equals("date")) {
+      setDate((Date) evt.getNewValue());
     }
   }
 
   /**
-   * Returns the calendar
+   * Returns the calendar, or null if no date is selected.
    *
-   * @return the value of the calendar
+   * @return the value of the calendar, or null
    */
   public Calendar getCalendar() {
+    if (noDate) {
+      return null;
+    }
     return calendar;
   }
 
@@ -155,22 +162,29 @@ class CalendarPanel extends JPanel implements PropertyChangeListener {
    * Sets the calendar attribute of the JCalendar object
    * 
    * @param newCalendar
-   *          the new calendar value
+   *          the new calendar value (or null for no date)
    * @param update
-   *          the new calendar value
+   *          also update the UI controls
    */
   private void setCalendar(Calendar newCalendar, boolean update) {
     if (newCalendar == null) {
-      // setDate(null); // WILL throw NPE
+      if (!allowNull || noDate) {
+        return;
+      }
+      noDate = true;
+      dayPanel.clearSelection();
+      firePropertyChange("calendar", calendar, null);
       return;
     }
 
+    noDate = false;
     Calendar oldCalendar = calendar;
     calendar = newCalendar;
 
     if (update) {
       yearSpinner.setValue(newCalendar.get(Calendar.YEAR));
       monthComboBox.setSelectedIndex(newCalendar.get(Calendar.MONTH));
+      dayPanel.setCalendar(newCalendar);
       dayPanel.setDay(newCalendar.get(Calendar.DATE));
     }
 
@@ -178,21 +192,55 @@ class CalendarPanel extends JPanel implements PropertyChangeListener {
   }
 
   /**
-   * Returns a Date object.
+   * Returns a Date object, or null if no date is selected.
    * 
-   * @return a date object constructed from the calendar
+   * @return a date object constructed from the calendar, or null
    */
   public Date getDate() {
+    if (noDate) {
+      return null;
+    }
     return new Date(calendar.getTimeInMillis());
   }
 
   /**
-   * Sets the date. Fires the property change "date".
+   * Sets whether null values (no date) are allowed. When disabled, the "No date" button is hidden and setting a null date is ignored.
+   *
+   * @param allowNull
+   *          true if null values are allowed (default), false otherwise
+   */
+  public void setAllowNull(boolean allowNull) {
+    boolean changed = this.allowNull != allowNull;
+    this.allowNull = allowNull;
+    noDateButton.setVisible(allowNull);
+    revalidate();
+    repaint();
+
+    if (!allowNull && noDate) {
+      setDate(calendar.getTime());
+    }
+  }
+
+  /**
+   * Sets the date. Fires the property change "date". A null value clears the date (no date selected).
    * 
    * @param date
-   *          the new date.
+   *          the new date (or null for no date).
    */
   public void setDate(Date date) {
+    if (date == null) {
+      if (!allowNull || noDate) {
+        return;
+      }
+      Date oldDate = getDate();
+      noDate = true;
+      dayPanel.clearSelection();
+      firePropertyChange("date", oldDate, null);
+      firePropertyChange("day", 0, -1);
+      return;
+    }
+
+    noDate = false;
     Date oldDate = calendar.getTime();
     calendar.setTime(date);
     int year = calendar.get(Calendar.YEAR);

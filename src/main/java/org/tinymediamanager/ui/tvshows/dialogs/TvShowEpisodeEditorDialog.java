@@ -40,7 +40,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,14 +61,16 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.SpinnerDateModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jdesktop.beansbinding.AutoBinding;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
-import org.jdesktop.beansbinding.BindingGroup;
+import org.jdesktop.beansbinding.BeanProperty;
+import org.jdesktop.beansbinding.Bindings;
+import org.jdesktop.beansbinding.Property;
 import org.jdesktop.observablecollections.ObservableCollections;
 import org.jdesktop.swingbinding.JListBinding;
 import org.jdesktop.swingbinding.SwingBindings;
@@ -168,7 +169,7 @@ public class TvShowEpisodeEditorDialog extends AbstractEditorDialog {
   private JTextArea                                  tfTitle;
   private JSpinner                                   spRating;
   private DatePicker                                 dpFirstAired;
-  private JSpinner                                   spDateAdded;
+  private DatePicker                                 dpDateAdded;
   private JCheckBox                                  chckbxWatched;
   private ImageLabel                                 lblThumb;
   private JTextArea                                  taPlot;
@@ -192,6 +193,7 @@ public class TvShowEpisodeEditorDialog extends AbstractEditorDialog {
   private TmmTable                                   tableEpisodeNumbers;
 
   private ScrapeTask                                 scrapeTask          = null;
+  private DatePicker                                 dpLastPlayed;
 
   /**
    * Instantiates a new TV show episode scrape dialog.
@@ -231,12 +233,13 @@ public class TvShowEpisodeEditorDialog extends AbstractEditorDialog {
       tfTitle.setText(episodeToEdit.getTitle());
       tfOriginalTitle.setText(episodeToEdit.getOriginalTitle());
       tfEnglishTitle.setText(episodeToEdit.getEnglishTitle());
-      spDateAdded.setValue(episodeToEdit.getDateAdded());
+      dpDateAdded.setDate(episodeToEdit.getDateAdded());
       spRating.setModel(new SpinnerNumberModel(userMediaRating.getRating(), 0.0, 10.0, 0.1));
 
       lblThumb.setImagePath(episodeToEdit.getArtworkFilename(MediaFileType.THUMB));
       tfThumb.setText(episodeToEdit.getArtworkUrl(MediaFileType.THUMB));
       chckbxWatched.setSelected(episodeToEdit.isWatched());
+      dpLastPlayed.setDate(episodeToEdit.getLastWatched());
       taPlot.setText(episodeToEdit.getPlot());
       taPlot.setCaretPosition(0);
       cbMediaSource.setSelectedItem(episodeToEdit.getMediaSource());
@@ -482,8 +485,8 @@ public class TvShowEpisodeEditorDialog extends AbstractEditorDialog {
         JLabel lblDateAdded = new TmmLabel(TmmResourceBundle.getString("metatag.dateadded"));
         details2Panel.add(lblDateAdded, "cell 0 0,alignx right");
 
-        spDateAdded = new JSpinner(new SpinnerDateModel());
-        details2Panel.add(spDateAdded, "cell 1 0,growx");
+        dpDateAdded = new DatePicker();
+        details2Panel.add(dpDateAdded, "cell 1 0,growx");
       }
       {
         JLabel lblWatched = new TmmLabel(TmmResourceBundle.getString("metatag.watched"));
@@ -491,6 +494,10 @@ public class TvShowEpisodeEditorDialog extends AbstractEditorDialog {
 
         chckbxWatched = new JCheckBox("");
         details2Panel.add(chckbxWatched, "cell 3 0");
+
+        dpLastPlayed = new DatePicker();
+        dpLastPlayed.setAllowNull(true);
+        details2Panel.add(dpLastPlayed, "cell 5 0 2 1");
       }
       {
         JLabel lblMediasource = new TmmLabel(TmmResourceBundle.getString("metatag.source"));
@@ -892,10 +899,11 @@ public class TvShowEpisodeEditorDialog extends AbstractEditorDialog {
         episodeToEdit.removeRating(MediaRating.USER);
       }
 
-      episodeToEdit.setDateAdded((Date) spDateAdded.getValue());
+      episodeToEdit.setDateAdded(dpDateAdded.getDate());
       episodeToEdit.setFirstAired(dpFirstAired.getDate());
 
       episodeToEdit.setWatched(chckbxWatched.isSelected());
+      episodeToEdit.setLastWatched(dpLastPlayed.getDate());
 
       // remove cast to avoid merging
       episodeToEdit.removeActors();
@@ -1093,15 +1101,6 @@ public class TvShowEpisodeEditorDialog extends AbstractEditorDialog {
         }
       }
     }
-  }
-
-  protected void initDataBindings() {
-    JListBinding<String, List<String>, JList> jListBinding = SwingBindings.createJListBinding(UpdateStrategy.READ, tags, listTags);
-    jListBinding.bind();
-    //
-    bindingGroup = new BindingGroup();
-    //
-    bindingGroup.addBinding(jListBinding);
   }
 
   @Override
@@ -1460,5 +1459,16 @@ public class TvShowEpisodeEditorDialog extends AbstractEditorDialog {
         tableCrew.getSelectionModel().setSelectionInterval(row + 1, row + 1);
       }
     }
+  }
+
+  protected void initDataBindings() {
+    JListBinding jListBinding = SwingBindings.createJListBinding(UpdateStrategy.READ, tags, listTags);
+    jListBinding.bind();
+    //
+    Property jCheckBoxBeanProperty = BeanProperty.create("selected");
+    Property jSpinnerBeanProperty = BeanProperty.create("enabled");
+    AutoBinding autoBinding = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxWatched, jCheckBoxBeanProperty, dpLastPlayed,
+        jSpinnerBeanProperty);
+    autoBinding.bind();
   }
 }

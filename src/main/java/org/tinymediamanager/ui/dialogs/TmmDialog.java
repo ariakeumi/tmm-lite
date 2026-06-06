@@ -121,7 +121,7 @@ public abstract class TmmDialog extends JDialog implements IModalPopupPanelProvi
     }
 
     // set a reasonable minimum size to prevent dialogs from becoming unusably small
-    setMinimumSize(new Dimension(400, 300));
+    setMinimumSize(new Dimension(400, 300)); // $hide$ - do not parse this in wbpro
 
     initBottomPanel();
 

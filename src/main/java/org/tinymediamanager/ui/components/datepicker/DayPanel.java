@@ -301,6 +301,18 @@ class DayPanel extends JPanel {
   }
 
   /**
+   * Clears the current day selection, leaving no day highlighted.
+   */
+  void clearSelection() {
+    if (selectedDay != null) {
+      selectedDay.setBackground(transparentBackgroundColor);
+      selectedDay.repaint();
+    }
+    selectedDay = null;
+    day = 0;
+  }
+
+  /**
    * Sets a specific month. This is needed for correct graphical representation of the days.
    *
    * @param month
