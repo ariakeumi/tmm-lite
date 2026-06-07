@@ -52,7 +52,7 @@ public class TvShowRewriteSeasonNfoAction extends TmmAction {
             int i = 0;
             for (TvShowSeason season : selectedSeasons) {
               // the season
-              season.writeNfo();
+              season.writeNFO();
               season.saveToDb();
               publishState(++i);
 

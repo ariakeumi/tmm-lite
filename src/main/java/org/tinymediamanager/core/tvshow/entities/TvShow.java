@@ -1420,7 +1420,7 @@ public class TvShow extends MediaEntity implements IMediaInformation {
     writeNFO();
 
     // also force to write all season NFO files
-    seasons.forEach(TvShowSeason::writeNfo);
+    seasons.forEach(TvShowSeason::writeNFO);
 
     saveToDb();
   }

@@ -65,7 +65,7 @@ public class TvShowRewriteNfoAction extends TmmAction {
               // and all seasons
               for (TvShowSeason season : tvShow.getSeasons()) {
                 if (!season.isDummy()) {
-                  season.writeNfo();
+                  season.writeNFO();
                 }
               }
 

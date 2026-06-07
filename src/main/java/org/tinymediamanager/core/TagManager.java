@@ -193,6 +193,7 @@ public class TagManager {
       }
       if (changed) {
         entity.saveToDb();
+        entity.writeNFO();
         totalRemoved += toRemove.size();
       }
     }
@@ -243,16 +244,15 @@ public class TagManager {
           toRemove.add(t);
         }
       }
-      toRemove.forEach(entity.getTags()::remove);
+      toRemove.forEach(entity::removeFromTags);
 
       // add the new tag if not already present
       if (!hasNew) {
-        entity.getTags().add(newTag);
+        entity.addToTags(List.of(newTag));
       }
 
-      entity.firePropertyChange(Constants.TAGS, null, entity.getTags());
-      entity.firePropertyChange(Constants.TAGS_AS_STRING, null, entity.getTags());
       entity.saveToDb();
+      entity.writeNFO();
       renamedCount++;
     }
 

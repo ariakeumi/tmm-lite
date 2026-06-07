@@ -465,7 +465,7 @@ class TvShowCommand implements Runnable {
 
       tvShow.writeNFO();
       for (TvShowSeason season : tvShow.getSeasons()) {
-        season.writeNfo();
+        season.writeNFO();
       }
       for (TvShowEpisode episode : tvShow.getEpisodes()) {
         episode.writeNFO();

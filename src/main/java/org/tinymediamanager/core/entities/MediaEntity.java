@@ -1603,6 +1603,8 @@ public abstract class MediaEntity extends AbstractModelObject implements IPrinta
 
   public abstract void saveToDb();
 
+  public abstract void writeNFO();
+
   public abstract void callbackForGatheredMediainformation(MediaFile mediaFile);
 
   public abstract void callbackForWrittenArtwork(MediaArtworkType type);

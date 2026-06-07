@@ -1045,7 +1045,7 @@ public class TvShowArtworkHelper {
 
     if (seasonArtworkWritten) {
       // also force to write all season NFO files
-      tvShow.getSeasons().forEach(TvShowSeason::writeNfo);
+      tvShow.getSeasons().forEach(TvShowSeason::writeNFO);
     }
 
     // rewrite NFO to get the urls into the NFO

@@ -506,7 +506,8 @@ public class TvShowSeason extends MediaEntity implements Comparable<TvShowSeason
     // nothing to do
   }
 
-  public void writeNfo() {
+  @Override
+  public void writeNFO() {
     ITvShowSeasonConnector connector;
 
     // only write the NFO if there is at least one episode existing (or the setting activated)
