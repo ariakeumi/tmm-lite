@@ -214,6 +214,7 @@ public class IconManager {
   public static final ImageIcon              DATE_ADDED                   = createTableHeaderIcon("calendar-plus.svg");
   public static final ImageIcon              DATE_AIRED                   = createTableHeaderIcon("calendar-lines.svg");
   public static final ImageIcon              DATE_CREATED                 = createTableHeaderIcon("calendar-star.svg");
+  public static final ImageIcon              DELETE_HEADER                = createTableHeaderIcon("trash-alt.svg");
   public static final ImageIcon              EDITION                      = createTableHeaderIcon("compact-disc.svg");
   public static final ImageIcon              EDIT_HEADER                  = createTableHeaderIcon("edit.svg");
   public static final ImageIcon              EPISODES                     = createTextIcon("E", 1.4);

@@ -45,6 +45,7 @@ import org.tinymediamanager.TinyMediaManager;
 import org.tinymediamanager.core.Message;
 import org.tinymediamanager.core.MessageManager;
 import org.tinymediamanager.core.Settings;
+import org.tinymediamanager.core.TagManager;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.WolDevice;
@@ -74,6 +75,7 @@ import org.tinymediamanager.ui.dialogs.ActivityLogDialog;
 import org.tinymediamanager.ui.dialogs.FullLogDialog;
 import org.tinymediamanager.ui.dialogs.MessageHistoryDialog;
 import org.tinymediamanager.ui.dialogs.SettingsDialog;
+import org.tinymediamanager.ui.dialogs.TagManagerDialog;
 import org.tinymediamanager.ui.movies.MovieUIModule;
 import org.tinymediamanager.ui.movies.dialogs.MovieJmteExplorerDialog;
 import org.tinymediamanager.ui.thirdparty.KodiRPCMenu;
@@ -274,6 +276,26 @@ public class MainMenuPanel extends JPanel {
       jmteExplorerMenu.add(tvShowJmteExplorer);
 
       menu.add(jmteExplorerMenu);
+    }
+
+    {
+      JMenu tagManagerMenu = new JMenu(TmmResourceBundle.getString("tagmanager.title"));
+
+      JMenuItem movieTags = new JMenuItem(TmmResourceBundle.getString("tmm.movies"));
+      movieTags.addActionListener(arg0 -> new TagManagerDialog(TagManager.forMovies(), TmmResourceBundle.getString("tmm.movies")).setVisible(true));
+      tagManagerMenu.add(movieTags);
+
+      JMenuItem tvShowTags = new JMenuItem(TmmResourceBundle.getString("tmm.tvshows"));
+      tvShowTags
+          .addActionListener(arg0 -> new TagManagerDialog(TagManager.forTvShows(), TmmResourceBundle.getString("tmm.tvshows")).setVisible(true));
+      tagManagerMenu.add(tvShowTags);
+
+      JMenuItem episodeTags = new JMenuItem(TmmResourceBundle.getString("metatag.episodes"));
+      episodeTags.addActionListener(
+          arg0 -> new TagManagerDialog(TagManager.forEpisodes(), TmmResourceBundle.getString("metatag.episodes")).setVisible(true));
+      tagManagerMenu.add(episodeTags);
+
+      menu.add(tagManagerMenu);
     }
 
     if (Globals.canCheckForUpdates() || Globals.isDebug()) {

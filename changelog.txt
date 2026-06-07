@@ -1,5 +1,6 @@
 Version 5.2.13
 =======================
++ [UI] added a tag manager to the tools menu to manage all tags in one place
 + [UI] Movie set table: show the latest date added from assigned movies on movie set level #3291
 + [UI] added a dedicated path filter for episodes #3294
 + [UI] added a "currently" watching indicator in the TV show table (watched column) #3276
