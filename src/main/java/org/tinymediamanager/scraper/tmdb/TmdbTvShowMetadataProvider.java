@@ -512,9 +512,6 @@ public final class TmdbTvShowMetadataProvider extends TmdbMetadataProvider imple
             }
             break;
         }
-        if (fallbackLanguage2 == FALLBACK_LANGUAGE.NONE) {
-          // nothing to do
-        }
       }
 
       // original title
@@ -539,9 +536,25 @@ public final class TmdbTvShowMetadataProvider extends TmdbMetadataProvider imple
         md.setPlot(fallback.getPlot());
       }
 
-      // try to get from original
-      if (StringUtils.isBlank(md.getPlot()) && original != null && StringUtils.isNotBlank(original.getPlot())) {
-        md.setPlot(original.getPlot());
+      // try to get from the second fallback
+      if (StringUtils.isBlank(md.getPlot())) {
+        switch (fallbackLanguage2) {
+          case NONE:
+            // nothing to do
+            break;
+
+          case ENGLISH:
+            if (english != null && StringUtils.isNotBlank(english.getPlot())) {
+              md.setPlot(english.getPlot());
+            }
+            break;
+
+          case ORIGINAL:
+            if (original != null && StringUtils.isNotBlank(original.getPlot())) {
+              md.setPlot(original.getPlot());
+            }
+            break;
+        }
       }
 
       episodes.add(md);
@@ -1364,6 +1377,33 @@ public final class TmdbTvShowMetadataProvider extends TmdbMetadataProvider imple
       }
       if (StringUtils.isBlank(val[1])) {
         val[1] = temp[1];
+      }
+
+      // second fallback
+      if (StringUtils.isNotBlank(getProviderInfo().getConfig().getValue("titleFallbackLanguage2"))) {
+        try {
+          FALLBACK_LANGUAGE fallbackLanguage2 = FALLBACK_LANGUAGE.valueOf(getProviderInfo().getConfig().getValue("titleFallbackLanguage2"));
+
+          Locale locale;
+          switch (fallbackLanguage2) {
+            case ORIGINAL -> locale = Locale.forLanguageTag(show.original_language);
+            case ENGLISH -> locale = Locale.forLanguageTag("en-US");
+            default -> locale = null;
+          }
+
+          if (locale != null) {
+            temp = getValuesFromTranslation(show.translations, locale);
+            if (StringUtils.isBlank(val[0])) {
+              val[0] = temp[0];
+            }
+            if (StringUtils.isBlank(val[1])) {
+              val[1] = temp[1];
+            }
+          }
+        }
+        catch (Exception ignored) {
+          // stick to default
+        }
       }
 
       // finally SET the values
