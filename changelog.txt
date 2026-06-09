@@ -22,6 +22,7 @@ x [Library] upgraded libmediainfo to 26.05
 x [Library] upgraded libtinyfiledialogs to v3.21.3
 x [Java] upgraded Java to 21.0.11
 x [Scraper] Fernsehserien.de - ignore unavailable cast/crew
+x [Scraper] also save scraped editor/composer/camera crew
 x [Trailer] fix downloading TvShow trailers #3283 - thx @gamebeaker
 
 

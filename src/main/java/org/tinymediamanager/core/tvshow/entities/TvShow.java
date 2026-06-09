@@ -1313,6 +1313,9 @@ public class TvShow extends MediaEntity implements IMediaInformation {
       setCrew(metadata.getCastMembers(Person.Type.DIRECTOR));
       setCrew(metadata.getCastMembers(Person.Type.WRITER));
       setCrew(metadata.getCastMembers(Person.Type.PRODUCER));
+      setCrew(metadata.getCastMembers(Person.Type.COMPOSER));
+      setCrew(metadata.getCastMembers(Person.Type.EDITOR));
+      setCrew(metadata.getCastMembers(Person.Type.CAMERA));
       setCrew(metadata.getCastMembers(Person.Type.OTHER));
     }
 
