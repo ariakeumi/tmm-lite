@@ -15,20 +15,6 @@
  */
 package org.tinymediamanager.ui.tvshows.panels.season;
 
-import static org.tinymediamanager.core.Constants.ADDED_EPISODE;
-import static org.tinymediamanager.core.Constants.BANNER;
-import static org.tinymediamanager.core.Constants.FANART;
-import static org.tinymediamanager.core.Constants.MEDIA_FILES;
-import static org.tinymediamanager.core.Constants.POSTER;
-import static org.tinymediamanager.core.Constants.REMOVED_EPISODE;
-import static org.tinymediamanager.core.Constants.SEASON;
-import static org.tinymediamanager.core.Constants.SEASON_BANNER;
-import static org.tinymediamanager.core.Constants.SEASON_FANART;
-import static org.tinymediamanager.core.Constants.SEASON_POSTER;
-import static org.tinymediamanager.core.Constants.SEASON_THUMB;
-import static org.tinymediamanager.core.Constants.THUMB;
-import static org.tinymediamanager.core.Constants.TITLE;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -45,11 +31,6 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.beansbinding.AutoBinding;
-import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
-import org.jdesktop.beansbinding.BeanProperty;
-import org.jdesktop.beansbinding.Bindings;
-import org.jdesktop.beansbinding.Property;
 import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.entities.MediaFile;
@@ -77,7 +58,7 @@ import ca.odell.glazedlists.swing.GlazedListsSwing;
 import net.miginfocom.swing.MigLayout;
 
 /**
- * The Class TvShowInformationPanel.
+ * The Class TvShowSeasonInformationPanel.
  * 
  * @author Manuel Laggner
  */
@@ -90,7 +71,6 @@ public class TvShowSeasonInformationPanel extends InformationPanel {
 
   private final EventList<TvShowEpisode>     episodeEventList;
   private final TmmTableModel<TvShowEpisode> episodeTableModel;
-  private final TvShowSeasonSelectionModel   tvShowSeasonSelectionModel;
   private JLabel                             lblTvshowTitle;
   private JLabel                             lblSeason;
   private JTextPane                          taOverview;
@@ -103,71 +83,32 @@ public class TvShowSeasonInformationPanel extends InformationPanel {
    *          the tv show selection model
    */
   public TvShowSeasonInformationPanel(TvShowSeasonSelectionModel tvShowSeasonSelectionModel) {
-    this.tvShowSeasonSelectionModel = tvShowSeasonSelectionModel;
     episodeEventList = new ObservableElementList<>(GlazedLists.threadSafeList(new BasicEventList<>()),
         GlazedLists.beanConnector(TvShowEpisode.class));
     episodeTableModel = new TmmTableModel<>(GlazedListsSwing.swingThreadProxyList(episodeEventList), new EpisodeTableFormat());
 
     initComponents();
-    initDataBindings();
 
-    tableEpisodes.setDefaultRenderer(String.class, new EpisodeTableCellRenderer());
-
-    // manual coded binding
+    // UI binding
     PropertyChangeListener propertyChangeListener = propertyChangeEvent -> {
       String property = propertyChangeEvent.getPropertyName();
       Object source = propertyChangeEvent.getSource();
-      // react on selection/change of a seson
+
       if (source.getClass() != TvShowSeasonSelectionModel.class) {
         return;
       }
 
-      TvShowSeasonSelectionModel model = (TvShowSeasonSelectionModel) source;
-      TvShowSeason selectedSeason = model.getSelectedTvShowSeason();
+      TvShowSeasonSelectionModel selectionModel = (TvShowSeasonSelectionModel) source;
+      TvShowSeason season = selectionModel.getSelectedTvShowSeason();
 
-      if ("selectedTvShowSeason".equals(property) || SEASON.equals(property) || TITLE.equals(property)) {
-        if (StringUtils.isNotBlank(selectedSeason.getTitle())) {
-          lblSeason
-              .setText(selectedSeason.getTitle() + " (" + TmmResourceBundle.getString("metatag.season") + " " + selectedSeason.getSeason() + ")");
-        }
-        else {
-          lblSeason.setText(TmmResourceBundle.getString("metatag.season") + " " + selectedSeason.getSeason());
-        }
-      }
-
-      if ("selectedTvShowSeason".equals(property) || POSTER.equals(property) || SEASON_POSTER.equals(property)) {
-        setArtwork(MediaFileType.SEASON_POSTER, MediaFileType.POSTER, selectedSeason);
-      }
-
-      if ("selectedTvShowSeason".equals(property) || FANART.equals(property) || SEASON_FANART.equals(property)) {
-        setArtwork(MediaFileType.SEASON_FANART, MediaFileType.FANART, selectedSeason);
-      }
-
-      if ("selectedTvShowSeason".equals(property) || BANNER.equals(property) || SEASON_BANNER.equals(property)) {
-        setArtwork(MediaFileType.SEASON_BANNER, MediaFileType.BANNER, selectedSeason);
-      }
-
-      if ("selectedTvShowSeason".equals(property) || THUMB.equals(property) || SEASON_THUMB.equals(property)) {
-        setArtwork(MediaFileType.SEASON_THUMB, MediaFileType.THUMB, selectedSeason);
-      }
-
-      if ("selectedTvShowSeason".equals(property) || MEDIA_FILES.equals(property) || ADDED_EPISODE.equals(property)
-          || REMOVED_EPISODE.equals(property)) {
-        try {
-          episodeEventList.getReadWriteLock().writeLock().lock();
-          episodeEventList.clear();
-          episodeEventList.addAll(selectedSeason.getEpisodesForDisplay());
-        }
-        catch (Exception ignored) {
-          // nothing to do here
-        }
-        finally {
-          episodeEventList.getReadWriteLock().writeLock().unlock();
-          tableEpisodes.adjustColumnPreferredWidths(6);
-        }
+      if ("selectedTvShowSeason".equals(property)) {
+        changeSeason(season);
       }
     };
+
     tvShowSeasonSelectionModel.addPropertyChangeListener(propertyChangeListener);
+
+    tableEpisodes.setDefaultRenderer(String.class, new EpisodeTableCellRenderer());
   }
 
   @Override
@@ -176,6 +117,52 @@ public class TvShowSeasonInformationPanel extends InformationPanel {
 
     defaultColor = UIManager.getColor("Table.foreground");
     dummyColor = UIManager.getColor("Component.linkColor");
+  }
+
+  private void changeSeason(TvShowSeason season) {
+    if (StringUtils.isNotBlank(season.getTitle())) {
+      lblSeason.setText(season.getTitle() + " (" + TmmResourceBundle.getString("metatag.season") + " " + season.getSeason() + ")");
+    }
+    else {
+      lblSeason.setText(TmmResourceBundle.getString("metatag.season") + " " + season.getSeason());
+    }
+
+    // Season poster
+    setSeasonArtwork(season, MediaFileType.SEASON_POSTER, MediaFileType.POSTER);
+
+    // Season fanart
+    setSeasonArtwork(season, MediaFileType.SEASON_FANART, MediaFileType.FANART);
+
+    // Season banner
+    setSeasonArtwork(season, MediaFileType.SEASON_BANNER, MediaFileType.BANNER);
+
+    // Season thumb
+    setSeasonArtwork(season, MediaFileType.SEASON_THUMB, MediaFileType.THUMB);
+
+    // Update episode table
+    try {
+      episodeEventList.getReadWriteLock().writeLock().lock();
+      episodeEventList.clear();
+      episodeEventList.addAll(season.getEpisodesForDisplay());
+    }
+    catch (Exception ignored) {
+      // nothing to do here
+    }
+    finally {
+      episodeEventList.getReadWriteLock().writeLock().unlock();
+      tableEpisodes.adjustColumnPreferredWidths(6);
+    }
+  }
+
+  private void setSeasonArtwork(TvShowSeason season, MediaFileType type, MediaFileType fallbackType) {
+    MediaFile mediaFile = ListUtils.getFirst(season.getMediaFiles(type));
+
+    if (mediaFile == null && TvShowModuleManager.getInstance().getSettings().isSeasonArtworkFallback()) {
+      // fall back to TV show
+      mediaFile = ListUtils.getFirst(season.getTvShow().getMediaFiles(fallbackType));
+    }
+
+    setArtwork(mediaFile, type);
   }
 
   private void initComponents() {
@@ -244,17 +231,6 @@ public class TvShowSeasonInformationPanel extends InformationPanel {
     }
   }
 
-  private void setArtwork(MediaFileType type, MediaFileType fallbackType, TvShowSeason tvShowSeason) {
-    MediaFile mediaFile = ListUtils.getFirst(tvShowSeason.getMediaFiles(type));
-
-    if (mediaFile == null && TvShowModuleManager.getInstance().getSettings().isSeasonArtworkFallback()) {
-      // fall back to TV show
-      mediaFile = ListUtils.getFirst(tvShowSeason.getTvShow().getMediaFiles(fallbackType));
-    }
-
-    setArtwork(mediaFile, type);
-  }
-
   @Override
   protected List<MediaFileType> getShowArtworkFromSettings() {
     return TvShowModuleManager.getInstance().getSettings().getShowSeasonArtworkTypes();
@@ -312,19 +288,5 @@ public class TvShowSeasonInformationPanel extends InformationPanel {
       }
       return c;
     }
-  }
-
-  protected void initDataBindings() {
-    Property tvShowSeasonSelectionModelBeanProperty = BeanProperty.create("selectedTvShowSeason.tvShow.title");
-    Property jLabelBeanProperty = BeanProperty.create("text");
-    AutoBinding autoBinding = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSeasonSelectionModel, tvShowSeasonSelectionModelBeanProperty,
-        lblTvshowTitle, jLabelBeanProperty);
-    autoBinding.bind();
-    //
-    Property tvShowSeasonSelectionModelBeanProperty_1 = BeanProperty.create("selectedTvShowSeason.plot");
-    Property readOnlyTextPaneHTMLBeanProperty = BeanProperty.create("text");
-    AutoBinding autoBinding_1 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSeasonSelectionModel, tvShowSeasonSelectionModelBeanProperty_1,
-        taOverview, readOnlyTextPaneHTMLBeanProperty);
-    autoBinding_1.bind();
   }
 }

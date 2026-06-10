@@ -15,14 +15,6 @@
  */
 package org.tinymediamanager.ui.tvshows.panels.episode;
 
-import static org.tinymediamanager.core.Constants.ID;
-import static org.tinymediamanager.core.Constants.MEDIA_FILES;
-import static org.tinymediamanager.core.Constants.MEDIA_INFORMATION;
-import static org.tinymediamanager.core.Constants.POSTER;
-import static org.tinymediamanager.core.Constants.RATING;
-import static org.tinymediamanager.core.Constants.SEASON_POSTER;
-import static org.tinymediamanager.core.Constants.THUMB;
-
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -45,10 +37,6 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.beansbinding.AutoBinding;
-import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
-import org.jdesktop.beansbinding.BeanProperty;
-import org.jdesktop.beansbinding.Bindings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.MediaFileType;
@@ -64,6 +52,7 @@ import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.scraper.MediaMetadata;
 import org.tinymediamanager.scraper.util.ListUtils;
 import org.tinymediamanager.ui.ColumnLayout;
+import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.TmmUIHelper;
 import org.tinymediamanager.ui.WrapLayout;
@@ -85,7 +74,7 @@ import net.miginfocom.swing.MigLayout;
 
 /**
  * The Class TvShowEpisodeInformationPanel.
- * 
+ *
  * @author Manuel Laggner
  */
 public class TvShowEpisodeInformationPanel extends InformationPanel {
@@ -120,7 +109,7 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
 
   /**
    * Instantiates a new tv show information panel.
-   * 
+   *
    * @param tvShowEpisodeSelectionModel
    *          the tv show selection model
    */
@@ -128,58 +117,27 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
     this.tvShowEpisodeSelectionModel = tvShowEpisodeSelectionModel;
 
     initComponents();
-    initDataBindings();
 
-    // manual coded binding
+    // UI binding
     PropertyChangeListener propertyChangeListener = propertyChangeEvent -> {
       String property = propertyChangeEvent.getPropertyName();
       Object source = propertyChangeEvent.getSource();
-      // react on selection/change of an episode
+
       if (source.getClass() != TvShowEpisodeSelectionModel.class) {
         return;
       }
 
-      TvShowEpisodeSelectionModel model = (TvShowEpisodeSelectionModel) source;
-      TvShowEpisode episode = model.getSelectedTvShowEpisode();
-
-      if ("selectedTvShowEpisode".equals(property) || POSTER.equals(property) || SEASON_POSTER.equals(property)) {
-        setSeasonPoster(episode);
-      }
-
-      if ("selectedTvShowEpisode".equals(property) || THUMB.equals(property)) {
-        setArtwork(episode, MediaFileType.THUMB);
-      }
-
-      if ("selectedTvShowEpisode".equals(property) || MEDIA_FILES.equals(property) || MEDIA_INFORMATION.equals(property)) {
-        panelLogos.setMediaInformationSource(episode);
-      }
-
-      if ("selectedTvShowEpisode".equals(property) || RATING.equals(property)) {
-        setRating(episode);
-      }
-
-      if ("selectedTvShowEpisode".equals(property) || ID.equals(property)) {
-        // other IDs
-        panelOtherIds.removeAll();
-        for (String key : episode.getIds().keySet()) {
-          // all but IMDB and TVDB
-          if (MediaMetadata.IMDB.equals(key) || MediaMetadata.TVDB.equals(key)) {
-            continue;
-          }
-
-          panelOtherIds.add(new IdLinkPanel(key, episode));
-        }
-        panelOtherIds.invalidate();
-        panelOtherIds.repaint();
-      }
+      TvShowEpisodeSelectionModel selectionModel = (TvShowEpisodeSelectionModel) source;
+      TvShowEpisode episode = selectionModel.getSelectedTvShowEpisode();
 
       if ("selectedTvShowEpisode".equals(property)) {
-        SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
+        changeEpisode(episode);
       }
     };
 
-    this.tvShowEpisodeSelectionModel.addPropertyChangeListener(propertyChangeListener);
+    tvShowEpisodeSelectionModel.addPropertyChangeListener(propertyChangeListener);
 
+    // action listeners
     lblPath.addActionListener(arg0 -> {
       if (!StringUtils.isEmpty(lblPath.getText())) {
         // get the location from the label
@@ -213,6 +171,51 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
         MessageManager.getInstance()
             .pushMessage(new Message(Message.MessageLevel.ERROR, url, "message.erroropenurl", new String[] { ":", e.getLocalizedMessage() }));
       }
+    });
+  }
+
+  private void changeEpisode(TvShowEpisode episode) {
+    lblTvShowName.setText(episode.getTvShow().getTitle());
+    lblTvShowName.setIcon(episode.getTvShow().isLocked() ? IconManager.LOCK_BLUE : null);
+    lblEpisodeTitle.setText(episode.getTitleForUi());
+    lblOriginalTitle.setText(episode.getOriginalTitle());
+    lblSeason.setText(getIntegerAsStringWoZero(episode.getSeason()));
+    lblEpisode.setText(getIntegerAsStringWoZero(episode.getEpisode()));
+    lblAired.setText(episode.getFirstAiredAsString());
+    taTags.setText(episode.getTagsAsString());
+    lblPath.setText(episode.getPath());
+    taNote.setText(episode.getNote());
+    lblEdition.setText(episode.getEdition().getTitle());
+
+    // Set logos
+    panelLogos.setMediaInformationSource(episode);
+
+    // Set rating
+    setRating(episode);
+
+    // Set season poster
+    setSeasonPoster(episode);
+
+    // Set thumb artwork
+    setArtwork(episode, MediaFileType.THUMB);
+
+    // other IDs
+    panelOtherIds.removeAll();
+    for (String key : episode.getIds().keySet()) {
+      // all but IMDB and TVDB
+      if (MediaMetadata.IMDB.equals(key) || MediaMetadata.TVDB.equals(key)) {
+        continue;
+      }
+
+      panelOtherIds.add(new IdLinkPanel(key, episode));
+    }
+    panelOtherIds.invalidate();
+    panelOtherIds.repaint();
+
+    // scroll everything up
+    SwingUtilities.invokeLater(() -> {
+      scrollPane.getVerticalScrollBar().setValue(0);
+      scrollPane.getHorizontalScrollBar().setValue(0);
     });
   }
 
@@ -397,7 +400,7 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
     String posterPath = episode.getTvShowSeason().getArtworkFilename(MediaFileType.SEASON_POSTER);
     Dimension posterSize = episode.getTvShowSeason().getArtworkDimension(MediaFileType.SEASON_POSTER);
 
-    if (StringUtils.isBlank(posterPath) && TvShowModuleManager.getInstance().getSettings().isSeasonArtworkFallback()) {
+    if (StringUtils.isBlank(posterPath) && settings.isSeasonArtworkFallback()) {
       // fall back to the show
       posterPath = episode.getTvShowSeason().getTvShow().getArtworkFilename(MediaFileType.POSTER);
       posterSize = episode.getTvShowSeason().getTvShow().getArtworkDimension(MediaFileType.POSTER);
@@ -437,7 +440,7 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
 
   @Override
   protected List<MediaFileType> getShowArtworkFromSettings() {
-    return TvShowModuleManager.getInstance().getSettings().getShowEpisodeArtworkTypes();
+    return settings.getShowEpisodeArtworkTypes();
   }
 
   @Override
@@ -458,96 +461,5 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
     }
 
     ratingPanel.setRatings(ratings);
-  }
-
-  protected void initDataBindings() {
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowEpisodeSelectionModelBeanProperty = BeanProperty
-        .create("selectedTvShowEpisode.tvShow.title");
-    BeanProperty<JLabel, String> jLabelBeanProperty = BeanProperty.create("text");
-    AutoBinding<TvShowEpisodeSelectionModel, String, JLabel, String> autoBinding = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty, lblTvShowName, jLabelBeanProperty);
-    autoBinding.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowEpisodeSelectionModelBeanProperty_1 = BeanProperty
-        .create("selectedTvShowEpisode.titleForUi");
-    AutoBinding<TvShowEpisodeSelectionModel, String, JLabel, String> autoBinding_1 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_1, lblEpisodeTitle, jLabelBeanProperty);
-    autoBinding_1.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowEpisodeSelectionModelBeanProperty_3 = BeanProperty.create("selectedTvShowEpisode.plot");
-    BeanProperty<JTextPane, String> JTextPaneBeanProperty = BeanProperty.create("text");
-    AutoBinding<TvShowEpisodeSelectionModel, String, JTextPane, String> autoBinding_3 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_3, taOverview, JTextPaneBeanProperty);
-    autoBinding_3.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowEpisodeSelectionModelBeanProperty_2 = BeanProperty
-        .create("selectedTvShowEpisode.originalTitle");
-    AutoBinding<TvShowEpisodeSelectionModel, String, JLabel, String> autoBinding_2 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_2, lblOriginalTitle, jLabelBeanProperty);
-    autoBinding_2.bind();
-    //
-    BeanProperty<TvShowSettings, Boolean> tvShowSettingsBeanProperty = BeanProperty.create("showLogosPanel");
-    BeanProperty<JSeparator, Boolean> jSeparatorBeanProperty = BeanProperty.create("visible");
-    AutoBinding<TvShowSettings, Boolean, JSeparator, Boolean> autoBinding_7 = Bindings.createAutoBinding(UpdateStrategy.READ, settings,
-        tvShowSettingsBeanProperty, sepLogos, jSeparatorBeanProperty);
-    autoBinding_7.bind();
-    //
-    BeanProperty<MediaInformationLogosPanel, Boolean> mediaInformationLogosPanelBeanProperty = BeanProperty.create("visible");
-    AutoBinding<TvShowSettings, Boolean, MediaInformationLogosPanel, Boolean> autoBinding_8 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        settings, tvShowSettingsBeanProperty, panelLogos, mediaInformationLogosPanelBeanProperty);
-    autoBinding_8.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, Integer> tvShowEpisodeSelectionModelBeanProperty_7 = BeanProperty
-        .create("selectedTvShowEpisode.season");
-    AutoBinding<TvShowEpisodeSelectionModel, Integer, JLabel, String> autoBinding_9 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_7, lblSeason, jLabelBeanProperty);
-    autoBinding_9.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, Integer> tvShowEpisodeSelectionModelBeanProperty_8 = BeanProperty
-        .create("selectedTvShowEpisode.episode");
-    AutoBinding<TvShowEpisodeSelectionModel, Integer, JLabel, String> autoBinding_10 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_8, lblEpisode, jLabelBeanProperty);
-    autoBinding_10.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowEpisodeSelectionModelBeanProperty_9 = BeanProperty
-        .create("selectedTvShowEpisode.firstAiredAsString");
-    AutoBinding<TvShowEpisodeSelectionModel, String, JLabel, String> autoBinding_11 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_9, lblAired, jLabelBeanProperty);
-    autoBinding_11.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowEpisodeSelectionModelBeanProperty_10 = BeanProperty
-        .create("selectedTvShowEpisode.tagsAsString");
-    AutoBinding<TvShowEpisodeSelectionModel, String, JTextPane, String> autoBinding_12 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_10, taTags, JTextPaneBeanProperty);
-    autoBinding_12.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowEpisodeSelectionModelBeanProperty_11 = BeanProperty.create("selectedTvShowEpisode.path");
-    BeanProperty<LinkTextArea, String> linkTextAreaBeanProperty = BeanProperty.create("text");
-    AutoBinding<TvShowEpisodeSelectionModel, String, LinkTextArea, String> autoBinding_13 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_11, lblPath, linkTextAreaBeanProperty);
-    autoBinding_13.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowEpisodeSelectionModelBeanProperty_12 = BeanProperty.create("selectedTvShowEpisode.note");
-    AutoBinding<TvShowEpisodeSelectionModel, String, JTextPane, String> autoBinding_14 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_12, taNote, JTextPaneBeanProperty);
-    autoBinding_14.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowSelectionModelBeanProperty_14 = BeanProperty.create("selectedTvShowEpisode.imdbId");
-    BeanProperty<LinkLabel, String> linkLabelBeanProperty_3 = BeanProperty.create("text");
-    AutoBinding<TvShowEpisodeSelectionModel, String, LinkLabel, String> autoBinding_16 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowSelectionModelBeanProperty_14, lblImdbId, linkLabelBeanProperty_3);
-    autoBinding_16.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowSelectionModelBeanProperty_15 = BeanProperty.create("selectedTvShowEpisode.tvdbId");
-    BeanProperty<LinkLabel, String> linkLabelBeanProperty_4 = BeanProperty.create("text");
-    AutoBinding<TvShowEpisodeSelectionModel, String, LinkLabel, String> autoBinding_17 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowSelectionModelBeanProperty_15, lblTvdbId, linkLabelBeanProperty_4);
-    autoBinding_17.bind();
-    //
-    BeanProperty<TvShowEpisodeSelectionModel, String> tvShowEpisodeSelectionModelBeanProperty_4 = BeanProperty
-        .create("selectedTvShowEpisode.edition.title");
-    AutoBinding<TvShowEpisodeSelectionModel, String, JLabel, String> autoBinding_4 = Bindings.createAutoBinding(UpdateStrategy.READ,
-        tvShowEpisodeSelectionModel, tvShowEpisodeSelectionModelBeanProperty_4, lblEdition, jLabelBeanProperty);
-    autoBinding_4.bind();
   }
 }

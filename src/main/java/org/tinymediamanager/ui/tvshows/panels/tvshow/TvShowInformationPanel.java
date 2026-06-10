@@ -15,16 +15,6 @@
  */
 package org.tinymediamanager.ui.tvshows.panels.tvshow;
 
-import static org.tinymediamanager.core.Constants.BANNER;
-import static org.tinymediamanager.core.Constants.CLEARLOGO;
-import static org.tinymediamanager.core.Constants.FANART;
-import static org.tinymediamanager.core.Constants.ID;
-import static org.tinymediamanager.core.Constants.MEDIA_FILES;
-import static org.tinymediamanager.core.Constants.MEDIA_INFORMATION;
-import static org.tinymediamanager.core.Constants.POSTER;
-import static org.tinymediamanager.core.Constants.RATING;
-import static org.tinymediamanager.core.Constants.THUMB;
-
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -44,12 +34,6 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.beansbinding.AutoBinding;
-import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
-import org.jdesktop.beansbinding.BeanProperty;
-import org.jdesktop.beansbinding.Bindings;
-import org.jdesktop.beansbinding.Converter;
-import org.jdesktop.beansbinding.Property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.MediaFileType;
@@ -60,8 +44,8 @@ import org.tinymediamanager.core.entities.MediaRating;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.scraper.MediaMetadata;
-import org.tinymediamanager.scraper.entities.MediaEpisodeGroup;
 import org.tinymediamanager.ui.ColumnLayout;
+import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.TmmUIHelper;
 import org.tinymediamanager.ui.WrapLayout;
@@ -72,7 +56,6 @@ import org.tinymediamanager.ui.components.panel.IdLinkPanel;
 import org.tinymediamanager.ui.components.textfield.LinkTextArea;
 import org.tinymediamanager.ui.components.textfield.ReadOnlyTextPane;
 import org.tinymediamanager.ui.components.textfield.ReadOnlyTextPaneHTML;
-import org.tinymediamanager.ui.converter.CertificationImageConverter;
 import org.tinymediamanager.ui.panels.InformationPanel;
 import org.tinymediamanager.ui.panels.MediaInformationLogosPanel;
 import org.tinymediamanager.ui.panels.RatingPanel;
@@ -82,7 +65,7 @@ import net.miginfocom.swing.MigLayout;
 
 /**
  * The Class TvShowInformationPanel.
- * 
+ *
  * @author Manuel Laggner
  */
 public class TvShowInformationPanel extends InformationPanel {
@@ -90,8 +73,6 @@ public class TvShowInformationPanel extends InformationPanel {
 
   private static final String        LAYOUT_ARTWORK_VISIBLE = "[n:100lp:20%, grow][300lp:300lp,grow 350]";
   private static final String        LAYOUT_ARTWORK_HIDDEN  = "[][300lp:300lp,grow 350]";
-
-  private final TvShowSelectionModel tvShowSelectionModel;
 
   private JTextPane                  taGenres;
   private JLabel                     lblCertification;
@@ -121,15 +102,11 @@ public class TvShowInformationPanel extends InformationPanel {
    * Instantiates a new tv show information panel.
    *
    * @param tvShowSelectionModel
-   *          the tv show selection model
+   *          the {@link TvShowSelectionModel} to bind to
    */
   public TvShowInformationPanel(TvShowSelectionModel tvShowSelectionModel) {
-    this.tvShowSelectionModel = tvShowSelectionModel;
 
     initComponents();
-
-    // beansbinding init
-    initDataBindings();
 
     // action listeners
     lblImdbId.addActionListener(arg0 -> {
@@ -164,68 +141,75 @@ public class TvShowInformationPanel extends InformationPanel {
       }
     });
 
-    // manual coded binding
+    // UI binding
     PropertyChangeListener propertyChangeListener = propertyChangeEvent -> {
       String property = propertyChangeEvent.getPropertyName();
       Object source = propertyChangeEvent.getSource();
-      // react on selection/change of a TV show
+
       if (source.getClass() != TvShowSelectionModel.class) {
         return;
       }
 
-      TvShowSelectionModel model = (TvShowSelectionModel) source;
-      TvShow tvShow = model.getSelectedTvShow();
-
-      if ("selectedTvShow".equals(property) || POSTER.equals(property)) {
-        setArtwork(tvShow, MediaFileType.POSTER);
-      }
-
-      if ("selectedTvShow".equals(property) || FANART.equals(property)) {
-        setArtwork(tvShow, MediaFileType.FANART);
-      }
-
-      if ("selectedTvShow".equals(property) || BANNER.equals(property)) {
-        setArtwork(tvShow, MediaFileType.BANNER);
-      }
-
-      if ("selectedTvShow".equals(property) || THUMB.equals(property)) {
-        setArtwork(tvShow, MediaFileType.THUMB);
-      }
-
-      if ("selectedTvShow".equals(property) || CLEARLOGO.equals(property)) {
-        setArtwork(tvShow, MediaFileType.CLEARLOGO);
-      }
-
-      if ("selectedTvShow".equals(property) || MEDIA_FILES.equals(property) || MEDIA_INFORMATION.equals(property)) {
-        panelLogos.setMediaInformationSource(tvShow);
-      }
-
-      if ("selectedTvShow".equals(property) || RATING.equals(property)) {
-        setRating(tvShow);
-      }
-
-      if ("selectedTvShow".equals(property) || ID.equals(property)) {
-        // other IDs
-        panelOtherIds.removeAll();
-        for (String key : tvShow.getIds().keySet()) {
-          // we want at max the TMDB id here, since we're collecting too many ids now...
-          if (MediaMetadata.TMDB.equals(key)) {
-            panelOtherIds.add(new IdLinkPanel(key, tvShow));
-          }
-        }
-        panelOtherIds.invalidate();
-        panelOtherIds.repaint();
-      }
+      TvShowSelectionModel selectionModel = (TvShowSelectionModel) source;
+      TvShow tvShow = selectionModel.getSelectedTvShow();
 
       if ("selectedTvShow".equals(property)) {
-        SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
+        changeTvShow(tvShow);
       }
     };
 
     tvShowSelectionModel.addPropertyChangeListener(propertyChangeListener);
+  }
 
-    // select first entry
+  private void changeTvShow(TvShow tvShow) {
+    lblTvShowName.setText(tvShow.getTitle());
+    lblTvShowName.setIcon(tvShow.isLocked() ? IconManager.LOCK_BLUE : null);
+    lblOriginalTitle.setText(tvShow.getOriginalTitle());
+    lblYear.setText(getIntegerAsStringWoZero(tvShow.getYear()));
+    lblPremiered.setText(tvShow.getFirstAiredAsString());
+    lblCertification.setText(tvShow.getCertification().getLocalizedName());
+    lblRuntime.setText(convertRuntime(tvShow.getRuntime()));
+    taGenres.setText(tvShow.getGenresAsString());
+    lblStatus.setText(tvShow.getStatus().getLocalizedName());
+    taStudio.setText(tvShow.getProductionCompany());
+    lblCountry.setText(tvShow.getCountry());
+    lblEpisodeGroup.setText(tvShow.getEpisodeGroup().toString());
+    lblTagline.setText(tvShow.getTagline());
+    taOverview.setText(tvShow.getPlot());
+    taTags.setText(tvShow.getTagsAsString());
+    lblPath.setText(tvShow.getPath());
+    taNote.setText(tvShow.getNote());
 
+    lblCertificationLogo.setIcon(getCertificationIcon(tvShow.getCertification()));
+    lblImdbId.setText(tvShow.getImdbId());
+    lblThetvdbId.setText(tvShow.getTvdbId());
+
+    // other IDs
+    panelOtherIds.removeAll();
+    for (String key : tvShow.getIds().keySet()) {
+      // we want at max the TMDB id here, since we're collecting too many ids now...
+      if (MediaMetadata.TMDB.equals(key)) {
+        panelOtherIds.add(new IdLinkPanel(key, tvShow));
+      }
+    }
+    panelOtherIds.invalidate();
+    panelOtherIds.repaint();
+
+    setArtwork(tvShow, MediaFileType.POSTER);
+    setArtwork(tvShow, MediaFileType.FANART);
+    setArtwork(tvShow, MediaFileType.BANNER);
+    setArtwork(tvShow, MediaFileType.THUMB);
+    setArtwork(tvShow, MediaFileType.CLEARLOGO);
+
+    panelLogos.setMediaInformationSource(tvShow);
+
+    setRating(tvShow);
+
+    // scroll everything up
+    SwingUtilities.invokeLater(() -> {
+      scrollPane.getVerticalScrollBar().setValue(0);
+      scrollPane.getHorizontalScrollBar().setValue(0);
+    });
   }
 
   private void initComponents() {
@@ -459,124 +443,5 @@ public class TvShowInformationPanel extends InformationPanel {
     }
 
     ratingPanel.setRatings(ratings);
-  }
-
-  protected void initDataBindings() {
-    Property tvShowSelectionModelBeanProperty = BeanProperty.create("selectedTvShow.title");
-    Property jLabelBeanProperty = BeanProperty.create("text");
-    AutoBinding autoBinding = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty, lblTvShowName,
-        jLabelBeanProperty);
-    autoBinding.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_1 = BeanProperty.create("selectedTvShow.plot");
-    Property jTextPaneBeanProperty = BeanProperty.create("text");
-    AutoBinding autoBinding_1 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_1, taOverview,
-        jTextPaneBeanProperty);
-    autoBinding_1.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_21 = BeanProperty.create("selectedTvShow.tagline");
-    AutoBinding autoBinding_21 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_21,
-        lblTagline, jLabelBeanProperty);
-    autoBinding_21.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_4 = BeanProperty.create("selectedTvShow.originalTitle");
-    AutoBinding autoBinding_5 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_4,
-        lblOriginalTitle, jLabelBeanProperty);
-    autoBinding_5.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_6 = BeanProperty.create("selectedTvShow.year");
-    AutoBinding autoBinding_6 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_6, lblYear,
-        jLabelBeanProperty);
-    autoBinding_6.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_7 = BeanProperty.create("selectedTvShow.imdbId");
-    Property linkLabelBeanProperty = BeanProperty.create("text");
-    AutoBinding autoBinding_7 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_7, lblImdbId,
-        linkLabelBeanProperty);
-    autoBinding_7.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_8 = BeanProperty.create("selectedTvShow.certification.localizedName");
-    AutoBinding autoBinding_8 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_8,
-        lblCertification, jLabelBeanProperty);
-    autoBinding_8.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_9 = BeanProperty.create("selectedTvShow.tvdbId");
-    AutoBinding autoBinding_9 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_9,
-        lblThetvdbId, linkLabelBeanProperty);
-    autoBinding_9.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_10 = BeanProperty.create("selectedTvShow.runtime");
-    AutoBinding autoBinding_10 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_10,
-        lblRuntime, jLabelBeanProperty);
-    autoBinding_10.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_12 = BeanProperty.create("selectedTvShow.status.localizedName");
-    AutoBinding autoBinding_12 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_12, lblStatus,
-        jLabelBeanProperty);
-    autoBinding_12.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_13 = BeanProperty.create("selectedTvShow.genresAsString");
-    AutoBinding autoBinding_13 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_13, taGenres,
-        jTextPaneBeanProperty);
-    autoBinding_13.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_14 = BeanProperty.create("selectedTvShow.firstAiredAsString");
-    AutoBinding autoBinding_14 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_14,
-        lblPremiered, jLabelBeanProperty);
-    autoBinding_14.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_15 = BeanProperty.create("selectedTvShow.productionCompany");
-    AutoBinding autoBinding_15 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_15, taStudio,
-        jTextPaneBeanProperty);
-    autoBinding_15.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_16 = BeanProperty.create("selectedTvShow.country");
-    AutoBinding autoBinding_16 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_16,
-        lblCountry, jLabelBeanProperty);
-    autoBinding_16.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_17 = BeanProperty.create("selectedTvShow.tagsAsString");
-    AutoBinding autoBinding_17 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_17, taTags,
-        jTextPaneBeanProperty);
-    autoBinding_17.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_18 = BeanProperty.create("selectedTvShow.path");
-    Property linkTextAreaBeanProperty = BeanProperty.create("text");
-    AutoBinding autoBinding_18 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_18, lblPath,
-        linkTextAreaBeanProperty);
-    autoBinding_18.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_19 = BeanProperty.create("selectedTvShow.note");
-    AutoBinding autoBinding_19 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_19, taNote,
-        jTextPaneBeanProperty);
-    autoBinding_19.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_20 = BeanProperty.create("selectedTvShow.certification");
-    Property jLabelBeanProperty_1 = BeanProperty.create("icon");
-    AutoBinding autoBinding_20 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_20,
-        lblCertificationLogo, jLabelBeanProperty_1);
-    autoBinding_20.setConverter(new CertificationImageConverter());
-    autoBinding_20.bind();
-    //
-    Property tvShowSelectionModelBeanProperty_2 = BeanProperty.create("selectedTvShow.episodeGroup");
-    AutoBinding autoBinding_2 = Bindings.createAutoBinding(UpdateStrategy.READ, tvShowSelectionModel, tvShowSelectionModelBeanProperty_2,
-        lblEpisodeGroup, jLabelBeanProperty);
-    autoBinding_2.setConverter(new MediaEpisodeGroupConverter());
-    autoBinding_2.bind();
-  }
-
-  private static class MediaEpisodeGroupConverter extends Converter<MediaEpisodeGroup, String> {
-    @Override
-    public String convertForward(MediaEpisodeGroup value) {
-      if (value == null) {
-        return null;
-      }
-      return value.toString();
-    }
-
-    @Override
-    public MediaEpisodeGroup convertReverse(String value) {
-      return null;
-    }
   }
 }
