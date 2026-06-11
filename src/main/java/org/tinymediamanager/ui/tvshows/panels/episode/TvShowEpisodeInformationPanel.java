@@ -181,6 +181,9 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
     lblOriginalTitle.setText(episode.getOriginalTitle());
     lblSeason.setText(getIntegerAsStringWoZero(episode.getSeason()));
     lblEpisode.setText(getIntegerAsStringWoZero(episode.getEpisode()));
+    lblImdbId.setText(episode.getImdbId());
+    lblTvdbId.setText(episode.getTvdbId());
+    taOverview.setText(episode.getPlot());
     lblAired.setText(episode.getFirstAiredAsString());
     taTags.setText(episode.getTagsAsString());
     lblPath.setText(episode.getPath());
