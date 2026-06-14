@@ -21,6 +21,7 @@ import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.tinymediamanager.core.FeatureNotEnabledException;
+import org.tinymediamanager.core.MediaAiredStatus;
 import org.tinymediamanager.core.entities.MediaGenres;
 import org.tinymediamanager.core.entities.MediaRating;
 import org.tinymediamanager.core.entities.Person;
@@ -162,6 +163,10 @@ abstract class ImdbApiDevMetadataProvider implements IMediaProvider {
 
     if (title.startYear != null && title.startYear > 0) {
       md.setYear(title.startYear);
+    }
+    if (title.endYear != null && title.endYear > 0) {
+      md.setYearEnd(title.endYear);
+      md.setStatus(MediaAiredStatus.ENDED);
     }
 
     if (title.runtimeSeconds != null && title.runtimeSeconds > 0) {

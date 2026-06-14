@@ -41,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tinymediamanager.core.MediaAiredStatus;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.entities.MediaRating;
 import org.tinymediamanager.core.entities.Person;
@@ -699,6 +700,11 @@ public final class TmdbTvShowMetadataProvider extends TmdbMetadataProvider imple
       Calendar calendar = Calendar.getInstance();
       calendar.setTime(complete.first_air_date);
       md.setYear(calendar.get(Calendar.YEAR));
+    }
+    if (md.getStatus() == MediaAiredStatus.ENDED && complete.last_air_date != null) {
+      Calendar calendar = Calendar.getInstance();
+      calendar.setTime(complete.last_air_date);
+      md.setYearEnd(calendar.get(Calendar.YEAR));
     }
 
     if (complete.credits != null) {

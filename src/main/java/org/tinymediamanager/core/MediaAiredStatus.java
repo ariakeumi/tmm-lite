@@ -23,7 +23,7 @@ package org.tinymediamanager.core;
  */
 public enum MediaAiredStatus {
   UNKNOWN("Unknown", new String[] { "" }),
-  CONTINUING("Continuing", new String[] { "Continuing", "returning series" }),
+  CONTINUING("Continuing", new String[] { "Continuing", "returning series", "Running" }),
   ENDED("Ended", new String[] { "Ended" }),
   CANCELED("Canceled", new String[] { "Canceled" });
 

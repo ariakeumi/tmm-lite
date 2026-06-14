@@ -144,6 +144,7 @@ public class TvShowRenamer {
     tokenMap.put("showTitleSortable", "tvShow.titleSortable");
     tokenMap.put("showTagline", "tvShow.tagline");
     tokenMap.put("showYear", "tvShow.year");
+    tokenMap.put("showYearEnd", "tvShow.yearEnd");
     tokenMap.put("parent", "tvShow.parent");
     tokenMap.put("showNote", "tvShow.note");
     tokenMap.put("showStatus", "tvShow.status");
