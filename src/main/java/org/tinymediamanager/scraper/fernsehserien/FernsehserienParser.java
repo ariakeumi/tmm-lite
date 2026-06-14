@@ -25,6 +25,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tinymediamanager.core.MediaAiredStatus;
 import org.tinymediamanager.core.entities.MediaGenres;
 import org.tinymediamanager.core.entities.Person;
 import org.tinymediamanager.core.tvshow.TvShowEpisodeSearchAndScrapeOptions;
@@ -341,6 +342,23 @@ class FernsehserienParser {
         md.setTitle(ty[0]);
         if (!ty[1].isEmpty()) {
           md.setYear(MetadataUtil.parseInt(ty[1], 0));
+        }
+
+        // TV start/enddate
+        // serie-produktionsjahre
+        Element years = doc.getElementsByClass("serie-produktionsjahre").first();
+        if (years != null) {
+          // 2006–2013 ATTN: not a normal dash!!!
+          // 2014–
+          String ytext = years.ownText().strip();
+          String[] yearEnd = ytext.split("\\D"); // ATTN: not delimited by a normal - but a –, so use "not Digit" regex
+          if (yearEnd[0] != null && yearEnd[0].length() == 4) {
+            md.setYear(MetadataUtil.parseInt(yearEnd[0]));
+          }
+          if (yearEnd[1] != null && yearEnd[1].length() == 4) {
+            md.setYearEnd(MetadataUtil.parseInt(yearEnd[1]));
+            md.setStatus(MediaAiredStatus.ENDED);
+          }
         }
 
         // languages

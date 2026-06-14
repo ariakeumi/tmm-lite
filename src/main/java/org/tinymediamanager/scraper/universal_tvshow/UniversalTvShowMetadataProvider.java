@@ -452,7 +452,15 @@ public final class UniversalTvShowMetadataProvider implements ITvShowMetadataPro
     // assign the requested metadata
     List<String> fallbackScrapers = Arrays.asList(new Gson().fromJson(providerInfo.getConfig().getValue(FALLBACK_SCRAPERS), String[].class));
 
-    for (Map.Entry<String, String> entry : providerInfo.getConfig().getConfigKeyValuePairs().entrySet()) {
+    // we want "year" scraped, ALSO inject to scrape "yearEnd" with same scraper
+    // no need for a config value for the end date
+    Map<String, String> meta = providerInfo.getConfig().getConfigKeyValuePairs();
+    String scr = meta.getOrDefault("year", null);
+    if (scr != null) {
+      meta.put("yearEnd", scr);
+    }
+
+    for (Map.Entry<String, String> entry : meta.entrySet()) {
       if (!entry.getKey().startsWith("episode") && !SEARCH.equals(entry.getKey()) && !FALLBACK_SCRAPERS.equals(entry.getKey())
           && !UNDEFINED.equals(entry.getValue())) {
         List<String> scrapers = new ArrayList<>(fallbackScrapers);

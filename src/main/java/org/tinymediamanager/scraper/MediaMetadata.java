@@ -112,6 +112,7 @@ public class MediaMetadata {
   private String                                           englishTitle        = "";
   private String                                           originalLanguage    = "";
   private int                                              year                = 0;
+  private int                                              yearEnd             = 0;
   private Date                                             releaseDate         = null;
   private String                                           plot                = "";
   private String                                           tagline             = "";
@@ -165,6 +166,7 @@ public class MediaMetadata {
     originalLanguage = merge(originalLanguage, md.getOriginalLanguage());
     englishTitle = merge(englishTitle, md.getEnglishTitle());
     year = merge(year, md.getYear());
+    yearEnd = merge(yearEnd, md.getYearEnd());
     releaseDate = merge(releaseDate, md.getReleaseDate());
     plot = merge(plot, md.getPlot());
     tagline = merge(tagline, md.getTagline());
@@ -906,6 +908,37 @@ public class MediaMetadata {
   public void setYear(Integer year) {
     if (year != null) {
       setYear(year.intValue());
+    }
+  }
+
+  /**
+   * Get the year, where the show ended.
+   * 
+   * @return the year
+   */
+  public int getYearEnd() {
+    return yearEnd;
+  }
+
+  /**
+   * Set the year
+   *
+   * @param yearEnd
+   *          the year to be set
+   */
+  public void setYearEnd(int yearEnd) {
+    this.yearEnd = yearEnd;
+  }
+
+  /**
+   * Set the end year - nullsafe
+   *
+   * @param year
+   *          the year to be set
+   */
+  public void setYearEnd(Integer yearEnd) {
+    if (yearEnd != null) {
+      setYearEnd(yearEnd.intValue());
     }
   }
 

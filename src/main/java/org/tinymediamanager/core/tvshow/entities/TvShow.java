@@ -140,6 +140,8 @@ public class TvShow extends MediaEntity implements IMediaInformation {
   @JsonProperty
   private int                                     runtime                    = 0;
   @JsonProperty
+  protected int                                   yearEnd                    = 0;
+  @JsonProperty
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
   private Date                                    firstAired                 = null;
   @JsonProperty
@@ -257,6 +259,7 @@ public class TvShow extends MediaEntity implements IMediaInformation {
     setRuntime(runtime == 0 || force ? other.runtime : runtime);
     setFirstAired(firstAired == null || force ? other.firstAired : firstAired);
     setStatus(status == MediaAiredStatus.UNKNOWN || force ? other.status : status);
+    setYearEnd(yearEnd == 0 || force ? other.yearEnd : yearEnd);
     setCertification(certification == MediaCertification.UNKNOWN || force ? other.certification : certification);
     setCountry(StringUtils.isEmpty(country) || force ? other.country : country);
     setTop250(top250 == 0 || force ? other.top250 : top250);
@@ -1224,8 +1227,12 @@ public class TvShow extends MediaEntity implements IMediaInformation {
       setTagline(metadata.getTagline());
     }
 
-    if (config.contains(TvShowScraperMetadataConfig.YEAR) && metadata.getYear() > 0 && (overwriteExistingItems || getYear() <= 0)) {
-      setYear(metadata.getYear());
+    if (config.contains(TvShowScraperMetadataConfig.YEAR)) {
+      if (metadata.getYear() > 0 && (overwriteExistingItems || getYear() <= 0)) {
+        setYear(metadata.getYear());
+        // if we set the year, we also ALWAYS set yearEnd
+        setYearEnd(metadata.getYearEnd());
+      }
     }
 
     if (config.contains(TvShowScraperMetadataConfig.RATING)) {
@@ -1693,6 +1700,24 @@ public class TvShow extends MediaEntity implements IMediaInformation {
     MediaAiredStatus oldValue = this.status;
     this.status = newValue;
     firePropertyChange(STATUS, oldValue, newValue);
+  }
+
+  /**
+   * Series has ended when yearEnd>0
+   * 
+   * @return
+   */
+  public int getYearEnd() {
+    return yearEnd;
+  }
+
+  /**
+   * Set year when series has ended
+   * 
+   * @param yearEnd
+   */
+  public void setYearEnd(int yearEnd) {
+    this.yearEnd = yearEnd;
   }
 
   /**

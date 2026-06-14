@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jsoup.Jsoup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tinymediamanager.core.MediaAiredStatus;
 import org.tinymediamanager.core.entities.MediaGenres;
 import org.tinymediamanager.core.entities.MediaRating;
 import org.tinymediamanager.core.entities.Person;
@@ -104,11 +105,14 @@ public final class TvMazeTvShowMetadataProvider extends TvMazeMetadataProvider
     md.setId(MediaMetadata.TVRAGE, show.externals.tvrage);
 
     md.addEpisodeGroup(MediaEpisodeGroup.DEFAULT_AIRED);
-
     md.setTitle(show.name);
+    md.setStatus(show.status);
 
     try {
       md.setYear(parseYear(show.premiered));
+      if (md.getStatus() == MediaAiredStatus.ENDED && show.ended != null) {
+        md.setYearEnd(parseYear(show.ended));
+      }
     }
     catch (Exception e) {
       LOGGER.trace("could not parse year: {}", e.getMessage());

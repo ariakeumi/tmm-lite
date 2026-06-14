@@ -266,6 +266,12 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
       }
       else if (show.status.id == 2) {
         md.setStatus(MediaAiredStatus.ENDED);
+        try {
+          md.setYearEnd(DateUtils.toLocalD(DateUtils.parseDate(show.lastAired)).getYear());
+        }
+        catch (ParseException e) {
+          // cannot parse last aired - ignore
+        }
       }
     }
 

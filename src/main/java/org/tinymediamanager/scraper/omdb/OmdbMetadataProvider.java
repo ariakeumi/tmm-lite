@@ -34,6 +34,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.slf4j.Logger;
+import org.tinymediamanager.core.MediaAiredStatus;
 import org.tinymediamanager.core.entities.MediaGenres;
 import org.tinymediamanager.core.entities.MediaRating;
 import org.tinymediamanager.core.entities.Person;
@@ -157,8 +158,16 @@ abstract class OmdbMetadataProvider implements IMediaProvider {
     md.setYear(MetadataUtil.parseInt(movie.attr("year"), 0));
 
     // if year is still zero, try to get it in a different way
+    // 2006-2013
     if (md.getYear() <= 0 && movie.attr("year").length() >= 4) {
-      md.setYear(MetadataUtil.parseInt(movie.attr("year").substring(0, 4)));
+      String[] yearEnd = movie.attr("year").split("\\D"); // ATTN: not delimited by a normal - but a –, so use "not Digit" regex
+      if (yearEnd[0] != null && yearEnd[0].length() == 4) {
+        md.setYear(MetadataUtil.parseInt(yearEnd[0]));
+      }
+      if (yearEnd[1] != null && yearEnd[1].length() == 4) {
+        md.setYearEnd(MetadataUtil.parseInt(yearEnd[1]));
+        md.setStatus(MediaAiredStatus.ENDED);
+      }
     }
 
     MediaCertification certification = MediaCertification.findCertification(movie.attr("rated"));
