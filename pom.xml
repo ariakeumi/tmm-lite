@@ -860,7 +860,6 @@
                             <sigfile>tmm</sigfile>
                             <keypass>${CODE_SIGN_PASS}</keypass>
                             <storepass>${CODE_SIGN_PASS}</storepass>
-                            <tsa>http://timestamp.sectigo.com</tsa>
                         </configuration>
                     </plugin>
                     <plugin>
