@@ -32,6 +32,38 @@
     ]
   },
   {
+    "name" : "ffprobe",
+    "version" : "7.1",
+    "filename" : "ffprobe",
+    "urls": [
+      {
+        "arch" : "windows-amd64",
+        "url" : "https://github.com/GyanD/codexffmpeg/releases/download/7.1/ffmpeg-7.1-essentials_build.zip",
+        "filenameInArchive": "/ffmpeg-7.1-essentials_build/bin/ffprobe.exe"
+      },
+      {
+        "arch" : "macos-amd64",
+        "url" : "https://ffmpeg.martin-riedl.de/download/macos/amd64/1728232116_7.1/ffprobe.zip",
+        "filenameInArchive": "ffprobe"
+      },
+      {
+        "arch" : "macos-arm64",
+        "url" : "https://ffmpeg.martin-riedl.de/download/macos/arm64/1728231167_7.1/ffprobe.zip",
+        "filenameInArchive": "ffprobe"
+      },
+      {
+        "arch" : "linux-amd64",
+        "url" : "https://ffmpeg.martin-riedl.de/download/linux/amd64/1728230891_7.1/ffprobe.zip",
+        "filenameInArchive": "ffprobe"
+      },
+      {
+        "arch" : "linux-arm64",
+        "url" : "https://ffmpeg.martin-riedl.de/download/linux/arm64/1728229887_7.1/ffprobe.zip",
+        "filenameInArchive": "ffprobe"
+      }
+    ]
+  },
+  {
     "name" : "yt-dlp",
     "version": "2026.06.09",
     "filename" : "yt-dlp",

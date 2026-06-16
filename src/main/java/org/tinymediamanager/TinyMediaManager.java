@@ -497,6 +497,7 @@ public final class TinyMediaManager {
     String value = System.getProperty("tmm.useexternaltools");
     if (value == null || Boolean.parseBoolean(value) && (newVersion || TmmUIHelper.shouldCheckForUpdate())) {
       TmmTaskManager.getInstance().addDownloadTask(new ExternalTools.ExternalToolsUpgradeTask("ffmpeg"));
+      TmmTaskManager.getInstance().addDownloadTask(new ExternalTools.ExternalToolsUpgradeTask("ffprobe"));
       TmmTaskManager.getInstance().addDownloadTask(new ExternalTools.ExternalToolsUpgradeTask("yt-dlp"));
       TmmTaskManager.getInstance().addDownloadTask(new ExternalTools.ExternalToolsUpgradeTask("deno"));
     }
