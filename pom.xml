@@ -719,7 +719,7 @@
                 <!-- https://docs.sonarsource.com/sonarqube-server/latest/analyzing-source-code/scanners/sonarscanner-for-maven/ -->
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>5.1.0.4751</version>
+                <version>5.7.0.6970</version>
             </plugin>
         </plugins>
         <extensions>
