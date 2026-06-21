@@ -2071,6 +2071,18 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
   }
 
   /**
+   * returns the relative path to the TV show root as {@link String}
+   * 
+   * @return the relative path to the TV show root
+   */
+  public String getFolderName() {
+    if (getTvShow() == null) {
+      return "";
+    }
+    return getTvShow().getPathNIO().relativize(getMainVideoFile().getFile().getParent()).toString();
+  }
+
+  /**
    * return the TV shows production company if no one is filled for this episode
    *
    * @return the production company

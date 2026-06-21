@@ -404,6 +404,7 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
     exampleEventList.add(new RenamerExample("${englishTitle}"));
     exampleEventList.add(new RenamerExample("${originalFilename}"));
     exampleEventList.add(new RenamerExample("${originalBasename}"));
+    exampleEventList.add(new RenamerExample("${folderName}"));
     exampleEventList.add(new RenamerExample("${titleSortable}"));
     exampleEventList.add(new RenamerExample("${seasonNr}"));
     exampleEventList.add(new RenamerExample("${seasonNr2}"));
@@ -780,8 +781,8 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
 
             // suppress some huge patterns, because they may lock up the UI
             switch (title) {
-              case "episodes", "episodesForDisplay", "episodesToScrape" -> entityExampleEventList
-                  .add(new EntityExample(title, "[TvShowEpisode, ...]"));
+              case "episodes", "episodesForDisplay", "episodesToScrape" ->
+                entityExampleEventList.add(new EntityExample(title, "[TvShowEpisode, ...]"));
 
               case "seasons" -> entityExampleEventList.add(new EntityExample(title, "[TvShowSeason, ...]"));
 
