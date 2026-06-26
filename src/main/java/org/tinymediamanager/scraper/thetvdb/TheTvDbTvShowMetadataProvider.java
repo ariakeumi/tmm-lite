@@ -1176,9 +1176,52 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
     if (options.getMediaType() != MediaType.TV_SHOW) {
       return Collections.emptyList();
     }
-    TvShowSearchAndScrapeOptions saso = new TvShowSearchAndScrapeOptions();
-    saso.setDataFromOtherOptions(options);
-    return getMetadata(saso).getTrailers();
+    // get tvdb ID
+    int id = options.getIdAsInt(getId());
+    if (id == 0 && MediaIdUtil.isValidImdbId(options.getImdbId())) {
+      id = getTvdbIdViaImdbId(options.getImdbId());
+    }
+    if (id == 0) {
+      LOGGER.debug("no id available to scrape a trailer");
+      return Collections.emptyList();
+    }
+
+    // PERF: just get base metadata, not complete one with all episodes, translations etc...
+    // OLD: return getMetadata().getTrailers();
+    try {
+      Response<SeriesExtendedResponse> httpResponse = tvdb.getSeriesService().getSeriesExtended(id).execute();
+      if (!httpResponse.isSuccessful()) {
+        throw new HttpException(httpResponse.code(), httpResponse.message());
+      }
+      SeriesExtendedRecord show = httpResponse.body().data;
+
+      // duped from getMetadata()
+      // trailer
+      List<MediaTrailer> trailers = new ArrayList<>();
+      for (Trailer trailer : ListUtils.nullSafe(show.trailers)) {
+        MediaTrailer t = new MediaTrailer();
+        t.setName(trailer.name);
+        t.setId(String.valueOf(trailer.id));
+        t.setUrl(trailer.url);
+        if (trailer.url.contains("youtube")) {
+          t.setProvider("youtube");
+        }
+        t.setScrapedBy(getProviderInfo().getId());
+        if (getProviderInfo().getConfig().getValueAsBool("scrapeLanguageNames")) {
+          t.setQuality(LanguageUtils.getLocalizedLanguageNameFromLocalizedString(options.getLanguage().toLocale(), trailer.language));
+        }
+        else {
+          t.setQuality(trailer.language);
+        }
+        trailers.add(t);
+      }
+      return trailers;
+    }
+    catch (Exception e) {
+      LOGGER.debug("failed to get trailer: {}", e.getMessage());
+    }
+
+    return Collections.emptyList();
   }
 
   /**
