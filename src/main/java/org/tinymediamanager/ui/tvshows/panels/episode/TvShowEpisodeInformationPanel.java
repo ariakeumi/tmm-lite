@@ -175,6 +175,11 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
   }
 
   private void changeEpisode(TvShowEpisode episode) {
+    if (episode == null || episode.getTvShow() == null) {
+      // happens when you delete season where the actual episode is in
+      // "initialEpisode" is just empty...
+      return;
+    }
     lblTvShowName.setText(episode.getTvShow().getTitle());
     lblTvShowName.setIcon(episode.getTvShow().isLocked() ? IconManager.LOCK_BLUE : null);
     lblEpisodeTitle.setText(episode.getTitleForUi());
