@@ -51,6 +51,72 @@ public class MovieSettingsDefaults {
     throw new IllegalAccessError();
   }
 
+  public static void setDefaultSettings() {
+    MovieSettings movieSettings = MovieSettings.getInstance();
+
+    String folderPattern = movieSettings.getRenamerPathname();
+    String filenamePattern = movieSettings.getRenamerFilename();
+
+    movieSettings.setDefaultValues();
+
+    // FIXME - change on renamer profile branch
+    movieSettings.setRenamerPathname(folderPattern);
+    movieSettings.setRenamerFilename(filenamePattern);
+
+    movieSettings.firePropertyChange("preset", false, true);
+  }
+
+  /**
+   * Read-only defaults - deactivates all file write operations for the movie module
+   */
+  public static void setDefaultSettingsForReadonly() {
+    MovieSettings movieSettings = MovieSettings.getInstance();
+
+    // clear all filenames - nothing gets written to disk
+    movieSettings.nfoFilenames.clear();
+    movieSettings.posterFilenames.clear();
+    movieSettings.fanartFilenames.clear();
+    movieSettings.extraFanartFilenames.clear();
+    movieSettings.bannerFilenames.clear();
+    movieSettings.clearartFilenames.clear();
+    movieSettings.thumbFilenames.clear();
+    movieSettings.clearlogoFilenames.clear();
+    movieSettings.discartFilenames.clear();
+    movieSettings.keyartFilenames.clear();
+    movieSettings.trailerFilenames.clear();
+    movieSettings.nfoDiscFolderInside = false;
+
+    // movie set filenames
+    movieSettings.movieSetNfoFilenames.clear();
+    movieSettings.movieSetPosterFilenames.clear();
+    movieSettings.movieSetFanartFilenames.clear();
+    movieSettings.movieSetBannerFilenames.clear();
+    movieSettings.movieSetClearartFilenames.clear();
+    movieSettings.movieSetThumbFilenames.clear();
+    movieSettings.movieSetClearlogoFilenames.clear();
+    movieSettings.movieSetDiscartFilenames.clear();
+
+    // rename
+    movieSettings.setRenameAfterScrape(false);
+
+    // auto-download
+    movieSettings.setScrapeBestImage(false);
+    movieSettings.setScrapeBestImageMovieSet(false);
+    movieSettings.setAutomaticTrailerDownload(false);
+
+    // metadata
+    movieSettings.setWriteActorImages(false);
+
+    // image auto-download extras
+    movieSettings.setImageExtraFanart(false);
+    movieSettings.setImageExtraThumbs(false);
+
+    // connector - keeps Kodi as the connector (harmless)
+    movieSettings.setMovieConnector(MovieConnectors.KODI);
+
+    movieSettings.firePropertyChange("preset", false, true);
+  }
+
   /**
    * set the default scrapers for the movie module
    */
@@ -245,152 +311,6 @@ public class MovieSettingsDefaults {
     movieSettings.setNfoWriteTrailer(true);
     movieSettings.setNfoWriteSingleStudio(false);
     movieSettings.setNfoWriteDateAdded(true);
-
-    movieSettings.firePropertyChange("preset", false, true);
-  }
-
-  /**
-   * MediaPortal 1 defaults
-   */
-  public static void setDefaultSettingsForMediaPortal1() {
-    MovieSettings movieSettings = MovieSettings.getInstance();
-
-    // file names
-    movieSettings.nfoFilenames.clear();
-    movieSettings.addNfoFilename(MovieNfoNaming.FILENAME_NFO);
-
-    movieSettings.posterFilenames.clear();
-    movieSettings.addPosterFilename(MoviePosterNaming.POSTER);
-
-    movieSettings.fanartFilenames.clear();
-    movieSettings.addFanartFilename(MovieFanartNaming.FANART);
-
-    movieSettings.extraFanartFilenames.clear();
-    movieSettings.addExtraFanartFilename(MovieExtraFanartNaming.FOLDER_EXTRAFANART);
-
-    movieSettings.bannerFilenames.clear();
-    movieSettings.addBannerFilename(MovieBannerNaming.BANNER);
-
-    movieSettings.clearartFilenames.clear();
-    movieSettings.addClearartFilename(MovieClearartNaming.CLEARART);
-
-    movieSettings.thumbFilenames.clear();
-    movieSettings.addThumbFilename(MovieThumbNaming.THUMB);
-
-    movieSettings.clearlogoFilenames.clear();
-    movieSettings.addClearlogoFilename(MovieClearlogoNaming.CLEARLOGO);
-
-    movieSettings.discartFilenames.clear();
-    movieSettings.addDiscartFilename(MovieDiscartNaming.DISC);
-
-    movieSettings.keyartFilenames.clear();
-    movieSettings.addKeyartFilename(MovieKeyartNaming.KEYART);
-
-    movieSettings.movieSetNfoFilenames.clear();
-    movieSettings.addMovieSetNfoFilename(MovieSetNfoNaming.KODI_NFO);
-
-    movieSettings.movieSetPosterFilenames.clear();
-    movieSettings.addMovieSetPosterFilename(MovieSetPosterNaming.MOVIE_POSTER);
-
-    movieSettings.movieSetFanartFilenames.clear();
-    movieSettings.addMovieSetFanartFilename(MovieSetFanartNaming.MOVIE_FANART);
-
-    movieSettings.movieSetBannerFilenames.clear();
-    movieSettings.addMovieSetBannerFilename(MovieSetBannerNaming.MOVIE_BANNER);
-
-    movieSettings.movieSetClearartFilenames.clear();
-    movieSettings.addMovieSetClearartFilename(MovieSetClearartNaming.MOVIE_CLEARART);
-
-    movieSettings.movieSetThumbFilenames.clear();
-    movieSettings.addMovieSetThumbFilename(MovieSetThumbNaming.MOVIE_LANDSCAPE);
-
-    movieSettings.movieSetClearlogoFilenames.clear();
-    movieSettings.addMovieSetClearlogoFilename(MovieSetClearlogoNaming.MOVIE_CLEARLOGO);
-
-    movieSettings.movieSetDiscartFilenames.clear();
-    movieSettings.addMovieSetDiscartFilename(MovieSetDiscartNaming.MOVIE_DISCART);
-
-    movieSettings.trailerFilenames.clear();
-    movieSettings.addTrailerFilename(MovieTrailerNaming.FILENAME_TRAILER);
-
-    // other settings
-    movieSettings.setMovieConnector(MovieConnectors.MP);
-    movieSettings.setCertificationStyle(CertificationStyle.TECHNICAL);
-    movieSettings.setNfoDiscFolderInside(true);
-    movieSettings.setTrailerDiscFolderInside(true);
-
-    movieSettings.firePropertyChange("preset", false, true);
-  }
-
-  /**
-   * MediaPortal 2 defaults
-   */
-  public static void setDefaultSettingsForMediaPortal2() {
-    MovieSettings movieSettings = MovieSettings.getInstance();
-
-    // file names
-    movieSettings.nfoFilenames.clear();
-    movieSettings.addNfoFilename(MovieNfoNaming.FILENAME_NFO);
-
-    movieSettings.posterFilenames.clear();
-    movieSettings.addPosterFilename(MoviePosterNaming.POSTER);
-
-    movieSettings.fanartFilenames.clear();
-    movieSettings.addFanartFilename(MovieFanartNaming.FANART);
-
-    movieSettings.extraFanartFilenames.clear();
-    movieSettings.addExtraFanartFilename(MovieExtraFanartNaming.FOLDER_EXTRAFANART);
-
-    movieSettings.bannerFilenames.clear();
-    movieSettings.addBannerFilename(MovieBannerNaming.BANNER);
-
-    movieSettings.clearartFilenames.clear();
-    movieSettings.addClearartFilename(MovieClearartNaming.CLEARART);
-
-    movieSettings.thumbFilenames.clear();
-    movieSettings.addThumbFilename(MovieThumbNaming.THUMB);
-
-    movieSettings.clearlogoFilenames.clear();
-    movieSettings.addClearlogoFilename(MovieClearlogoNaming.CLEARLOGO);
-
-    movieSettings.discartFilenames.clear();
-    movieSettings.addDiscartFilename(MovieDiscartNaming.DISC);
-
-    movieSettings.keyartFilenames.clear();
-    movieSettings.addKeyartFilename(MovieKeyartNaming.KEYART);
-
-    movieSettings.movieSetNfoFilenames.clear();
-    movieSettings.addMovieSetNfoFilename(MovieSetNfoNaming.KODI_NFO);
-
-    movieSettings.movieSetPosterFilenames.clear();
-    movieSettings.addMovieSetPosterFilename(MovieSetPosterNaming.MOVIE_POSTER);
-
-    movieSettings.movieSetFanartFilenames.clear();
-    movieSettings.addMovieSetFanartFilename(MovieSetFanartNaming.MOVIE_FANART);
-
-    movieSettings.movieSetBannerFilenames.clear();
-    movieSettings.addMovieSetBannerFilename(MovieSetBannerNaming.MOVIE_BANNER);
-
-    movieSettings.movieSetClearartFilenames.clear();
-    movieSettings.addMovieSetClearartFilename(MovieSetClearartNaming.MOVIE_CLEARART);
-
-    movieSettings.movieSetThumbFilenames.clear();
-    movieSettings.addMovieSetThumbFilename(MovieSetThumbNaming.MOVIE_LANDSCAPE);
-
-    movieSettings.movieSetClearlogoFilenames.clear();
-    movieSettings.addMovieSetClearlogoFilename(MovieSetClearlogoNaming.MOVIE_CLEARLOGO);
-
-    movieSettings.movieSetDiscartFilenames.clear();
-    movieSettings.addMovieSetDiscartFilename(MovieSetDiscartNaming.MOVIE_DISCART);
-
-    movieSettings.trailerFilenames.clear();
-    movieSettings.addTrailerFilename(MovieTrailerNaming.FILENAME_TRAILER);
-
-    // other settings
-    movieSettings.setMovieConnector(MovieConnectors.KODI);
-    movieSettings.setCertificationStyle(CertificationStyle.TECHNICAL);
-    movieSettings.setNfoDiscFolderInside(true);
-    movieSettings.setTrailerDiscFolderInside(true);
 
     movieSettings.firePropertyChange("preset", false, true);
   }

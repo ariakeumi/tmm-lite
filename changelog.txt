@@ -1,6 +1,8 @@
 Version 5.2.13
 =======================
 + [TV shows] added the new renamer token 'episode.folderName' to get the folder name of the current episode (relative to the TV show root)
++ [Movies/ TV shows] added a button to reset settings to their defaults
++ [Movies/ TV shows] added a preset for "read-only"
 + [UI] added a tag manager to the tools menu to manage all tags in one place
 + [UI] Movie set table: show the latest date added from assigned movies on movie set level #3291
 + [UI] added a dedicated path filter for episodes #3294

@@ -22,6 +22,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 import org.jdesktop.beansbinding.AutoBinding;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
@@ -61,10 +62,10 @@ public class MovieSettingsPanel extends JPanel {
   private JCheckBox           chckbxRuntimeFromMi;
   private JButton             btnPresetKodi;
   private JButton             btnPresetXbmc;
-  private JButton             btnPresetMediaPortal1;
-  private JButton             btnPresetMediaPortal2;
   private JButton             btnPresetPlex;
   private JButton             btnPresetMediaPig;
+  private JButton             btnPresetDefault;
+  private JButton             btnPresetReadonly;
   private JCheckBox           chckbxIncludeExternalAudioStreams;
   private JCheckBox           chckbxUseMediainfoMetadata;
 
@@ -115,13 +116,14 @@ public class MovieSettingsPanel extends JPanel {
       MovieSettingsDefaults.setDefaultSettingsForMediaPig();
       TmmToastManager.showSuccessToast(this, TmmResourceBundle.getString("Settings.preset.message").replace("{}", "MediaPIG"));
     });
-    btnPresetMediaPortal1.addActionListener(evt -> {
-      MovieSettingsDefaults.setDefaultSettingsForMediaPortal1();
-      TmmToastManager.showSuccessToast(this, TmmResourceBundle.getString("Settings.preset.message").replace("{}", "MediaPortal 1.x"));
+    btnPresetDefault.addActionListener(evt -> {
+      MovieSettingsDefaults.setDefaultSettings();
+      TmmToastManager.showSuccessToast(this, TmmResourceBundle.getString("Settings.preset.default.success.movie"));
     });
-    btnPresetMediaPortal2.addActionListener(evt -> {
-      MovieSettingsDefaults.setDefaultSettingsForMediaPortal2();
-      TmmToastManager.showSuccessToast(this, TmmResourceBundle.getString("Settings.preset.message").replace("{}", "MediaPortal 2.x"));
+    btnPresetReadonly.addActionListener(evt -> {
+      MovieSettingsDefaults.setDefaultSettingsForReadonly();
+      TmmToastManager.showSuccessToast(this,
+          TmmResourceBundle.getString("Settings.preset.message").replace("{}", TmmResourceBundle.getString("Settings.preset.readonly")));
     });
   }
 
@@ -137,7 +139,7 @@ public class MovieSettingsPanel extends JPanel {
       collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/settings#automatic-tasks"));
       {
         JPanel panelPresets = new JPanel(
-            new MigLayout("hidemode 1, insets 0", "[20lp!][15lp][120lp:n][15lp!][120lp:n][15lp!][120lp:n][15lp!][120lp:n][grow]", "[][][][]"));
+            new MigLayout("hidemode 1, insets 0", "[20lp!][15lp][120lp:n][15lp!][120lp:n][15lp!][120lp:n][15lp!][120lp:n][grow]", "[][][][10lp!][]"));
 
         JLabel lblPresets = new TmmLabel(TmmResourceBundle.getString("Settings.preset"), H3);
         CollapsiblePanel collapsiblePanel_1 = new CollapsiblePanel(panelPresets, lblPresets, true);
@@ -168,11 +170,17 @@ public class MovieSettingsPanel extends JPanel {
           panelPresets.add(btnPresetMediaPig, "cell 8 2,growx");
         }
         {
-          btnPresetMediaPortal1 = new JButton("MediaPortal 1.x");
-          panelPresets.add(btnPresetMediaPortal1, "cell 2 3,growx");
+          btnPresetDefault = new JButton(TmmResourceBundle.getString("Settings.preset.default"));
+          btnPresetDefault.setToolTipText(TmmResourceBundle.getString("Settings.preset.default.desc"));
+          btnPresetDefault.setIcon(IconManager.HINT);
+          btnPresetDefault.setHorizontalTextPosition(SwingConstants.LEFT);
+          panelPresets.add(btnPresetDefault, "cell 2 4,growx");
 
-          btnPresetMediaPortal2 = new JButton("MediaPortal 2.x");
-          panelPresets.add(btnPresetMediaPortal2, "cell 4 3,growx");
+          btnPresetReadonly = new JButton(TmmResourceBundle.getString("Settings.preset.readonly"));
+          btnPresetReadonly.setToolTipText(TmmResourceBundle.getString("Settings.preset.readonly.desc"));
+          btnPresetReadonly.setIcon(IconManager.HINT);
+          btnPresetReadonly.setHorizontalTextPosition(SwingConstants.LEFT);
+          panelPresets.add(btnPresetReadonly, "cell 4 4,growx");
         }
       }
       add(collapsiblePanel, "cell 0 2,growx,wmin 0");

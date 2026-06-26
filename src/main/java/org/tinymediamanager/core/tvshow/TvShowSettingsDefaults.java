@@ -49,6 +49,23 @@ public class TvShowSettingsDefaults {
     throw new IllegalAccessError();
   }
 
+  public static void setDefaultSettings() {
+    TvShowSettings tvShowSettings = TvShowSettings.getInstance();
+
+    String tvShowPattern = tvShowSettings.getRenamerTvShowFoldername();
+    String seasonPattern = tvShowSettings.getRenamerSeasonFoldername();
+    String episodePattern = tvShowSettings.getRenamerFilename();
+
+    tvShowSettings.setDefaultValues();
+
+    // FIXME - change on renamer profile branch
+    tvShowSettings.setRenamerTvShowFoldername(tvShowPattern);
+    tvShowSettings.setRenamerSeasonFoldername(seasonPattern);
+    tvShowSettings.setRenamerFilename(episodePattern);
+
+    tvShowSettings.firePropertyChange("preset", false, true);
+  }
+
   /**
    * XBMC/Kodi <17 defaults
    */
@@ -175,70 +192,6 @@ public class TvShowSettingsDefaults {
     tvShowSettings.setCertificationStyle(CertificationStyle.LARGE);
     tvShowSettings.setNfoWriteEpisodeguide(false);
     tvShowSettings.setNfoWriteNewEpisodeguideStyle(true);
-
-    tvShowSettings.firePropertyChange("preset", false, true);
-  }
-
-  /**
-   * MediaPortal defaults
-   */
-  public static void setDefaultSettingsForMediaPortal() {
-    TvShowSettings tvShowSettings = TvShowSettings.getInstance();
-
-    tvShowSettings.nfoFilenames.clear();
-    tvShowSettings.nfoFilenames.add(TvShowNfoNaming.TV_SHOW);
-
-    tvShowSettings.posterFilenames.clear();
-    tvShowSettings.posterFilenames.add(TvShowPosterNaming.POSTER);
-
-    tvShowSettings.fanartFilenames.clear();
-    tvShowSettings.fanartFilenames.add(TvShowFanartNaming.FANART);
-
-    tvShowSettings.extraFanartFilenames.clear();
-    tvShowSettings.extraFanartFilenames.add(TvShowExtraFanartNaming.FOLDER_EXTRAFANART);
-
-    tvShowSettings.bannerFilenames.clear();
-    tvShowSettings.bannerFilenames.add(TvShowBannerNaming.BANNER);
-
-    tvShowSettings.discartFilenames.clear();
-    tvShowSettings.discartFilenames.add(TvShowDiscartNaming.DISCART);
-
-    tvShowSettings.clearartFilenames.clear();
-    tvShowSettings.clearartFilenames.add(TvShowClearartNaming.CLEARART);
-
-    tvShowSettings.clearlogoFilenames.clear();
-    tvShowSettings.clearlogoFilenames.add(TvShowClearlogoNaming.CLEARLOGO);
-
-    tvShowSettings.characterartFilenames.clear();
-    tvShowSettings.characterartFilenames.add(TvShowCharacterartNaming.CHARACTERART);
-
-    tvShowSettings.thumbFilenames.clear();
-    tvShowSettings.thumbFilenames.add(TvShowThumbNaming.THUMB);
-
-    tvShowSettings.keyartFilenames.clear();
-    tvShowSettings.keyartFilenames.add(TvShowKeyartNaming.KEYART);
-
-    tvShowSettings.seasonPosterFilenames.clear();
-    tvShowSettings.seasonPosterFilenames.add(TvShowSeasonPosterNaming.SEASON_POSTER);
-
-    tvShowSettings.seasonFanartFilenames.clear();
-    tvShowSettings.seasonFanartFilenames.add(TvShowSeasonFanartNaming.SEASON_FANART);
-
-    tvShowSettings.seasonBannerFilenames.clear();
-    tvShowSettings.seasonBannerFilenames.add(TvShowSeasonBannerNaming.SEASON_BANNER);
-
-    tvShowSettings.seasonThumbFilenames.clear();
-    tvShowSettings.seasonThumbFilenames.add(TvShowSeasonThumbNaming.SEASON_THUMB);
-
-    tvShowSettings.episodeNfoFilenames.clear();
-    tvShowSettings.episodeNfoFilenames.add(TvShowEpisodeNfoNaming.FILENAME);
-
-    tvShowSettings.episodeThumbFilenames.clear();
-    tvShowSettings.episodeThumbFilenames.add(TvShowEpisodeThumbNaming.FILENAME);
-
-    // other settings
-    tvShowSettings.setTvShowConnector(TvShowConnectors.XBMC);
-    tvShowSettings.setCertificationStyle(CertificationStyle.TECHNICAL);
 
     tvShowSettings.firePropertyChange("preset", false, true);
   }
@@ -500,6 +453,55 @@ public class TvShowSettingsDefaults {
     tvShowSettings.setCertificationStyle(CertificationStyle.LARGE);
     tvShowSettings.setNfoWriteEpisodeguide(true);
     tvShowSettings.setNfoWriteNewEpisodeguideStyle(true);
+
+    tvShowSettings.firePropertyChange("preset", false, true);
+  }
+
+  /**
+   * Read-only defaults - deactivates all file write operations for the TV show module
+   */
+  public static void setDefaultSettingsForReadonly() {
+    TvShowSettings tvShowSettings = TvShowSettings.getInstance();
+
+    // clear all filenames - nothing gets written to disk
+    tvShowSettings.nfoFilenames.clear();
+    tvShowSettings.posterFilenames.clear();
+    tvShowSettings.fanartFilenames.clear();
+    tvShowSettings.extraFanartFilenames.clear();
+    tvShowSettings.bannerFilenames.clear();
+    tvShowSettings.discartFilenames.clear();
+    tvShowSettings.clearartFilenames.clear();
+    tvShowSettings.clearlogoFilenames.clear();
+    tvShowSettings.characterartFilenames.clear();
+    tvShowSettings.thumbFilenames.clear();
+    tvShowSettings.keyartFilenames.clear();
+    tvShowSettings.trailerFilenames.clear();
+
+    // season/episode filenames
+    tvShowSettings.seasonNfoFilenames.clear();
+    tvShowSettings.seasonPosterFilenames.clear();
+    tvShowSettings.seasonFanartFilenames.clear();
+    tvShowSettings.seasonBannerFilenames.clear();
+    tvShowSettings.seasonThumbFilenames.clear();
+    tvShowSettings.episodeNfoFilenames.clear();
+    tvShowSettings.episodeThumbFilenames.clear();
+
+    // rename
+    tvShowSettings.setRenameAfterScrape(false);
+
+    // auto-download
+    tvShowSettings.setScrapeBestImage(false);
+    tvShowSettings.setAutomaticTrailerDownload(false);
+
+    // metadata
+    tvShowSettings.setWriteActorImages(false);
+
+    // image auto-download extras
+    tvShowSettings.setImageExtraFanart(false);
+    tvShowSettings.setImageEpisodeScrapeAllSources(false);
+
+    // connector - keeps Kodi as the connector (harmless)
+    tvShowSettings.setTvShowConnector(TvShowConnectors.KODI);
 
     tvShowSettings.firePropertyChange("preset", false, true);
   }
