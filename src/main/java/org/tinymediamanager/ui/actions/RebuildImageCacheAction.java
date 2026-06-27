@@ -45,7 +45,7 @@ import org.tinymediamanager.ui.MainWindow;
 public class RebuildImageCacheAction extends TmmAction {
   public RebuildImageCacheAction() {
     putValue(NAME, TmmResourceBundle.getString("tmm.rebuildimagecache"));
-    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("tmm.rebuildimagecache"));
+    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("tmm.rebuildimagecache.desc"));
   }
 
   @Override

@@ -67,6 +67,7 @@ import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.MovieSettingsDefaults;
 import org.tinymediamanager.core.movie.MovieUpgradeTasks;
 import org.tinymediamanager.core.movie.tasks.MovieUpdateDatasourceTask;
+import org.tinymediamanager.core.tasks.ImageCacheCleanupTask;
 import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.core.threading.TmmThreadPool;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
@@ -620,6 +621,11 @@ public final class TinyMediaManager {
     TvShowUpgradeTasks tvShowUpgradeTasks = new TvShowUpgradeTasks();
     tvShowUpgradeTasks.performSettingsUpgrades();
     tvShowUpgradeTasks.performDbUpgrades();
+
+    if (newVersion) {
+      // do an image cache cleanup
+      TmmTaskManager.getInstance().addUnnamedTask(new ImageCacheCleanupTask());
+    }
   }
 
   /**

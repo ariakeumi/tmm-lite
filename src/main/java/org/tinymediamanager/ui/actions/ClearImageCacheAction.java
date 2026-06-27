@@ -26,7 +26,7 @@ import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.Utils;
 
 /**
- * The ClearImageCacheAction to clear all cached images
+ * The {@link ClearImageCacheAction} is used to remove all cached images
  * 
  * @author Manuel Laggner
  */
@@ -35,7 +35,7 @@ public class ClearImageCacheAction extends TmmAction {
 
   public ClearImageCacheAction() {
     putValue(NAME, TmmResourceBundle.getString("tmm.clearimagecache"));
-    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("tmm.clearimagecache"));
+    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("tmm.clearimagecache.desc"));
   }
 
   @Override

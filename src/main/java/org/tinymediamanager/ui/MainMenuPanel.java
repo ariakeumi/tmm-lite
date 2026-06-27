@@ -54,6 +54,7 @@ import org.tinymediamanager.thirdparty.KodiRPC;
 import org.tinymediamanager.ui.actions.AboutAction;
 import org.tinymediamanager.ui.actions.BugReportAction;
 import org.tinymediamanager.ui.actions.CheckForUpdateAction;
+import org.tinymediamanager.ui.actions.CleanupImageCacheAction;
 import org.tinymediamanager.ui.actions.ClearDatabaseAction;
 import org.tinymediamanager.ui.actions.ClearHttpCacheAction;
 import org.tinymediamanager.ui.actions.ClearImageCacheAction;
@@ -164,12 +165,6 @@ public class MainMenuPanel extends JPanel {
 
   private JPopupMenu buildToolsMenu() {
     JPopupMenu menu = new JPopupMenu();
-
-    menu.add(new ClearImageCacheAction());
-    menu.add(new RebuildImageCacheAction());
-    menu.add(new ClearHttpCacheAction());
-
-    menu.addSeparator();
 
     JMenuItem tmmLogs = new JMenuItem(TmmResourceBundle.getString("tmm.activitylog"));
     menu.add(tmmLogs);
@@ -341,10 +336,18 @@ public class MainMenuPanel extends JPanel {
     }
 
     menu.addSeparator();
+    // housekeeping
+    JMenu menuHousekeeping = new JMenu(TmmResourceBundle.getString("tmm.housekeeping"));
+    menuHousekeeping.add(new CleanupImageCacheAction());
+    menuHousekeeping.add(new ClearImageCacheAction());
+    menuHousekeeping.add(new RebuildImageCacheAction());
+    menuHousekeeping.add(new ClearHttpCacheAction());
+
+    menu.add(menuHousekeeping);
     menu.add(new ClearDatabaseAction());
     menu.add(new ImportV4DataAction());
 
-    // a dedicated close action brecause on XWayland sometimes the window decorations are missing
+    // a dedicated close action because on XWayland sometimes the window decorations are missing
     if (SystemUtils.IS_OS_LINUX) {
       menu.addSeparator();
       menu.add(new CloseTmmAction());
