@@ -44,7 +44,6 @@ import org.tinymediamanager.core.movie.MovieSettings;
 import org.tinymediamanager.core.movie.filenaming.MovieTrailerNaming;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.components.button.DocsButton;
-import org.tinymediamanager.ui.components.button.JHintCheckBox;
 import org.tinymediamanager.ui.components.label.TmmLabel;
 import org.tinymediamanager.ui.components.panel.CollapsiblePanel;
 
@@ -155,8 +154,7 @@ class MovieTrailerOptionsSettingsPanel extends JPanel {
       add(collapsiblePanel, "cell 0 0,growx, wmin 0");
 
       {
-        chckbxYtDlp = new JHintCheckBox(TmmResourceBundle.getString("Settings.trailer.ytdlp"));
-        chckbxYtDlp.setToolTipText(TmmResourceBundle.getString("Settings.trailer.ytdlp.desc"));
+        chckbxYtDlp = new JCheckBox(TmmResourceBundle.getString("Settings.trailer.ytdlp"));
         panelOptions.add(chckbxYtDlp, "cell 1 0 2 1");
 
         checkBox = new JCheckBox(TmmResourceBundle.getString("Settings.trailer.preferred"));

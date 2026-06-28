@@ -45,7 +45,6 @@ import org.tinymediamanager.core.tvshow.TvShowSettings;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowTrailerNaming;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.components.button.DocsButton;
-import org.tinymediamanager.ui.components.button.JHintCheckBox;
 import org.tinymediamanager.ui.components.label.TmmLabel;
 import org.tinymediamanager.ui.components.panel.CollapsiblePanel;
 
@@ -147,8 +146,7 @@ public class TvShowTrailerOptionsSettingsPanel extends JPanel {
       add(collapsiblePanel, "cell 0 0,growx, wmin 0");
 
       {
-        chckbxUseYtDlp = new JHintCheckBox(TmmResourceBundle.getString("Settings.trailer.ytdlp"));
-        chckbxUseYtDlp.setToolTipText(TmmResourceBundle.getString("Settings.trailer.ytdlp.desc"));
+        chckbxUseYtDlp = new JCheckBox(TmmResourceBundle.getString("Settings.trailer.ytdlp"));
         panelOptions.add(chckbxUseYtDlp, "cell 1 0 2 1");
 
         checkBox = new JCheckBox(TmmResourceBundle.getString("Settings.trailer.preferred"));
