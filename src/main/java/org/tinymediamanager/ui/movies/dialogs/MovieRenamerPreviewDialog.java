@@ -75,6 +75,7 @@ import net.miginfocom.swing.MigLayout;
  * @author Manuel Laggner
  */
 public class MovieRenamerPreviewDialog extends TmmDialog {
+  private static final long                        serialVersionUID = 1L;
   private final EventList<RenamerPreviewContainer> results;
   private final ResultSelectionModel               resultSelectionModel;
   private final EventList<MediaFileTypeContainer>  mediaFileEventList;
@@ -201,7 +202,16 @@ public class MovieRenamerPreviewDialog extends TmmDialog {
         // rename
         TmmThreadPool renameTask = new MovieRenameTask(selectedMovies1);
         TmmTaskManager.getInstance().addMainTask(renameTask);
-        results.removeAll(selectedResults);
+        results.getReadWriteLock().writeLock().lock();
+        try {
+          for (RenamerPreviewContainer item : selectedResults) {
+            results.remove(item);
+          }
+        }
+        finally {
+          results.getReadWriteLock().writeLock().unlock();
+        }
+
       });
       addButton(btnRename);
 
