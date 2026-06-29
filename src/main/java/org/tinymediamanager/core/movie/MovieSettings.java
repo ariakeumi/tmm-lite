@@ -296,6 +296,9 @@ public final class MovieSettings extends AbstractSettings {
    * Reset all settings to their default values.
    */
   public void setDefaultValues() {
+    String defaultLang = Locale.getDefault().getLanguage();
+    CountryCode cc = CountryCode.getDefault();
+
     // data sources / NFO settings
     setSkipFoldersWithNomedia(true);
     setBuildImageCacheOnImport(true);
@@ -306,7 +309,7 @@ public final class MovieSettings extends AbstractSettings {
     setWriteCleanNfo(false);
     setNfoWriteDateAdded(true);
     setNfoDateAddedField(DateField.DATE_ADDED);
-    setNfoLanguage(Locale.ENGLISH);
+    setNfoLanguage(Locale.getDefault());
     setCreateOutline(true);
     setOutlineFirstSentence(false);
     setNfoWriteSingleStudio(false);
@@ -335,9 +338,9 @@ public final class MovieSettings extends AbstractSettings {
 
     // meta data scraper
     setMovieScraper(MediaMetadata.TMDB);
-    setScraperLanguage(MediaLanguages.en);
-    setCertificationCountry(CountryCode.US);
-    setReleaseDateCountry("");
+    setScraperLanguage(MediaLanguages.get(defaultLang));
+    setCertificationCountry(cc);
+    setReleaseDateCountry(cc.getAlpha2());
     setScraperThreshold(0.75);
     setScraperFallback(false);
     setDoNotOverwriteExistingData(false);
@@ -368,7 +371,7 @@ public final class MovieSettings extends AbstractSettings {
     setTrailerSource(TrailerSources.YOUTUBE);
 
     // subtitle scraper
-    setSubtitleScraperLanguage(MediaLanguages.en);
+    setSubtitleScraperLanguage(MediaLanguages.get(defaultLang));
     setSubtitleLanguageStyle(LanguageStyle.ISO3T);
     setSubtitleWithoutLanguageTag(false);
     setSubtitleForceBestMatch(false);
@@ -489,7 +492,7 @@ public final class MovieSettings extends AbstractSettings {
 
     setRatingSources(Arrays.asList(MediaMetadata.IMDB));
 
-    setImageScraperLanguages(Arrays.asList(MediaLanguages.en));
+    setImageScraperLanguages(Arrays.asList(MediaLanguages.get(defaultLang), MediaLanguages.en));
 
     clearMovieSetCheckMetadata();
     addMovieSetCheckMetadata(MovieSetScraperMetadataConfig.ID);

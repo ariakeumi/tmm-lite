@@ -82,8 +82,10 @@ public class TvShowUpgradeTasks extends UpgradeTasks {
       LOGGER.info("performing upgrade to ver: {}", 5202);
 
       List<TvShowScraperMetadataConfig> showScraperMetadataConfig = new ArrayList<>(settings.getTvShowScraperMetadataConfig());
-      showScraperMetadataConfig.add(TvShowScraperMetadataConfig.TAGLINE);
-      settings.setTvShowScraperMetadataConfig(showScraperMetadataConfig);
+      if (!showScraperMetadataConfig.contains(TvShowScraperMetadataConfig.TAGLINE)) {
+        showScraperMetadataConfig.add(TvShowScraperMetadataConfig.TAGLINE);
+        settings.setTvShowScraperMetadataConfig(showScraperMetadataConfig);
+      }
 
       settings.setVersion(5202);
     }

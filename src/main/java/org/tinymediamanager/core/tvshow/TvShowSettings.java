@@ -290,6 +290,9 @@ public final class TvShowSettings extends AbstractSettings {
    * Set all default values via setters to fire property change events for UI bindings.
    */
   public void setDefaultValues() {
+    String defaultLang = Locale.getDefault().getLanguage();
+    CountryCode cc = CountryCode.getDefault();
+
     // NFO settings
     setSkipFoldersWithNomedia(true);
     setTvShowConnector(TvShowConnectors.KODI);
@@ -297,7 +300,7 @@ public final class TvShowSettings extends AbstractSettings {
     setWriteCleanNfo(false);
     setNfoWriteDateAdded(true);
     setNfoDateAddedField(DateField.DATE_ADDED);
-    setNfoLanguage(Locale.ENGLISH);
+    setNfoLanguage(Locale.getDefault());
     setNfoWriteEpisodeguide(true);
     setNfoWriteNewEpisodeguideStyle(true);
     setNfoWriteDateEnded(false);
@@ -331,9 +334,9 @@ public final class TvShowSettings extends AbstractSettings {
 
     // meta data scraper
     setScraper(MediaMetadata.TVDB);
-    setScraperLanguage(MediaLanguages.en);
-    setCertificationCountry(CountryCode.US);
-    setReleaseDateCountry("");
+    setScraperLanguage(MediaLanguages.get(defaultLang));
+    setCertificationCountry(cc);
+    setReleaseDateCountry(cc.getAlpha2());
     setDoNotOverwriteExistingData(false);
     setFetchAllRatings(false);
 
@@ -358,7 +361,7 @@ public final class TvShowSettings extends AbstractSettings {
     setTrailerSource(TrailerSources.YOUTUBE);
 
     // subtitle scraper
-    setSubtitleScraperLanguage(MediaLanguages.en);
+    setSubtitleScraperLanguage(MediaLanguages.get(defaultLang));
     setSubtitleLanguageStyle(LanguageStyle.ISO3T);
     setSubtitleForceBestMatch(false);
 
@@ -491,7 +494,7 @@ public final class TvShowSettings extends AbstractSettings {
     setRatingSources(Arrays.asList(MediaMetadata.IMDB));
 
     // image scraper languages
-    setImageScraperLanguages(Arrays.asList(MediaLanguages.en));
+    setImageScraperLanguages(Arrays.asList(MediaLanguages.get(defaultLang), MediaLanguages.en));
 
     // scraper metadata config
     setTvShowScraperMetadataConfig(Arrays.asList(TvShowScraperMetadataConfig.values()));
