@@ -60,8 +60,6 @@ import org.tinymediamanager.core.tvshow.filenaming.TvShowSeasonThumbNaming;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowThumbNaming;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowTrailerNaming;
 import org.tinymediamanager.scraper.MediaMetadata;
-import org.tinymediamanager.scraper.MediaScraper;
-import org.tinymediamanager.scraper.ScraperType;
 import org.tinymediamanager.scraper.entities.CountryCode;
 import org.tinymediamanager.scraper.entities.MediaArtwork;
 import org.tinymediamanager.scraper.entities.MediaLanguages;
@@ -290,8 +288,9 @@ public final class TvShowSettings extends AbstractSettings {
    * Set all default values via setters to fire property change events for UI bindings.
    */
   public void setDefaultValues() {
-    String defaultLang = Locale.getDefault().getLanguage();
-    CountryCode cc = CountryCode.getDefault();
+    String defaultLang = Locale.getDefault().getLanguage(); // JVM default
+    MediaLanguages ml = MediaLanguages.get(defaultLang); // ML found or EN
+    CountryCode cc = CountryCode.getDefault(); // user country or EN
 
     // NFO settings
     setSkipFoldersWithNomedia(true);
@@ -334,7 +333,7 @@ public final class TvShowSettings extends AbstractSettings {
 
     // meta data scraper
     setScraper(MediaMetadata.TVDB);
-    setScraperLanguage(MediaLanguages.get(defaultLang));
+    setScraperLanguage(ml);
     setCertificationCountry(cc);
     setReleaseDateCountry(cc.getAlpha2());
     setDoNotOverwriteExistingData(false);
@@ -361,7 +360,7 @@ public final class TvShowSettings extends AbstractSettings {
     setTrailerSource(TrailerSources.YOUTUBE);
 
     // subtitle scraper
-    setSubtitleScraperLanguage(MediaLanguages.get(defaultLang));
+    setSubtitleScraperLanguage(ml);
     setSubtitleLanguageStyle(LanguageStyle.ISO3T);
     setSubtitleForceBestMatch(false);
 
@@ -428,7 +427,7 @@ public final class TvShowSettings extends AbstractSettings {
     addClearlogoFilename(TvShowClearlogoNaming.CLEARLOGO);
 
     clearThumbFilenames();
-    addThumbFilename(TvShowThumbNaming.THUMB);
+    addThumbFilename(TvShowThumbNaming.LANDSCAPE);
 
     clearKeyartFilenames();
     addKeyartFilename(TvShowKeyartNaming.KEYART);
@@ -494,7 +493,7 @@ public final class TvShowSettings extends AbstractSettings {
     setRatingSources(Arrays.asList(MediaMetadata.IMDB));
 
     // image scraper languages
-    setImageScraperLanguages(Arrays.asList(MediaLanguages.get(defaultLang), MediaLanguages.en));
+    setImageScraperLanguages(Arrays.asList(ml, MediaLanguages.en));
 
     // scraper metadata config
     setTvShowScraperMetadataConfig(Arrays.asList(TvShowScraperMetadataConfig.values()));
@@ -572,31 +571,6 @@ public final class TvShowSettings extends AbstractSettings {
   @Override
   protected void writeDefaultSettings() {
     setDefaultValues();
-
-    // activate default scrapers
-    for (MediaScraper ms : MediaScraper.getMediaScrapers(ScraperType.TVSHOW_SUBTITLE)) {
-      addTvShowSubtitleScraper(ms.getId());
-    }
-    for (MediaScraper ms : MediaScraper.getMediaScrapers(ScraperType.TVSHOW_ARTWORK)) {
-      addTvShowArtworkScraper(ms.getId());
-    }
-
-    // set default languages based on java instance
-    String defaultLang = Locale.getDefault().getLanguage();
-    CountryCode cc = CountryCode.getByCode(defaultLang.toUpperCase(Locale.ROOT));
-    if (cc != null) {
-      setCertificationCountry(cc);
-      setReleaseDateCountry(cc.getAlpha2());
-    }
-    for (MediaLanguages ml : MediaLanguages.values()) {
-      if (ml.name().equals(defaultLang)) {
-        setScraperLanguage(ml);
-        setNfoLanguage(ml.toLocale());
-        setImageScraperLanguages(Arrays.asList(ml));
-        setSubtitleScraperLanguage(ml);
-      }
-    }
-
     saveSettings();
   }
 

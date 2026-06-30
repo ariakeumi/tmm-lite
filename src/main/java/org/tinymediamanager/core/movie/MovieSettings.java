@@ -296,8 +296,9 @@ public final class MovieSettings extends AbstractSettings {
    * Reset all settings to their default values.
    */
   public void setDefaultValues() {
-    String defaultLang = Locale.getDefault().getLanguage();
-    CountryCode cc = CountryCode.getDefault();
+    String defaultLang = Locale.getDefault().getLanguage(); // JVM default
+    MediaLanguages ml = MediaLanguages.get(defaultLang); // ML found or EN
+    CountryCode cc = CountryCode.getDefault(); // user country or EN
 
     // data sources / NFO settings
     setSkipFoldersWithNomedia(true);
@@ -338,7 +339,7 @@ public final class MovieSettings extends AbstractSettings {
 
     // meta data scraper
     setMovieScraper(MediaMetadata.TMDB);
-    setScraperLanguage(MediaLanguages.get(defaultLang));
+    setScraperLanguage(ml);
     setCertificationCountry(cc);
     setReleaseDateCountry(cc.getAlpha2());
     setScraperThreshold(0.75);
@@ -371,7 +372,7 @@ public final class MovieSettings extends AbstractSettings {
     setTrailerSource(TrailerSources.YOUTUBE);
 
     // subtitle scraper
-    setSubtitleScraperLanguage(MediaLanguages.get(defaultLang));
+    setSubtitleScraperLanguage(ml);
     setSubtitleLanguageStyle(LanguageStyle.ISO3T);
     setSubtitleWithoutLanguageTag(false);
     setSubtitleForceBestMatch(false);
@@ -492,7 +493,7 @@ public final class MovieSettings extends AbstractSettings {
 
     setRatingSources(Arrays.asList(MediaMetadata.IMDB));
 
-    setImageScraperLanguages(Arrays.asList(MediaLanguages.get(defaultLang), MediaLanguages.en));
+    setImageScraperLanguages(Arrays.asList(ml, MediaLanguages.en));
 
     clearMovieSetCheckMetadata();
     addMovieSetCheckMetadata(MovieSetScraperMetadataConfig.ID);
@@ -577,23 +578,6 @@ public final class MovieSettings extends AbstractSettings {
   @Override
   protected void writeDefaultSettings() {
     setDefaultValues();
-
-    // set default languages based on java instance
-    String defaultLang = Locale.getDefault().getLanguage();
-    CountryCode cc = CountryCode.getByCode(defaultLang.toUpperCase(Locale.ROOT));
-    if (cc != null) {
-      setCertificationCountry(cc);
-      setReleaseDateCountry(cc.getAlpha2());
-    }
-    for (MediaLanguages ml : MediaLanguages.values()) {
-      if (ml.name().equals(defaultLang)) {
-        setScraperLanguage(ml);
-        setNfoLanguage(ml.toLocale());
-        imageScraperLanguages.clear();
-        addImageScraperLanguage(ml);
-        setSubtitleScraperLanguage(ml);
-      }
-    }
     saveSettings();
   }
 
