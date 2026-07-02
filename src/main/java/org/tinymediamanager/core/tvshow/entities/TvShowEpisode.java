@@ -1479,8 +1479,16 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     this.lastWatched = lastWatched;
   }
 
+  public Map<String, String> getChecksums() {
+    return getMainVideoFile().getChecksums();
+  }
+
   public String getCRC32() {
     return getMainVideoFile().getCRC32();
+  }
+
+  public String getPHash() {
+    return getMainVideoFile().getPHash();
   }
 
   /**

@@ -899,9 +899,9 @@ public final class MovieList extends AbstractModelObject {
    *           any {@link ScrapeException} occurred while searching
    * @return the list
    */
-  public List<MediaSearchResult> searchMovie(String searchTerm, int year, Map<String, Object> ids, MediaScraper metadataScraper)
-      throws ScrapeException {
-    return searchMovie(searchTerm, year, ids, metadataScraper, MovieModuleManager.getInstance().getSettings().getScraperLanguage());
+  public List<MediaSearchResult> searchMovie(String searchTerm, int year, Map<String, Object> ids, Map<String, String> checksums,
+      MediaScraper metadataScraper) throws ScrapeException {
+    return searchMovie(searchTerm, year, ids, checksums, metadataScraper, MovieModuleManager.getInstance().getSettings().getScraperLanguage());
   }
 
   /**
@@ -921,8 +921,8 @@ public final class MovieList extends AbstractModelObject {
    *           any {@link ScrapeException} occurred while searching
    * @return the list
    */
-  public List<MediaSearchResult> searchMovie(String searchTerm, int year, Map<String, Object> ids, MediaScraper mediaScraper, MediaLanguages language)
-      throws ScrapeException {
+  public List<MediaSearchResult> searchMovie(String searchTerm, int year, Map<String, Object> ids, Map<String, String> checksums,
+      MediaScraper mediaScraper, MediaLanguages language) throws ScrapeException {
 
     if (mediaScraper == null || !mediaScraper.isEnabled()) {
       return Collections.emptyList();
@@ -943,6 +943,7 @@ public final class MovieList extends AbstractModelObject {
     if (ids != null) {
       options.setIds(ids);
     }
+    options.setChecksums(checksums);
 
     if (!searchTerm.isEmpty()) {
       String query = searchTerm.toLowerCase(Locale.ROOT);
@@ -1618,7 +1619,7 @@ public final class MovieList extends AbstractModelObject {
       // duplicates.put(nameYear, movie);
       // }
 
-      // check video HASH
+      // check video CRC32 checksum
       String crc = movie.getCRC32();
       if (!crc.isEmpty()) {
         if (duplicates.containsKey(crc)) {
@@ -1630,6 +1631,21 @@ public final class MovieList extends AbstractModelObject {
         }
         else {
           duplicates.put(crc, movie);
+        }
+      }
+
+      // check video PHASH checksum if same; TODO: hammingDistance
+      String phash = movie.getPHash();
+      if (!phash.isEmpty()) {
+        if (duplicates.containsKey(phash)) {
+          movie.setDuplicate();
+          Movie movie2 = duplicates.get(phash);
+          movie2.setDuplicate();
+          LOGGER.info("Duplicate check: files have the same hash ({}): {} <=> {}", phash, movie.getMainFile().getFileAsPath().toAbsolutePath(),
+              movie2.getMainFile().getFileAsPath().toAbsolutePath());
+        }
+        else {
+          duplicates.put(phash, movie);
         }
       }
     }

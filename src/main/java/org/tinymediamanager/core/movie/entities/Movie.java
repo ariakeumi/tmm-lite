@@ -2671,8 +2671,16 @@ public class Movie extends MediaEntity implements IMediaInformation {
     return offline;
   }
 
+  public Map<String, String> getChecksums() {
+    return getMainVideoFile().getChecksums();
+  }
+
   public String getCRC32() {
     return getMainVideoFile().getCRC32();
+  }
+
+  public String getPHash() {
+    return getMainVideoFile().getPHash();
   }
 
   public void setEdition(MovieEdition newValue) {

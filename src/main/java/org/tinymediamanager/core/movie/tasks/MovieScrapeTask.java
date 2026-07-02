@@ -306,7 +306,8 @@ public class MovieScrapeTask extends TmmThreadPool {
     }
 
     private MediaSearchResult searchForMovie(MediaScraper mediaMetadataProvider) throws ScrapeException {
-      List<MediaSearchResult> results = movieList.searchMovie(movie.getTitle(), movie.getYear(), movie.getIds(), mediaMetadataProvider);
+      List<MediaSearchResult> results = movieList.searchMovie(movie.getTitle(), movie.getYear(), movie.getIds(), movie.getChecksums(),
+          mediaMetadataProvider);
       MediaSearchResult result = null;
 
       if (ListUtils.isNotEmpty(results)) {

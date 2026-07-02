@@ -16,39 +16,53 @@
 package org.tinymediamanager.ui.movies.actions;
 
 import java.awt.event.ActionEvent;
+import java.io.IOException;
 import java.util.List;
 
 import javax.swing.JOptionPane;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.tinymediamanager.core.Message;
+import org.tinymediamanager.core.MessageManager;
 import org.tinymediamanager.core.TmmResourceBundle;
-import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.threading.TmmTask;
 import org.tinymediamanager.core.threading.TmmTaskHandle;
 import org.tinymediamanager.core.threading.TmmTaskManager;
+import org.tinymediamanager.scraper.util.VideoPHash;
+import org.tinymediamanager.thirdparty.FFmpeg;
+import org.tinymediamanager.thirdparty.FFprobe;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.actions.TmmAction;
 import org.tinymediamanager.ui.movies.MovieUIModule;
 
-public class MovieChecksumAction extends TmmAction {
-  private static final long serialVersionUID = 1L;
+public class MovieChecksumPHashAction extends TmmAction {
+  private static final Logger LOGGER           = LoggerFactory.getLogger(MovieChecksumPHashAction.class);
+  private static final long   serialVersionUID = 1L;
 
-  public MovieChecksumAction() {
-    putValue(NAME, TmmResourceBundle.getString("checksum.crc32.calculate"));
-    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("checksum.crc32.calculate"));
+  public MovieChecksumPHashAction() {
+    putValue(NAME, TmmResourceBundle.getString("checksum.phash.calculate"));
+    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("checksum.phash.calculate"));
   }
 
   @Override
   protected void processAction(ActionEvent e) {
-    List<Movie> selectedMovies = MovieUIModule.getInstance().getSelectionModel().getSelectedMovies(true);
+    // check prequisites early
+    if (!FFprobe.isAvailable() && !FFmpeg.isAvailable()) {
+      LOGGER.warn("Would have executed perceptual hash generation - unfortunately, FFprobe/FFmpeg could not be found.");
+      MessageManager.getInstance().pushMessage(new Message(Message.MessageLevel.ERROR, "task.phash", "message.ard.ffmpegmissing"));
+      return;
+    }
 
+    List<Movie> selectedMovies = MovieUIModule.getInstance().getSelectionModel().getSelectedMovies(true);
     if (selectedMovies.isEmpty()) {
       JOptionPane.showMessageDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
-    TmmTask task = new TmmTask(TmmResourceBundle.getString("checksum.crc32.calculate"), selectedMovies.size(),
+    TmmTask task = new TmmTask(TmmResourceBundle.getString("checksum.phash.calculate"), selectedMovies.size(),
         TmmTaskHandle.TaskType.BACKGROUND_TASK) {
       @Override
       protected void doInBackground() {
@@ -60,13 +74,16 @@ public class MovieChecksumAction extends TmmAction {
           }
 
           MediaFile main = movie.getMainVideoFile();
-          String crc = Utils.getCRC32(main.getFileAsPath());
-
-          if (!crc.isEmpty()) {
-            main.setCRC32(crc);
-            movie.saveToDb();
+          try {
+            String phash = VideoPHash.generate(main.getFileAsPath());
+            if (!phash.isEmpty()) {
+              main.setPHash(phash);
+              movie.saveToDb();
+            }
           }
-
+          catch (IOException | InterruptedException e) {
+            LOGGER.debug("Error generating PHASH for movie {}: {}", movie.getTitle(), e.getMessage());
+          }
           publishState(++i);
         }
       }

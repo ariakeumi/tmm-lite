@@ -120,6 +120,7 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
   private boolean                    isAnimatedGraphic = false;
   @JsonProperty
   private String                     hdrFormat         = "";
+  @JsonProperty
   protected Map<String, String>      checksums         = null;
 
   private List<MediaFileAudioStream> audioStreams      = null;
@@ -1758,10 +1759,7 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
    * @return String or empty, not null
    */
   public String getCRC32() {
-    if (this.checksums == null) {
-      return "";
-    }
-    return checksums.get("crc32") == null ? "" : checksums.get("crc32");
+    return getChecksums().get("crc32") == null ? "" : getChecksums().get("crc32");
   }
 
   public void setCRC32(String crc) {
@@ -1769,6 +1767,17 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
       this.checksums = new HashMap<>(0);
     }
     this.checksums.put("crc32", crc);
+  }
+
+  public String getPHash() {
+    return getChecksums().get("phash") == null ? "" : getChecksums().get("phash");
+  }
+
+  public void setPHash(String phash) {
+    if (this.checksums == null) {
+      this.checksums = new HashMap<>(0);
+    }
+    this.checksums.put("phash", phash);
   }
 
   /**

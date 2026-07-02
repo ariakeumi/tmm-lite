@@ -67,6 +67,7 @@ public abstract class MediaInformationPanel extends JPanel {
   protected JLabel                          lblVideoBitrate;
   protected JLabel                          lblVideoBitDepth;
   protected JLabel                          lblCrc32;
+  protected JLabel                          lblPHash;
   protected JLabel                          lblFrameRate;
   protected JLabel                          lblSource;
   protected LinkTextArea                    lblPath;
@@ -176,6 +177,11 @@ public abstract class MediaInformationPanel extends JPanel {
 
       lblVideoBitDepth = new JLabel("");
       add(lblVideoBitDepth, "cell 5 5");
+
+      JLabel lblPHashT = new TmmLabel("pHash"); // hardcode
+      add(lblPHashT, "cell 1 8");
+      lblPHash = new JLabel("");
+      add(lblPHash, "cell 2 8");
 
       JLabel lblCrc32T = new TmmLabel("CRC32"); // hardcode
       add(lblCrc32T, "cell 4 8");

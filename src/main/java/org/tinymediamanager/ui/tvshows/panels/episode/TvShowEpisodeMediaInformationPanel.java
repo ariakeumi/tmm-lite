@@ -141,6 +141,7 @@ public class TvShowEpisodeMediaInformationPanel extends MediaInformationPanel {
     lblOriginalFilename.setText(tvShowEpisode.getOriginalFilename());
     lblHdrFormat.setText(mediaFile.getHdrFormat());
     lblCrc32.setText(mediaFile.getCRC32());
+    lblPHash.setText(mediaFile.getPHash());
   }
 
   @Override

@@ -1655,7 +1655,7 @@ public final class TvShowList extends AbstractModelObject {
       }
       episodeMap.clear();
 
-      // check video HASH globally
+      // check video CRC32 checksum
       for (TvShowEpisode episode : tvShow.getEpisodes()) {
         String crc = episode.getCRC32();
         if (!crc.isEmpty()) {
@@ -1668,6 +1668,23 @@ public final class TvShowList extends AbstractModelObject {
           }
           else {
             hashMap.put(crc, episode);
+          }
+        }
+      }
+
+      // check video PHASH checksum if same; TODO: hammingDistance
+      for (TvShowEpisode episode : tvShow.getEpisodes()) {
+        String phash = episode.getPHash();
+        if (!phash.isEmpty()) {
+          TvShowEpisode duplicate = hashMap.get(phash);
+          if (duplicate != null) {
+            duplicate.setDuplicate();
+            episode.setDuplicate();
+            LOGGER.info("Duplicate check: files have the same hash ({}): {} <=> {}", phash, episode.getMainFile().getFileAsPath().toAbsolutePath(),
+                duplicate.getMainFile().getFileAsPath().toAbsolutePath());
+          }
+          else {
+            hashMap.put(phash, episode);
           }
         }
       }
