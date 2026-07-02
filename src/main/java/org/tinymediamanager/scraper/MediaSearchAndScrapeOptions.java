@@ -56,6 +56,7 @@ public abstract class MediaSearchAndScrapeOptions {
   // helper fields to pass data around in the search&scrape process
   protected MediaSearchResult         searchResult;
   protected MediaMetadata             metadata;
+  protected Map<String, String>       checksums            = new HashMap<>();
 
   protected MediaSearchAndScrapeOptions(MediaType type) {
     this.type = type;
@@ -272,6 +273,26 @@ public abstract class MediaSearchAndScrapeOptions {
       return defaultValue;
     }
     return id;
+  }
+
+  /**
+   * checksums of the main video file.<br>
+   * Might come handy for searching...<br>
+   * Currently supported: crc32, phash, (and later oshash for OpenSubtitle hashing logic)
+   * 
+   * @return "Hash" map :D
+   */
+  public Map<String, String> getChecksums() {
+    return checksums;
+  }
+
+  /**
+   * set the main video file checksum hashes in here for scraping
+   * 
+   * @param checksums
+   */
+  public void setChecksums(Map<String, String> checksums) {
+    this.checksums = checksums;
   }
 
   /**

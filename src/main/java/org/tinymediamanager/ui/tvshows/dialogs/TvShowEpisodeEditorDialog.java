@@ -995,7 +995,7 @@ public class TvShowEpisodeEditorDialog extends AbstractEditorDialog {
       for (MediaIdTable.MediaId mediaId : ids) {
         options.setId(mediaId.key, mediaId.value);
       }
-
+      options.setChecksums(episodeToEdit.getChecksums());
       options.setId(MediaMetadata.EPISODE_NR, new ArrayList<>(episodeNumbers));
       options.setEpisodeGroup(episodeToEdit.getTvShow().getEpisodeGroup());
 

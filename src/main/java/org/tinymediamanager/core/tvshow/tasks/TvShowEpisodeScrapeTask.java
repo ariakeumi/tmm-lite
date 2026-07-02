@@ -110,6 +110,7 @@ public class TvShowEpisodeScrapeTask extends TmmTask {
       md.setTitle(episode.getTitle()); // for title matching
       options.setMetadata(md);
       options.setIds(episode.getIds());
+      options.setChecksums(episode.getChecksums());
       options.setEpisodeGroup(episode.getEpisodeGroup());
 
       // have a look if the wanted episode order is available

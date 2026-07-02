@@ -148,6 +148,7 @@ public class MovieMediaInformationPanel extends MediaInformationPanel {
     lblOriginalFilename.setText(movie.getOriginalFilename());
     lblHdrFormat.setText(mediaFile.getHdrFormat());
     lblCrc32.setText(movie.getCRC32());
+    lblPHash.setText(movie.getPHash());
   }
 
   @Override

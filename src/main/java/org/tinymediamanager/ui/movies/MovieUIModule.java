@@ -52,7 +52,8 @@ import org.tinymediamanager.ui.movies.actions.MovieAspectRatioDetectAction;
 import org.tinymediamanager.ui.movies.actions.MovieAssignMovieSetAction;
 import org.tinymediamanager.ui.movies.actions.MovieBulkEditAction;
 import org.tinymediamanager.ui.movies.actions.MovieChangeDatasourceAction;
-import org.tinymediamanager.ui.movies.actions.MovieChecksumAction;
+import org.tinymediamanager.ui.movies.actions.MovieChecksumCRC32Action;
+import org.tinymediamanager.ui.movies.actions.MovieChecksumPHashAction;
 import org.tinymediamanager.ui.movies.actions.MovieCleanUpFilesAction;
 import org.tinymediamanager.ui.movies.actions.MovieClearImageCacheAction;
 import org.tinymediamanager.ui.movies.actions.MovieCopyToAction;
@@ -355,7 +356,8 @@ public class MovieUIModule extends AbstractTmmUIModule {
     enhancededitPopupMenu.addSeparator();
     enhancededitPopupMenu.add(createAndRegisterAction(MovieRebuildImageCacheAction.class));
     enhancededitPopupMenu.add(createAndRegisterAction(MovieResetNewFlagAction.class));
-    enhancededitPopupMenu.add(createAndRegisterAction(MovieChecksumAction.class));
+    enhancededitPopupMenu.add(createAndRegisterAction(MovieChecksumCRC32Action.class));
+    enhancededitPopupMenu.add(createAndRegisterAction(MovieChecksumPHashAction.class));
     popupMenu.add(enhancededitPopupMenu);
 
     JMenu downloadMenu = new JMenu(TmmResourceBundle.getString("tmm.download"));

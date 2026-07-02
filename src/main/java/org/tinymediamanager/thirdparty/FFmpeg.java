@@ -15,14 +15,19 @@
  */
 package org.tinymediamanager.thirdparty;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +39,7 @@ import org.tinymediamanager.core.Settings;
 /**
  * the class {@link FFmpeg} is used to access FFmpeg
  * 
- * @author Manuel Laggner/Wolfgang Janes
+ * @author Manuel Laggner/Wolfgang Janes/Myron Boyle
  */
 public class FFmpeg {
   private static final Logger LOGGER = LoggerFactory.getLogger(FFmpeg.class);
@@ -182,6 +187,51 @@ public class FFmpeg {
     return cmdList;
   }
 
+  public static BufferedImage generateScreenshotForPHash(Path videoFile, double pos) throws IOException, InterruptedException {
+    List<String> cmdList = new ArrayList<>();
+    cmdList.add(getFfmpegExecutable());
+    cmdList.add("-v");
+    cmdList.add("error");
+    cmdList.add("-y");
+    cmdList.add("-ss");
+    cmdList.add(Double.toString(pos));
+    cmdList.add("-i");
+    cmdList.add(videoFile.toAbsolutePath().toString());
+    cmdList.add("-frames:v");
+    cmdList.add("1");
+    cmdList.add("-vf");
+    cmdList.add("scale=160:-2"); // 160 = SCREENSHOT_SIZE (width)
+    cmdList.add("-c:v");
+    cmdList.add("bmp");
+    cmdList.add("-f");
+    cmdList.add("rawvideo");
+    cmdList.add("-");
+    return executeCommandRaw(cmdList);
+  }
+
+  /**
+   * when requesting the image on stdout, we need to use that
+   */
+  private static BufferedImage executeCommandRaw(List<String> cmdline) throws IOException, InterruptedException {
+    LOGGER.debug("Running command: {}", String.join(" ", cmdline));
+
+    Process process = new ProcessBuilder(cmdline).start();
+    byte[] stdout = readAll(process.getInputStream());
+    byte[] stderr = readAll(process.getErrorStream());
+    int exitCode = process.waitFor();
+
+    if (exitCode != 0) {
+      String err = new String(stderr, StandardCharsets.UTF_8);
+      throw new IOException("ffmpeg failed (exit " + exitCode + "): " + err);
+    }
+
+    BufferedImage img = ImageIO.read(new ByteArrayInputStream(stdout));
+    if (img == null) {
+      throw new IOException("decoding image: unsupported or empty image data");
+    }
+    return img;
+  }
+
   private static String executeCommand(List<String> cmdline) throws IOException, InterruptedException {
     LOGGER.debug("Running command: {}", String.join(" ", cmdline));
 
@@ -211,6 +261,17 @@ public class FFmpeg {
       // Process must be destroyed before closing streams, can't use try-with-resources,
       // as resources are closing when leaving try block, before finally
       IOUtils.close(process.getErrorStream());
+    }
+  }
+
+  private static byte[] readAll(InputStream in) throws IOException {
+    try (InputStream is = in; ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+      byte[] buf = new byte[8192];
+      int n;
+      while ((n = is.read(buf)) != -1) {
+        out.write(buf, 0, n);
+      }
+      return out.toByteArray();
     }
   }
 

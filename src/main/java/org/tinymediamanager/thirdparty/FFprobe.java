@@ -91,8 +91,8 @@ public class FFprobe {
       int processValue = process.waitFor();
       String response = outputStream.toString(StandardCharsets.UTF_8);
       if (processValue != 0) {
-        LOGGER.warn("Error calling FFmpeg - '{}'", response);
-        throw new IOException("error running FFmpeg - code '" + processValue + "' / message '" + response + "'");
+        LOGGER.warn("Error calling FFprobe - '{}'", response);
+        throw new IOException("error running FFprobe - code '" + processValue + "' / message '" + response + "'");
       }
       return response;
     }
