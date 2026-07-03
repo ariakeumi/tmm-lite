@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.SortedSet;
@@ -635,12 +636,18 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
     // detect the string to search
     String searchString = "";
     if (StringUtils.isNotBlank(options.getSearchQuery())) {
-      searchString = options.getSearchQuery();
+      searchString = options.getSearchQuery().toLowerCase(Locale.ROOT);
     }
+    // if the text query is an IMDB id, override any preset IMDB id...
+    if (MediaIdUtil.isValidImdbId(searchString)) {
+      options.setImdbId(searchString);
+    }
+    String imdbId = options.getImdbId();
 
     int tvdbId = options.getIdAsInt(getId());
-    // if we have an TVDB id, use that!
-    if (tvdbId != 0) {
+
+    // if we have an TVDB or IMDB id, use that!
+    if (tvdbId != 0 || !imdbId.isEmpty()) {
       LOGGER.debug("found TvDb ID {} - getting direct", tvdbId);
       try {
         MediaMetadata md = getMetadata(options);

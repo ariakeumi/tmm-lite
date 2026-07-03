@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -114,7 +115,7 @@ public final class TheTvDbMovieMetadataProvider extends TheTvDbMetadataProvider 
     // detect the string to search
     String searchString = "";
     if (StringUtils.isNotBlank(options.getSearchQuery())) {
-      searchString = options.getSearchQuery();
+      searchString = options.getSearchQuery().toLowerCase(Locale.ROOT);
     }
 
     int tvdbId = options.getIdAsInt(getId());

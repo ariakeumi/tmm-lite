@@ -16,11 +16,13 @@
 
 package org.tinymediamanager.scraper.thetvdb.service;
 
+import org.tinymediamanager.scraper.thetvdb.entities.SearchByRemoteIdResponse;
 import org.tinymediamanager.scraper.thetvdb.entities.SearchResultResponse;
 import org.tinymediamanager.scraper.thetvdb.entities.SearchType;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface SearchService {
@@ -57,6 +59,6 @@ public interface SearchService {
    *          the remote id (IMDB)
    * @return Call&lt;SearchResultResponse&gt;
    */
-  @GET("search")
-  Call<SearchResultResponse> getSearch(@Query("query") String query, @Query("remote_id") String remoteId);
+  @GET("search/remoteid/{id}")
+  Call<SearchByRemoteIdResponse> remoteIdSearch(@Path("id") String remoteId);
 }

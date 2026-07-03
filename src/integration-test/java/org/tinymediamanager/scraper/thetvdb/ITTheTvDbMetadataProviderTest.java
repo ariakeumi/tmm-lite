@@ -60,7 +60,7 @@ public class ITTheTvDbMetadataProviderTest extends BasicITest {
   public void testSearch() throws Exception {
     ITvShowMetadataProvider metadataProvider = new TheTvDbTvShowMetadataProvider();
 
-    // searchShow(metadataProvider, "Un village français", "fr", "211941", 2009); // not returning any result - reported
+    searchShow(metadataProvider, "Un village français", "fr", "473814", 2009);
     searchShow(metadataProvider, "Der Mondbár", "de", "81049", 2007);
     searchShow(metadataProvider, "Psych", "en", "79335", 2006);
     searchShow(metadataProvider, "You're the Worst", "en", "281776", 2014);
@@ -68,12 +68,11 @@ public class ITTheTvDbMetadataProviderTest extends BasicITest {
     searchShow(metadataProvider, "Rich Man, Poor Man", "en", "77151", 1976);
     searchShow(metadataProvider, "Drugs, Inc", "en", "174501", 2010);
     searchShow(metadataProvider, "Yu-Gi-Oh!", "en", "113561", 1998);
-    // searchShow(metadataProvider, "What's the Big Idea?", "en", "268282", 2013); // not returning a valid year - reported
+    searchShow(metadataProvider, "What's the Big Idea?", "en", "268282", 2013); // not returning a valid year - reported
     searchShow(metadataProvider, "Wallace & Gromit", "en", "78996", 1989);
     searchShow(metadataProvider, "SOKO Kitzbühel", "de", "101241", 2001);
-
-    // searchShow(metadataProvider, "tt1288631", "fr", "", "211941", 0); // IMDB id entered as search term // not implemented yet
-    searchShow(metadataProvider, "", "fr", "211941", "211941", 2009); // empty searchString, but valid ID!
+    searchShow(metadataProvider, "tt1288631", "fr", "", "473814", 0); // IMDB id entered as search term
+    searchShow(metadataProvider, "", "fr", "473814", "473814", 2009); // empty searchString, but valid ID!
   }
 
   private void searchShow(ITvShowMetadataProvider metadataProvider, String title, String language, String checkId, int year) {

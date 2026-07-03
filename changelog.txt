@@ -10,6 +10,7 @@ Version 5.2.13
 + [UI] added support for last watched date
 + [Image Cache] added a cleanup task to remove orphaned items
 + [HTTP API] added the new scope parameter "path" to provide more control over the scope of the API calls #3269
++ [Checksums] add PHASH video fingerprinting
 ---
 x [Movies, TV shows] make checksum calculation abortable
 x [Movies, TV shows] enhanced parsing of media information (subtitle types and additional data)
@@ -23,6 +24,7 @@ x [IMDB] refresh rating data once per day
 x [TMDB] fetch more ID types for movies/TV shows and cast/crew members
 x [TMDB] added second fallback language to TV show/episode plot too
 x [TVDB] increased performance on trailer scrape
+x [TVDB] fixed lookup by IMDB id
 x [Library] upgraded libmediainfo to 26.05
 x [Library] upgraded libtinyfiledialogs to v3.21.3
 x [Java] upgraded Java to 21.0.11
