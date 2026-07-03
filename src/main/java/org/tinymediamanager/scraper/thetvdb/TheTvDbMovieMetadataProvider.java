@@ -117,11 +117,16 @@ public final class TheTvDbMovieMetadataProvider extends TheTvDbMetadataProvider 
     if (StringUtils.isNotBlank(options.getSearchQuery())) {
       searchString = options.getSearchQuery().toLowerCase(Locale.ROOT);
     }
+    // if the text query is an IMDB id, override any preset IMDB id...
+    if (MediaIdUtil.isValidImdbId(searchString)) {
+      options.setImdbId(searchString);
+    }
+    String imdbId = options.getImdbId();
 
     int tvdbId = options.getIdAsInt(getId());
     // if we have an TVDB id, use that!
-    if (tvdbId != 0) {
-      LOGGER.debug("found TvDb ID {} - getting direct", tvdbId);
+    if (tvdbId != 0 || !imdbId.isEmpty()) {
+      LOGGER.debug("found TvDb ID {} - getting direct", tvdbId != 0 ? tvdbId : imdbId);
       try {
         MediaMetadata md = getMetadata(options);
         if (md != null) {

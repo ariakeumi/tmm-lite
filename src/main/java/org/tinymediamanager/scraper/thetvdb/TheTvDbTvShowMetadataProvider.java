@@ -648,7 +648,7 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
 
     // if we have an TVDB or IMDB id, use that!
     if (tvdbId != 0 || !imdbId.isEmpty()) {
-      LOGGER.debug("found TvDb ID {} - getting direct", tvdbId);
+      LOGGER.debug("found TvDb ID {} - getting direct", tvdbId != 0 ? tvdbId : imdbId);
       try {
         MediaMetadata md = getMetadata(options);
         if (md != null) {
