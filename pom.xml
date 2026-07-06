@@ -197,7 +197,7 @@
         <dependency>
             <groupId>com.uwetrottmann.trakt5</groupId>
             <artifactId>trakt-java</artifactId>
-            <version>6.18.0</version>
+            <version>6.20.1</version>
         </dependency>
         <dependency>
             <groupId>it.tidalwave.betterbeansbinding</groupId>
