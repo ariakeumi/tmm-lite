@@ -64,26 +64,22 @@ import org.tinymediamanager.scraper.interfaces.ITvShowTrailerProvider;
 import org.tinymediamanager.scraper.interfaces.ITvShowTvdbMetadataProvider;
 import org.tinymediamanager.scraper.thetvdb.entities.ArtworkBaseRecord;
 import org.tinymediamanager.scraper.thetvdb.entities.ArtworkTypeRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponseList;
 import org.tinymediamanager.scraper.thetvdb.entities.CompanyBaseRecord;
 import org.tinymediamanager.scraper.thetvdb.entities.ContentRating;
-import org.tinymediamanager.scraper.thetvdb.entities.ContentRatingResponse;
 import org.tinymediamanager.scraper.thetvdb.entities.EpisodeBaseRecord;
 import org.tinymediamanager.scraper.thetvdb.entities.EpisodeExtendedRecord;
-import org.tinymediamanager.scraper.thetvdb.entities.EpisodeExtendedResponse;
 import org.tinymediamanager.scraper.thetvdb.entities.GenreBaseRecord;
 import org.tinymediamanager.scraper.thetvdb.entities.SearchResultRecord;
-import org.tinymediamanager.scraper.thetvdb.entities.SearchResultResponse;
 import org.tinymediamanager.scraper.thetvdb.entities.SearchType;
 import org.tinymediamanager.scraper.thetvdb.entities.SeasonBaseRecord;
 import org.tinymediamanager.scraper.thetvdb.entities.SeasonType;
 import org.tinymediamanager.scraper.thetvdb.entities.SeasonTypeRecord;
 import org.tinymediamanager.scraper.thetvdb.entities.SeriesEpisodesRecord;
-import org.tinymediamanager.scraper.thetvdb.entities.SeriesEpisodesResponse;
 import org.tinymediamanager.scraper.thetvdb.entities.SeriesExtendedRecord;
-import org.tinymediamanager.scraper.thetvdb.entities.SeriesExtendedResponse;
 import org.tinymediamanager.scraper.thetvdb.entities.Trailer;
 import org.tinymediamanager.scraper.thetvdb.entities.Translation;
-import org.tinymediamanager.scraper.thetvdb.entities.TranslationResponse;
 import org.tinymediamanager.scraper.util.CacheMap;
 import org.tinymediamanager.scraper.util.DateUtils;
 import org.tinymediamanager.scraper.util.LanguageUtils;
@@ -171,7 +167,7 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
     }
 
     try {
-      Response<SeriesExtendedResponse> httpResponse = tvdb.getSeriesService().getSeriesExtended(id).execute();
+      Response<BaseResponse<SeriesExtendedRecord>> httpResponse = tvdb.getSeriesService().getSeriesExtended(id).execute();
       if (!httpResponse.isSuccessful()) {
         throw new HttpException(httpResponse.code(), httpResponse.message());
       }
@@ -179,7 +175,7 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
 
       // base translation (needed for overview)
       if (show.nameTranslations.contains(baseLanguage) || show.overviewTranslations.contains(baseLanguage)) {
-        Response<TranslationResponse> translationResponse = tvdb.getSeriesService().getSeriesTranslation(id, baseLanguage).execute();
+        Response<BaseResponse<Translation>> translationResponse = tvdb.getSeriesService().getSeriesTranslation(id, baseLanguage).execute();
         if (translationResponse.isSuccessful()) {
           baseTranslation = translationResponse.body().data;
         }
@@ -188,7 +184,7 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
       // also get fallback is either title or overview of the base translation is missing
       if ((baseTranslation == null || StringUtils.isAnyBlank(baseTranslation.name, baseTranslation.overview))
           && (show.nameTranslations.contains(fallbackLanguage) || show.overviewTranslations.contains(fallbackLanguage))) {
-        Response<TranslationResponse> translationResponse = tvdb.getSeriesService().getSeriesTranslation(id, fallbackLanguage).execute();
+        Response<BaseResponse<Translation>> translationResponse = tvdb.getSeriesService().getSeriesTranslation(id, fallbackLanguage).execute();
         if (translationResponse.isSuccessful()) {
           fallbackTranslation = translationResponse.body().data;
         }
@@ -201,7 +197,7 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
         englishTranslation = fallbackTranslation;
       }
       else if (show.nameTranslations.contains(englishLanguage)) {
-        Response<TranslationResponse> translationResponse = tvdb.getSeriesService().getSeriesTranslation(id, englishLanguage).execute();
+        Response<BaseResponse<Translation>> translationResponse = tvdb.getSeriesService().getSeriesTranslation(id, englishLanguage).execute();
         if (translationResponse.isSuccessful()) {
           englishTranslation = translationResponse.body().data;
         }
@@ -342,7 +338,7 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
         baseTranslation = null;
         fallbackTranslation = null;
         try {
-          Response<TranslationResponse> translationResponse = null;
+          Response<BaseResponse<Translation>> translationResponse = null;
           if (fakeListToList(seasonBaseRecord.nameTranslations).contains(baseLanguage)
               || fakeListToList(seasonBaseRecord.overviewTranslations).contains(baseLanguage)) {
             translationResponse = tvdb.getSeasonsService().getSeasonTranslation(seasonBaseRecord.id, baseLanguage).execute();
@@ -548,7 +544,7 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
     try {
       int id = (int) foundEpisode.getId(getId());
 
-      Response<EpisodeExtendedResponse> httpResponse = tvdb.getEpisodesService().getEpisodeExtended(id).execute();
+      Response<BaseResponse<EpisodeExtendedRecord>> httpResponse = tvdb.getEpisodesService().getEpisodeExtended(id).execute();
       if (!httpResponse.isSuccessful()) {
         throw new HttpException(httpResponse.code(), httpResponse.message());
       }
@@ -666,7 +662,7 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
     // only search when we did not find something by ID (and search string or IMDB is present)
     if (StringUtils.isNotBlank(searchString)) {
       try {
-        Response<SearchResultResponse> httpResponse = tvdb.getSearchService().getSearch(searchString, SearchType.SERIES).execute();
+        Response<BaseResponseList<SearchResultRecord>> httpResponse = tvdb.getSearchService().getSearch(searchString, SearchType.SERIES).execute();
 
         if (!httpResponse.isSuccessful()) {
           throw new HttpException(httpResponse.code(), httpResponse.message());
@@ -813,7 +809,7 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
     // get all available episode groups
     // MediaMetadata tvShowMd = getMetadata(options);
     try {
-      Response<SeriesExtendedResponse> httpResponse = tvdb.getSeriesService().getSeriesExtended(showId).execute();
+      Response<BaseResponse<SeriesExtendedRecord>> httpResponse = tvdb.getSeriesService().getSeriesExtended(showId).execute();
       if (!httpResponse.isSuccessful()) {
         throw new HttpException(httpResponse.code(), httpResponse.message());
       }
@@ -937,7 +933,7 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
     SeriesExtendedRecord show;
 
     try {
-      Response<SeriesExtendedResponse> httpResponse = tvdb.getSeriesService().getSeriesExtended(id).execute();
+      Response<BaseResponse<SeriesExtendedRecord>> httpResponse = tvdb.getSeriesService().getSeriesExtended(id).execute();
       if (!httpResponse.isSuccessful()) {
         throw new HttpException(httpResponse.code(), httpResponse.message());
       }
@@ -964,9 +960,9 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
 
   private SeriesEpisodesRecord getSeriesEpisodesRecord(int showId, SeasonType seasonType, int counter) {
     try {
-      Response<SeriesEpisodesResponse> httpResponse = tvdb.getSeriesService().getSeriesEpisodes(showId, seasonType, counter).execute();
+      Response<BaseResponse<SeriesEpisodesRecord>> httpResponse = tvdb.getSeriesService().getSeriesEpisodes(showId, seasonType, counter).execute();
       if (httpResponse.isSuccessful()) {
-        SeriesEpisodesResponse response = httpResponse.body();
+        BaseResponse<SeriesEpisodesRecord> response = httpResponse.body();
         if (response != null) {
           return response.data;
         }
@@ -1019,9 +1015,11 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
       }
       else {
         try {
-          Response<SeriesEpisodesResponse> httpResponse = tvdb.getSeriesService().getSeriesEpisodes(showId, seasonType, language, counter).execute();
+          Response<BaseResponse<SeriesEpisodesRecord>> httpResponse = tvdb.getSeriesService()
+              .getSeriesEpisodes(showId, seasonType, language, counter)
+              .execute();
           if (httpResponse.isSuccessful()) {
-            SeriesEpisodesResponse response = httpResponse.body();
+            BaseResponse<SeriesEpisodesRecord> response = httpResponse.body();
             if (response != null && response.data != null) {
               for (EpisodeBaseRecord toInject : ListUtils.nullSafe(seriesEpisodesRecord.episodes)) {
                 // find the corresponding episode in the response
@@ -1078,11 +1076,11 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
 
         if (!allFilled) {
           try {
-            Response<SeriesEpisodesResponse> httpResponse = tvdb.getSeriesService()
+            Response<BaseResponse<SeriesEpisodesRecord>> httpResponse = tvdb.getSeriesService()
                 .getSeriesEpisodes(showId, seasonType, fallbackLanguage, counter)
                 .execute();
             if (httpResponse.isSuccessful()) {
-              SeriesEpisodesResponse response = httpResponse.body();
+              BaseResponse<SeriesEpisodesRecord> response = httpResponse.body();
               if (response != null && response.data != null) {
                 for (EpisodeBaseRecord toInject : ListUtils.nullSafe(seriesEpisodesRecord.episodes)) {
                   // find the corresponding episode in the response
@@ -1120,9 +1118,11 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
       }
       else {
         try {
-          Response<SeriesEpisodesResponse> httpResponse = tvdb.getSeriesService().getSeriesEpisodes(showId, seasonType, language, counter).execute();
+          Response<BaseResponse<SeriesEpisodesRecord>> httpResponse = tvdb.getSeriesService()
+              .getSeriesEpisodes(showId, seasonType, language, counter)
+              .execute();
           if (httpResponse.isSuccessful()) {
-            SeriesEpisodesResponse response = httpResponse.body();
+            BaseResponse<SeriesEpisodesRecord> response = httpResponse.body();
             if (response != null && response.data != null) {
               for (EpisodeBaseRecord toInject : ListUtils.nullSafe(seriesEpisodesRecord.episodes)) {
                 // find the corresponding episode in the response
@@ -1196,7 +1196,7 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
     // PERF: just get base metadata, not complete one with all episodes, translations etc...
     // OLD: return getMetadata().getTrailers();
     try {
-      Response<SeriesExtendedResponse> httpResponse = tvdb.getSeriesService().getSeriesExtended(id).execute();
+      Response<BaseResponse<SeriesExtendedRecord>> httpResponse = tvdb.getSeriesService().getSeriesExtended(id).execute();
       if (!httpResponse.isSuccessful()) {
         throw new HttpException(httpResponse.code(), httpResponse.message());
       }
@@ -1246,11 +1246,11 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
     initAPI();
 
     try {
-      Response<ContentRatingResponse> httpResponse = tvdb.getConfigService().getCertifications().execute();
+      Response<BaseResponseList<ContentRating>> httpResponse = tvdb.getConfigService().getCertifications().execute();
       if (!httpResponse.isSuccessful()) {
         throw new HttpException(httpResponse.code(), httpResponse.message());
       }
-      ContentRatingResponse certs = httpResponse.body();
+      BaseResponseList<ContentRating> certs = httpResponse.body();
       for (ContentRating cert : certs.data) {
         if (!cert.contentType.equals("movie")) {
           ret.add(cert);

@@ -55,10 +55,10 @@ import org.tinymediamanager.scraper.exceptions.ScrapeException;
 import org.tinymediamanager.scraper.interfaces.IMediaProvider;
 import org.tinymediamanager.scraper.thetvdb.entities.ArtworkBaseRecord;
 import org.tinymediamanager.scraper.thetvdb.entities.ArtworkTypeRecord;
-import org.tinymediamanager.scraper.thetvdb.entities.ArtworkTypeResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponseArray;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponseList;
 import org.tinymediamanager.scraper.thetvdb.entities.Character;
 import org.tinymediamanager.scraper.thetvdb.entities.RemoteID;
-import org.tinymediamanager.scraper.thetvdb.entities.SearchByRemoteIdResponse;
 import org.tinymediamanager.scraper.thetvdb.entities.SearchByRemoteIdResult;
 import org.tinymediamanager.scraper.util.LanguageUtils;
 import org.tinymediamanager.scraper.util.ListUtils;
@@ -157,7 +157,7 @@ abstract class TheTvDbMetadataProvider implements IMediaProvider {
         tvdb.setAuthToken(getAuthToken());
 
         artworkTypes.clear();
-        Response<ArtworkTypeResponse> response = tvdb.getConfigService().getArtworkTypes().execute();
+        Response<BaseResponseList<ArtworkTypeRecord>> response = tvdb.getConfigService().getArtworkTypes().execute();
         if (response.isSuccessful()) {
           for (ArtworkTypeRecord artworkTypeRecord : response.body().data) {
             if (artworkTypeRecord.width > 0 && artworkTypeRecord.height > 0) {
@@ -509,11 +509,11 @@ abstract class TheTvDbMetadataProvider implements IMediaProvider {
   protected int getTvdbIdViaImdbId(String imdbId) {
     // try to get it via service call
     try {
-      Response<SearchByRemoteIdResponse> httpResponse = tvdb.getSearchService().remoteIdSearch(imdbId).execute();
+      Response<BaseResponseArray<SearchByRemoteIdResult>> httpResponse = tvdb.getSearchService().remoteIdSearch(imdbId).execute();
       if (!httpResponse.isSuccessful()) {
         throw new HttpException(httpResponse.code(), httpResponse.message());
       }
-      SearchByRemoteIdResponse resp = httpResponse.body();
+      BaseResponseArray<SearchByRemoteIdResult> resp = httpResponse.body();
       SearchByRemoteIdResult res = resp.data[0];
 
       if (res.series != null && res.series.id != null) {

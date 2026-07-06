@@ -16,12 +16,13 @@
 
 package org.tinymediamanager.scraper.thetvdb.service;
 
-import org.tinymediamanager.scraper.thetvdb.entities.AllSeriesResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponseList;
 import org.tinymediamanager.scraper.thetvdb.entities.SeasonType;
-import org.tinymediamanager.scraper.thetvdb.entities.SeriesBaseResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.SeriesEpisodesResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.SeriesExtendedResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.TranslationResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.SeriesBaseRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.SeriesEpisodesRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.SeriesExtendedRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.Translation;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -38,7 +39,7 @@ public interface SeriesService {
    * @return Call&lt;AllSeriesResponse&gt;
    */
   @GET("series")
-  Call<AllSeriesResponse> getAllSeries(@Query("page") long page);
+  Call<BaseResponseList<SeriesBaseRecord>> getAllSeries(@Query("page") long page);
 
   /**
    * 
@@ -49,7 +50,7 @@ public interface SeriesService {
    * @return Call&lt;SeriesBaseResponse&gt;
    */
   @GET("series/{id}")
-  Call<SeriesBaseResponse> getSeriesBase(@Path("id") long id);
+  Call<BaseResponse<SeriesBaseRecord>> getSeriesBase(@Path("id") long id);
 
   /**
    * 
@@ -60,7 +61,7 @@ public interface SeriesService {
    * @return Call&lt;SeriesExtendedResponse&gt;
    */
   @GET("series/{id}/extended")
-  Call<SeriesExtendedResponse> getSeriesExtended(@Path("id") long id);
+  Call<BaseResponse<SeriesExtendedRecord>> getSeriesExtended(@Path("id") long id);
 
   /**
    *
@@ -75,7 +76,8 @@ public interface SeriesService {
    * @return Call&lt;SeriesExtendedResponse&gt;
    */
   @GET("series/{id}/episodes/{season-type}")
-  Call<SeriesEpisodesResponse> getSeriesEpisodes(@Path("id") long id, @Path("season-type") SeasonType seasonType, @Query("page") long page);
+  Call<BaseResponse<SeriesEpisodesRecord>> getSeriesEpisodes(@Path("id") long id, @Path("season-type") SeasonType seasonType,
+      @Query("page") long page);
 
   /**
    *
@@ -92,8 +94,8 @@ public interface SeriesService {
    * @return Call&lt;SeriesExtendedResponse&gt;
    */
   @GET("series/{id}/episodes/{season-type}/{lang}")
-  Call<SeriesEpisodesResponse> getSeriesEpisodes(@Path("id") long id, @Path("season-type") SeasonType seasonType, @Path("lang") String language,
-      @Query("page") long page);
+  Call<BaseResponse<SeriesEpisodesRecord>> getSeriesEpisodes(@Path("id") long id, @Path("season-type") SeasonType seasonType,
+      @Path("lang") String language, @Query("page") long page);
 
   /**
    * 
@@ -106,5 +108,5 @@ public interface SeriesService {
    * @return Call&lt;SeriesTranslationResponse&gt;
    */
   @GET("series/{id}/translations/{language}")
-  Call<TranslationResponse> getSeriesTranslation(@Path("id") long id, @Path("language") String language);
+  Call<BaseResponse<Translation>> getSeriesTranslation(@Path("id") long id, @Path("language") String language);
 }

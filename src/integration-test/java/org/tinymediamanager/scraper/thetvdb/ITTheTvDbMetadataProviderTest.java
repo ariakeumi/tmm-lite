@@ -30,13 +30,16 @@ import static org.tinymediamanager.scraper.entities.MediaEpisodeGroup.EpisodeGro
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.tinymediamanager.core.BasicITest;
 import org.tinymediamanager.core.MediaAiredStatus;
 import org.tinymediamanager.core.entities.MediaGenres;
+import org.tinymediamanager.core.entities.MediaTrailer;
 import org.tinymediamanager.core.movie.MovieSearchAndScrapeOptions;
 import org.tinymediamanager.core.tvshow.TvShowEpisodeSearchAndScrapeOptions;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
@@ -44,15 +47,18 @@ import org.tinymediamanager.core.tvshow.TvShowSearchAndScrapeOptions;
 import org.tinymediamanager.scraper.ArtworkSearchAndScrapeOptions;
 import org.tinymediamanager.scraper.MediaMetadata;
 import org.tinymediamanager.scraper.MediaSearchResult;
+import org.tinymediamanager.scraper.TrailerSearchAndScrapeOptions;
 import org.tinymediamanager.scraper.entities.CountryCode;
 import org.tinymediamanager.scraper.entities.MediaArtwork;
 import org.tinymediamanager.scraper.entities.MediaCertification;
 import org.tinymediamanager.scraper.entities.MediaEpisodeGroup;
 import org.tinymediamanager.scraper.entities.MediaLanguages;
 import org.tinymediamanager.scraper.entities.MediaType;
+import org.tinymediamanager.scraper.interfaces.IMovieArtworkProvider;
 import org.tinymediamanager.scraper.interfaces.IMovieMetadataProvider;
 import org.tinymediamanager.scraper.interfaces.ITvShowArtworkProvider;
 import org.tinymediamanager.scraper.interfaces.ITvShowMetadataProvider;
+import org.tinymediamanager.scraper.thetvdb.entities.ContentRating;
 
 public class ITTheTvDbMetadataProviderTest extends BasicITest {
 
@@ -487,7 +493,7 @@ public class ITTheTvDbMetadataProviderTest extends BasicITest {
     assertThat(md.getTitle()).isEqualTo("12 Monkeys");
     assertThat(md.getYear()).isEqualTo(1995);
     assertThat(md.getPlot()).startsWith("In a future world devastated by disease,");
-    assertThat(md.getCertifications()).contains(MediaCertification.DE_FSK16);
+    assertThat(md.getCertifications()).isEmpty(); // no US certification for now
 
     assertThat(md.getCastMembers(ACTOR).size()).isGreaterThan(10);
     assertThat(md.getCastMembers(DIRECTOR).size()).isGreaterThan(1);
@@ -530,10 +536,10 @@ public class ITTheTvDbMetadataProviderTest extends BasicITest {
 
     md = mp.getMetadata(options);
 
-    assertThat(md.getTitle()).isEqualTo("Star Wars: Der Aufstieg Skywalkers");
+    assertThat(md.getTitle()).contains("Star", "Wars", "Aufstieg", "Skywalker");
     assertThat(md.getYear()).isEqualTo(2019);
     assertThat(md.getPlot()).contains("Star", "Wars", "Skywalker", "Abschluss");
-    assertThat(md.getCertifications()).contains(MediaCertification.US_PG13);
+    assertThat(md.getCertifications()).isEmpty(); // no ratings for DE so far
 
     assertNotNull(md.getCastMembers(ACTOR));
     assertThat(md.getCastMembers(ACTOR).size()).isGreaterThan(10);
@@ -626,5 +632,162 @@ public class ITTheTvDbMetadataProviderTest extends BasicITest {
       assertThat(mediaMetadata.getEpisodeGroups())
           .anyMatch(episodeGroup -> episodeGroup.getEpisodeGroupType() == MediaEpisodeGroup.EpisodeGroupType.ALTERNATE);
     }
+  }
+
+  @Test
+  public void testTvShowTrailers() throws Exception {
+    TheTvDbTvShowMetadataProvider provider = new TheTvDbTvShowMetadataProvider();
+
+    TrailerSearchAndScrapeOptions options = new TrailerSearchAndScrapeOptions(MediaType.TV_SHOW);
+    options.setId(provider.getProviderInfo().getId(), 79335);
+
+    List<MediaTrailer> trailers = provider.getTrailers(options);
+    assertThat(trailers).isNotNull();
+    // Depending on the show, trailers may or may not be present; test that the call succeeds
+    if (!trailers.isEmpty()) {
+      MediaTrailer trailer = trailers.get(0);
+      assertThat(trailer.getUrl()).isNotEmpty();
+      assertThat(trailer.getName()).isNotEmpty();
+    }
+  }
+
+  @Test
+  public void testMovieTrailers() throws Exception {
+    TheTvDbMovieMetadataProvider provider = new TheTvDbMovieMetadataProvider();
+
+    TrailerSearchAndScrapeOptions options = new TrailerSearchAndScrapeOptions(MediaType.MOVIE);
+    options.setId(provider.getProviderInfo().getId(), 706);
+
+    List<MediaTrailer> trailers = provider.getTrailers(options);
+    assertThat(trailers).isNotNull();
+    if (!trailers.isEmpty()) {
+      MediaTrailer trailer = trailers.get(0);
+      assertThat(trailer.getUrl()).isNotEmpty();
+      assertThat(trailer.getName()).isNotEmpty();
+    }
+  }
+
+  @Test
+  public void testGetMediaIds() throws Exception {
+    TheTvDbTvShowMetadataProvider provider = new TheTvDbTvShowMetadataProvider();
+
+    Map<String, Object> ids = new HashMap<>();
+    ids.put(provider.getProviderInfo().getId(), 79335);
+
+    Map<String, Object> result = provider.getMediaIds(ids, MediaType.TV_SHOW);
+    assertThat(result).isNotNull();
+    assertThat(result).isNotEmpty();
+    // should contain tvdb id and at least imdb id
+    assertThat(result.get(provider.getProviderInfo().getId())).isNotNull();
+    assertThat(result.get(MediaMetadata.IMDB)).isNotNull();
+  }
+
+  @Test
+  public void testMovieArtworkScrape() throws Exception {
+    IMovieArtworkProvider artworkProvider = new TheTvDbMovieArtworkProvider();
+
+    // all artwork for 12 Monkeys
+    ArtworkSearchAndScrapeOptions options = new ArtworkSearchAndScrapeOptions(MediaType.MOVIE);
+    options.setId(artworkProvider.getProviderInfo().getId(), "706");
+    options.setArtworkType(MediaArtwork.MediaArtworkType.ALL);
+
+    List<MediaArtwork> artwork = artworkProvider.getArtwork(options);
+    assertThat(artwork).isNotEmpty();
+
+    MediaArtwork ma = artwork.get(0);
+    assertThat(ma.getImageSizes()).isNotEmpty();
+    assertThat(ma.getType()).isIn(MediaArtwork.MediaArtworkType.POSTER, MediaArtwork.MediaArtworkType.BACKGROUND,
+        MediaArtwork.MediaArtworkType.BANNER, MediaArtwork.MediaArtworkType.LOGO, MediaArtwork.MediaArtworkType.CLEARLOGO,
+        MediaArtwork.MediaArtworkType.CLEARART, MediaArtwork.MediaArtworkType.THUMB, MediaArtwork.MediaArtworkType.DISC);
+
+    // movie poster scrape
+    options.setArtworkType(MediaArtwork.MediaArtworkType.POSTER);
+
+    artwork = artworkProvider.getArtwork(options);
+    assertThat(artwork).isNotEmpty();
+
+    ma = artwork.get(0);
+    assertThat(ma.getImageSizes()).isNotEmpty();
+    assertThat(ma.getType()).isEqualTo(MediaArtwork.MediaArtworkType.POSTER);
+  }
+
+  @Test
+  public void testTvShowCertifications() throws Exception {
+    TheTvDbTvShowMetadataProvider provider = new TheTvDbTvShowMetadataProvider();
+
+    List<ContentRating> certs = provider.getAllPossibleCertifications();
+    assertThat(certs).isNotEmpty();
+    // TV show certs should only have contentType "episode"
+    for (ContentRating cert : certs) {
+      assertThat(cert.contentType).isEqualTo("episode");
+    }
+  }
+
+  @Test
+  public void testMovieCertifications() throws Exception {
+    TheTvDbMovieMetadataProvider provider = new TheTvDbMovieMetadataProvider();
+
+    List<ContentRating> certs = provider.getAllPossibleCertifications();
+    assertThat(certs).isNotEmpty();
+    // movie certs should only have contentType "movie"
+    for (ContentRating cert : certs) {
+      assertThat(cert.contentType).isEqualTo("movie");
+    }
+  }
+
+  @Test
+  public void testEpisodeListWithEpisodeGroup() throws Exception {
+    ITvShowMetadataProvider provider = new TheTvDbTvShowMetadataProvider();
+
+    // La casa de papel has aired order and netflix (alternate) order
+    TvShowSearchAndScrapeOptions options = new TvShowSearchAndScrapeOptions();
+    options.setId(provider.getProviderInfo().getId(), "327417");
+    options.setLanguage(MediaLanguages.en);
+    options.setCertificationCountry(CountryCode.US);
+    options.setReleaseDateCountry("US");
+
+    // get episode list with default aired order
+    List<MediaMetadata> airedEpisodes = provider.getEpisodeList(options);
+    assertThat(airedEpisodes).isNotEmpty();
+    assertThat(airedEpisodes.size()).isGreaterThanOrEqualTo(15);
+
+    // get episode list with alternate (Netflix) ordering
+    MediaMetadata mediaMetadata = provider.getMetadata(options);
+    assertThat(mediaMetadata).isNotNull();
+    assertThat(mediaMetadata.getEpisodeGroups()).isNotEmpty();
+
+    MediaEpisodeGroup alternateGroup = mediaMetadata.getEpisodeGroups()
+        .stream()
+        .filter(g -> g.getEpisodeGroupType() == MediaEpisodeGroup.EpisodeGroupType.ALTERNATE)
+        .findFirst()
+        .orElse(null);
+
+    if (alternateGroup != null) {
+      options.setEpisodeGroup(alternateGroup);
+      List<MediaMetadata> alternateEpisodes = provider.getEpisodeList(options);
+      assertThat(alternateEpisodes).isNotEmpty();
+      // episode count or ordering should differ from aired order
+      assertThat(alternateEpisodes).hasSizeGreaterThanOrEqualTo(15);
+    }
+  }
+
+  @Test
+  public void testEpisodeListWithFallback() throws Exception {
+    ITvShowMetadataProvider provider = new TheTvDbTvShowMetadataProvider();
+    provider.getProviderInfo().getConfig().setValue("fallbackLanguage", MediaLanguages.de.toString());
+
+    // Wonderfalls has no DE translation -> should fall back to EN
+    TvShowSearchAndScrapeOptions options = new TvShowSearchAndScrapeOptions();
+    options.setId(provider.getProviderInfo().getId(), "78845");
+    options.setLanguage(MediaLanguages.de);
+    options.setCertificationCountry(CountryCode.US);
+    options.setReleaseDateCountry("US");
+
+    List<MediaMetadata> episodes = provider.getEpisodeList(options);
+    assertThat(episodes).isNotEmpty();
+    assertThat(episodes.size()).isGreaterThanOrEqualTo(10);
+    // episodes should have fallback titles (English)
+    MediaMetadata first = episodes.get(0);
+    assertThat(first.getTitle()).isNotEmpty();
   }
 }

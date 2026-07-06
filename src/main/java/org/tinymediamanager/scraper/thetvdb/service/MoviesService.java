@@ -16,9 +16,10 @@
 
 package org.tinymediamanager.scraper.thetvdb.service;
 
-import org.tinymediamanager.scraper.thetvdb.entities.MovieBaseResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.MovieExtendedResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.TranslationResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.MovieBaseRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.MovieExtendedRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.Translation;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -33,7 +34,7 @@ public interface MoviesService {
    * @return Call&lt;MovieBaseResponse&gt;
    */
   @GET("movies/{id}")
-  Call<MovieBaseResponse> getMovieBase(@Path("id") long id);
+  Call<BaseResponse<MovieBaseRecord>> getMovieBase(@Path("id") long id);
 
   /**
    * Returns movie extended record
@@ -43,7 +44,7 @@ public interface MoviesService {
    * @return Call&lt;MovieExtendedResponse&gt;
    */
   @GET("movies/{id}/extended")
-  Call<MovieExtendedResponse> getMovieExtended(@Path("id") long id);
+  Call<BaseResponse<MovieExtendedRecord>> getMovieExtended(@Path("id") long id);
 
   /**
    * Returns movie translations
@@ -55,5 +56,5 @@ public interface MoviesService {
    * @return Call&lt;SeriesTranslationResponse&gt;
    */
   @GET("movies/{id}/translations/{language}")
-  Call<TranslationResponse> getMoviesTranslation(@Path("id") long id, @Path("language") String language);
+  Call<BaseResponse<Translation>> getMoviesTranslation(@Path("id") long id, @Path("language") String language);
 }

@@ -21,8 +21,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.tinymediamanager.scraper.exceptions.HttpException;
 import org.tinymediamanager.scraper.http.TmmHttpClient;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponse;
 import org.tinymediamanager.scraper.thetvdb.entities.LoginRequestRecord;
-import org.tinymediamanager.scraper.thetvdb.entities.LoginResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.LoginResponseRecord;
 import org.tinymediamanager.scraper.thetvdb.entities.SeasonType;
 import org.tinymediamanager.scraper.thetvdb.service.ConfigService;
 import org.tinymediamanager.scraper.thetvdb.service.EpisodesService;
@@ -132,7 +133,7 @@ class TheTvDbController {
     data.apikey = apiKey;
     data.pin = pin;
 
-    Response<LoginResponse> response = loginService.login(data).execute();
+    Response<BaseResponse<LoginResponseRecord>> response = loginService.login(data).execute();
     String token = null;
 
     if (response.isSuccessful()) {

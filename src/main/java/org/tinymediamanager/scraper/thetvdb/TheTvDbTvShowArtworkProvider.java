@@ -35,9 +35,10 @@ import org.tinymediamanager.scraper.exceptions.NothingFoundException;
 import org.tinymediamanager.scraper.exceptions.ScrapeException;
 import org.tinymediamanager.scraper.interfaces.ITvShowArtworkProvider;
 import org.tinymediamanager.scraper.thetvdb.entities.ArtworkBaseRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponse;
 import org.tinymediamanager.scraper.thetvdb.entities.SeasonBaseRecord;
-import org.tinymediamanager.scraper.thetvdb.entities.SeasonExtendedResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.SeriesExtendedResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.SeasonExtendedRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.SeriesExtendedRecord;
 import org.tinymediamanager.scraper.util.ListUtils;
 
 import retrofit2.Response;
@@ -65,7 +66,7 @@ public final class TheTvDbTvShowArtworkProvider extends TheTvDbArtworkProvider i
     List<ArtworkBaseRecord> images = new ArrayList<>();
     try {
       // get all types of artwork we can get
-      Response<SeriesExtendedResponse> response = tvdb.getSeriesService().getSeriesExtended(id).execute();
+      Response<BaseResponse<SeriesExtendedRecord>> response = tvdb.getSeriesService().getSeriesExtended(id).execute();
       if (!response.isSuccessful()) {
         if (response.code() == 404) {
           throw new NothingFoundException();
@@ -80,7 +81,7 @@ public final class TheTvDbTvShowArtworkProvider extends TheTvDbArtworkProvider i
           for (SeasonBaseRecord season : ListUtils.nullSafe(response.body().data.seasons)) {
             if (seasonNumber == -1 || season.number == seasonNumber) {
               try {
-                Response<SeasonExtendedResponse> seasonImagesResponse = tvdb.getSeasonsService().getSeasonExtended(season.id).execute();
+                Response<BaseResponse<SeasonExtendedRecord>> seasonImagesResponse = tvdb.getSeasonsService().getSeasonExtended(season.id).execute();
                 if (seasonImagesResponse.isSuccessful() && seasonImagesResponse.body() != null) {
                   for (ArtworkBaseRecord image : seasonImagesResponse.body().data.artwork) {
                     // mix in the season number for season artwork

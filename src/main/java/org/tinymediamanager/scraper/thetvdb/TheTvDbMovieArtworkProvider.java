@@ -26,7 +26,8 @@ import org.tinymediamanager.scraper.exceptions.NothingFoundException;
 import org.tinymediamanager.scraper.exceptions.ScrapeException;
 import org.tinymediamanager.scraper.interfaces.IMovieArtworkProvider;
 import org.tinymediamanager.scraper.thetvdb.entities.ArtworkBaseRecord;
-import org.tinymediamanager.scraper.thetvdb.entities.MovieExtendedResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.MovieExtendedRecord;
 
 import retrofit2.Response;
 
@@ -53,7 +54,7 @@ public final class TheTvDbMovieArtworkProvider extends TheTvDbArtworkProvider im
     List<ArtworkBaseRecord> images = new ArrayList<>();
     try {
       // get all types of artwork we can get
-      Response<MovieExtendedResponse> response = tvdb.getMoviesService().getMovieExtended(id).execute();
+      Response<BaseResponse<MovieExtendedRecord>> response = tvdb.getMoviesService().getMovieExtended(id).execute();
       if (!response.isSuccessful()) {
         if (response.code() == 404) {
           throw new NothingFoundException();

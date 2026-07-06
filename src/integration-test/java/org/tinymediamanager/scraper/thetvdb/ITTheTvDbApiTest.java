@@ -25,17 +25,24 @@ import org.tinymediamanager.core.BasicITest;
 import org.tinymediamanager.scraper.entities.CountryCode;
 import org.tinymediamanager.scraper.entities.MediaCertification;
 import org.tinymediamanager.scraper.exceptions.ScrapeException;
-import org.tinymediamanager.scraper.thetvdb.entities.AllSeriesResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.ArtworkTypeRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponseArray;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponseList;
 import org.tinymediamanager.scraper.thetvdb.entities.ContentRating;
-import org.tinymediamanager.scraper.thetvdb.entities.ContentRatingResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.EpisodeBaseResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.EpisodeExtendedResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.SeasonBaseResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.SeasonExtendedResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.EpisodeBaseRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.EpisodeExtendedRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.MovieExtendedRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.SearchByRemoteIdResult;
+import org.tinymediamanager.scraper.thetvdb.entities.SearchResultRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.SearchType;
+import org.tinymediamanager.scraper.thetvdb.entities.SeasonBaseRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.SeasonExtendedRecord;
 import org.tinymediamanager.scraper.thetvdb.entities.SeasonType;
-import org.tinymediamanager.scraper.thetvdb.entities.SeriesBaseResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.SeriesEpisodesResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.SeriesExtendedResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.SeriesBaseRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.SeriesEpisodesRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.SeriesExtendedRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.Translation;
 
 import retrofit2.Response;
 
@@ -58,7 +65,7 @@ public class ITTheTvDbApiTest extends BasicITest {
     int cntCerts = 0;
     int unknownCerts = 0;
 
-    Response<ContentRatingResponse> response = mp.tvdb.getConfigService().getCertifications().execute();
+    Response<BaseResponseList<ContentRating>> response = mp.tvdb.getConfigService().getCertifications().execute();
     if (response.isSuccessful()) {
       for (ContentRating cert : response.body().data) {
         cntCerts++;
@@ -90,13 +97,13 @@ public class ITTheTvDbApiTest extends BasicITest {
 
   @Test
   public void testAllSeries() throws Exception {
-    AllSeriesResponse response = theTvDbController.getSeriesService().getAllSeries(1).execute().body();
+    BaseResponseList<SeriesBaseRecord> response = theTvDbController.getSeriesService().getAllSeries(1).execute().body();
     assertThat(response.data).isNotEmpty();
   }
 
   @Test
   public void testSeriesBase() throws Exception {
-    SeriesBaseResponse response = theTvDbController.getSeriesService().getSeriesBase(79335).execute().body();
+    BaseResponse<SeriesBaseRecord> response = theTvDbController.getSeriesService().getSeriesBase(79335).execute().body();
     assertThat(response.data).isNotNull();
     assertThat(response.data.id).isEqualTo(79335);
     assertThat(response.data.name).isEqualTo("Psych");
@@ -104,7 +111,7 @@ public class ITTheTvDbApiTest extends BasicITest {
 
   @Test
   public void testSeriesExtended() throws Exception {
-    SeriesExtendedResponse response = theTvDbController.getSeriesService().getSeriesExtended(79335).execute().body();
+    BaseResponse<SeriesExtendedRecord> response = theTvDbController.getSeriesService().getSeriesExtended(79335).execute().body();
     assertThat(response.data).isNotNull();
     assertThat(response.data.id).isEqualTo(79335);
     assertThat(response.data.name).isEqualTo("Psych");
@@ -112,7 +119,10 @@ public class ITTheTvDbApiTest extends BasicITest {
 
   @Test
   public void testSeriesEpisodes() throws Exception {
-    SeriesEpisodesResponse response = theTvDbController.getSeriesService().getSeriesEpisodes(79335, SeasonType.DEFAULT, 0).execute().body();
+    BaseResponse<SeriesEpisodesRecord> response = theTvDbController.getSeriesService()
+        .getSeriesEpisodes(79335, SeasonType.DEFAULT, 0)
+        .execute()
+        .body();
     assertThat(response.data).isNotNull();
     assertThat(response.data.series).isNotNull();
     assertThat(response.data.series.id).isEqualTo(79335);
@@ -122,7 +132,7 @@ public class ITTheTvDbApiTest extends BasicITest {
 
   @Test
   public void testSeasonsBase() throws Exception {
-    SeasonBaseResponse response = theTvDbController.getSeasonsService().getSeasonBase(16284).execute().body();
+    BaseResponse<SeasonBaseRecord> response = theTvDbController.getSeasonsService().getSeasonBase(16284).execute().body();
     assertThat(response.data).isNotNull();
     assertThat(response.data.number).isEqualTo(1);
     assertThat(response.data.seriesId).isEqualTo(79335);
@@ -130,7 +140,7 @@ public class ITTheTvDbApiTest extends BasicITest {
 
   @Test
   public void testSeasonsExtended() throws Exception {
-    SeasonExtendedResponse response = theTvDbController.getSeasonsService().getSeasonExtended(16284).execute().body();
+    BaseResponse<SeasonExtendedRecord> response = theTvDbController.getSeasonsService().getSeasonExtended(16284).execute().body();
     assertThat(response.data).isNotNull();
     assertThat(response.data.number).isEqualTo(1);
     assertThat(response.data.seriesId).isEqualTo(79335);
@@ -141,7 +151,7 @@ public class ITTheTvDbApiTest extends BasicITest {
 
   @Test
   public void testEpisodesBase() throws Exception {
-    EpisodeBaseResponse response = theTvDbController.getEpisodesService().getEpisodeBase(307497).execute().body();
+    BaseResponse<EpisodeBaseRecord> response = theTvDbController.getEpisodesService().getEpisodeBase(307497).execute().body();
     assertThat(response.data).isNotNull();
     assertThat(response.data.episodeNumber).isEqualTo(1);
     assertThat(response.data.seasonNumber).isEqualTo(1);
@@ -149,9 +159,96 @@ public class ITTheTvDbApiTest extends BasicITest {
 
   @Test
   public void testEpisodesExtended() throws Exception {
-    EpisodeExtendedResponse response = theTvDbController.getEpisodesService().getEpisodeExtended(307497).execute().body();
+    BaseResponse<EpisodeExtendedRecord> response = theTvDbController.getEpisodesService().getEpisodeExtended(307497).execute().body();
     assertThat(response.data).isNotNull();
     assertThat(response.data.episodeNumber).isEqualTo(1);
     assertThat(response.data.seasonNumber).isEqualTo(1);
+  }
+
+  @Test
+  public void testSearchSeries() throws Exception {
+    BaseResponseList<SearchResultRecord> response = theTvDbController.getSearchService().getSearch("Psych", SearchType.SERIES).execute().body();
+    assertThat(response.data).isNotEmpty();
+    SearchResultRecord first = response.data.get(0);
+    assertThat(first.name).isEqualTo("Psych");
+    assertThat(first.tvdbId).isEqualTo("79335");
+    assertThat(first.type).isEqualTo("series");
+  }
+
+  @Test
+  public void testSearchMovie() throws Exception {
+    BaseResponseList<SearchResultRecord> response = theTvDbController.getSearchService().getSearch("12 Monkeys", SearchType.MOVIE).execute().body();
+    assertThat(response.data).isNotEmpty();
+    SearchResultRecord first = response.data.get(0);
+    assertThat(first.name).contains("12 Monkeys");
+    assertThat(first.type).isEqualTo("movie");
+  }
+
+  @Test
+  public void testRemoteIdSearch() throws Exception {
+    BaseResponseArray<SearchByRemoteIdResult> response = theTvDbController.getSearchService().remoteIdSearch("tt0491738").execute().body();
+    assertThat(response.data).isNotEmpty();
+    // Psych should be found via its IMDB ID
+    boolean found = false;
+    for (SearchByRemoteIdResult r : response.data) {
+      if (r.series != null && r.series.id == 79335) {
+        found = true;
+        break;
+      }
+    }
+    assertThat(found).isTrue();
+  }
+
+  @Test
+  public void testSeriesTranslation() throws Exception {
+    BaseResponse<Translation> response = theTvDbController.getSeriesService().getSeriesTranslation(79335, "deu").execute().body();
+    assertThat(response.data).isNotNull();
+    assertThat(response.data.name).isNotEmpty();
+    assertThat(response.data.language).isEqualTo("deu");
+  }
+
+  @Test
+  public void testSeriesEpisodesWithLanguage() throws Exception {
+    BaseResponse<SeriesEpisodesRecord> response = theTvDbController.getSeriesService()
+        .getSeriesEpisodes(79335, SeasonType.DEFAULT, "deu", 0)
+        .execute()
+        .body();
+    assertThat(response.data).isNotNull();
+    assertThat(response.data.episodes).isNotEmpty();
+    // episodes should have German data (language parameter was passed)
+    assertThat(response.data.episodes.get(0).episodeNumber).isGreaterThan(0);
+  }
+
+  @Test
+  public void testSeasonTranslation() throws Exception {
+    BaseResponse<Translation> response = theTvDbController.getSeasonsService().getSeasonTranslation(16284, "deu").execute().body();
+    assertThat(response.data).isNotNull();
+    assertThat(response.data.name).isBlank(); // no translation available
+    assertThat(response.data.language).isEqualTo("deu");
+  }
+
+  @Test
+  public void testMovieExtended() throws Exception {
+    BaseResponse<MovieExtendedRecord> response = theTvDbController.getMoviesService().getMovieExtended(706).execute().body();
+    assertThat(response.data).isNotNull();
+    assertThat(response.data.name).isEqualTo("12 Monkeys");
+    assertThat(response.data.id).isEqualTo(706);
+    assertThat(response.data.genres).isNotEmpty();
+    assertThat(response.data.remoteIds).isNotEmpty();
+  }
+
+  @Test
+  public void testMoviesTranslation() throws Exception {
+    BaseResponse<Translation> response = theTvDbController.getMoviesService().getMoviesTranslation(706, "deu").execute().body();
+    assertThat(response.data).isNotNull();
+    assertThat(response.data.name).isNotEmpty();
+    assertThat(response.data.language).isEqualTo("deu");
+  }
+
+  @Test
+  public void testArtworkTypes() throws Exception {
+    BaseResponseList<ArtworkTypeRecord> response = theTvDbController.getConfigService().getArtworkTypes().execute().body();
+    assertThat(response.data).isNotEmpty();
+    assertThat(response.data).allMatch(t -> t.id > 0 && t.name != null && !t.name.isEmpty());
   }
 }

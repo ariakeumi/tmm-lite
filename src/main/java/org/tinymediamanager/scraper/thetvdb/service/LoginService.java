@@ -16,8 +16,9 @@
 
 package org.tinymediamanager.scraper.thetvdb.service;
 
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponse;
 import org.tinymediamanager.scraper.thetvdb.entities.LoginRequestRecord;
-import org.tinymediamanager.scraper.thetvdb.entities.LoginResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.LoginResponseRecord;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -32,5 +33,5 @@ public interface LoginService {
    * @return Call&lt;LogonResponse&gt;
    */
   @POST("login")
-  Call<LoginResponse> login(@Body LoginRequestRecord data);
+  Call<BaseResponse<LoginResponseRecord>> login(@Body LoginRequestRecord data);
 }

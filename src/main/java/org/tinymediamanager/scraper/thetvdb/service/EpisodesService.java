@@ -16,9 +16,10 @@
 
 package org.tinymediamanager.scraper.thetvdb.service;
 
-import org.tinymediamanager.scraper.thetvdb.entities.EpisodeBaseResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.EpisodeExtendedResponse;
-import org.tinymediamanager.scraper.thetvdb.entities.TranslationResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.BaseResponse;
+import org.tinymediamanager.scraper.thetvdb.entities.EpisodeBaseRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.EpisodeExtendedRecord;
+import org.tinymediamanager.scraper.thetvdb.entities.Translation;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -34,7 +35,7 @@ public interface EpisodesService {
    * @return Call&lt;EpisodeBaseResponse&gt;
    */
   @GET("episodes/{id}")
-  Call<EpisodeBaseResponse> getEpisodeBase(@Path("id") long id);
+  Call<BaseResponse<EpisodeBaseRecord>> getEpisodeBase(@Path("id") long id);
 
   /**
    * 
@@ -45,7 +46,7 @@ public interface EpisodesService {
    * @return Call&lt;EpisodeExtendedResponse&gt;
    */
   @GET("episodes/{id}/extended")
-  Call<EpisodeExtendedResponse> getEpisodeExtended(@Path("id") long id);
+  Call<BaseResponse<EpisodeExtendedRecord>> getEpisodeExtended(@Path("id") long id);
 
   /**
    * 
@@ -58,5 +59,5 @@ public interface EpisodesService {
    * @return Call&lt;TranslationResponse&gt;
    */
   @GET("episodes/{id}/translations/{language}")
-  Call<TranslationResponse> getEpisodeTranslation(@Path("id") long id, @Path("language") String language);
+  Call<BaseResponse<Translation>> getEpisodeTranslation(@Path("id") long id, @Path("language") String language);
 }
