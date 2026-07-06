@@ -34,6 +34,9 @@ build:
     - sudo -u xclient PATH=$PATH:/opt/bin AppBundler/create_windows_installer.sh "$CODE_SIGN_CERT" "$CODE_SIGN_PASS"
     - echo -e "\e[0Ksection_end:`date +%s`:windows_installer\r\e[0K"
 
+    # re-package the Linux files using system tools (for more performance)
+    - for f in *.tar.gz; do gzip -d -c "$f" | xz -c -T0 > "${f%.tar.gz}.tar.xz" && rm "$f"; done
+
     # push the build to the webserver
     - echo -e "\e[0Ksection_start:`date +%s`:ftp_upload\r\e[0KUpload"
     - lftp -c "${LFTP_OPTIONS} open -u ${FTP_USER_PREREL},${FTP_PASSWORD_PREREL} -p 23 sftp://${FTP_HOST}; mirror -Rev --parallel=2 target/tinyMediaManager-getdown/ ./upload/v5/build; mirror -Rev --parallel=2 dist/ ./upload/v5/dist; chmod -R g+rw ./upload/v5"
