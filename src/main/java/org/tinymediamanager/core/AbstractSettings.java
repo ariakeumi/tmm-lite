@@ -136,6 +136,11 @@ public abstract class AbstractSettings extends AbstractModelObject {
   protected abstract ObjectWriter createObjectWriter();
 
   /**
+   * hook for upgrades - will be triggered, when the unknownFields map is not empty (meaning, that there are unknown fields in the JSON file)
+   */
+  protected abstract void upgradeSettings();
+
+  /**
    * hook for an after loading event
    */
   protected abstract void afterLoading();
@@ -200,6 +205,36 @@ public abstract class AbstractSettings extends AbstractModelObject {
   }
 
   /**
+   * Gets a {@link String} from the unknown fields map. If the value is not a {@link String}, an empty string is returned.
+   * 
+   * @param key
+   *          the key to look for
+   * @return the value or an empty string if the value is not a {@link String} or not existing
+   */
+  protected String getStringFromUnknownFields(String key) {
+    Object value = unknownFields.get(key);
+    if (value instanceof String string) {
+      return string;
+    }
+    return "";
+  }
+
+  /**
+   * Gets a {@link Boolean} from the unknown fields map. If the value is not a {@link Boolean}, false is returned.
+   * 
+   * @param key
+   *          the key to look for
+   * @return the value or an false if the value is not a {@link Boolean} or not existing
+   */
+  protected boolean getBooleanFromUnknownFields(String key) {
+    Object value = unknownFields.get(key);
+    if (value instanceof Boolean bool) {
+      return bool;
+    }
+    return false;
+  }
+
+  /**
    * get an instance of the desired settings class
    * 
    * @param folder
@@ -240,6 +275,7 @@ public abstract class AbstractSettings extends AbstractModelObject {
       instance = objectReader.readValue(settingsAsJson);
       LOGGER.trace("Created settings instance for '{}'", clazz.getSimpleName());
 
+      instance.upgradeSettings();
       instance.afterLoading();
       LOGGER.trace("Called afterLoading for '{}'", clazz.getSimpleName());
 

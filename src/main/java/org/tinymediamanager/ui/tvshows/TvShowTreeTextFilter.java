@@ -48,7 +48,12 @@ import com.floreysoft.jmte.Engine;
  */
 public class TvShowTreeTextFilter<E extends TmmTreeNode> extends TmmTreeTextFilter<E> {
   private final TvShowSettings settings = TvShowModuleManager.getInstance().getSettings();
-  private static final Engine  ENGINE   = TvShowRenamer.createEngine();
+  private final Engine         engine;
+
+  public TvShowTreeTextFilter() {
+    super();
+    engine = TvShowRenamer.createEngine(TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
+  }
 
   @Override
   protected String prepareFilterText() {
@@ -204,7 +209,7 @@ public class TvShowTreeTextFilter<E extends TmmTreeNode> extends TmmTreeTextFilt
           else if (userObject instanceof TvShowEpisode) {
             root.put("episode", (TvShowEpisode) userObject);
           }
-          String val = ENGINE.transform(JmteUtils.morphTemplate("${" + kv[0] + "}", TvShowRenamer.getTokenMap()), root);
+          String val = engine.transform(JmteUtils.morphTemplate("${" + kv[0] + "}", TvShowRenamer.getTokenMap()), root);
           if (StringUtils.containsIgnoreCase(val, kv[1])) {
             // System.out.println(" ".repeat(3 - treeNode.getDepth()) + "Found via JMTE: " + kv[1] + " in " + val);
             return true;

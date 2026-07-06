@@ -298,13 +298,15 @@ public class MovieSetArtworkHelper {
    */
   private static MediaFile getArtworkFromMediaFiles(MovieSet movieSet, List<MediaFile> mediaFiles, MediaFileType type,
       List<IMovieSetFileNaming> fileNamings) {
+    MovieRenamerProfile renamerProfile = MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+
     Path artworkFolder = getArtworkFolder();
     if (artworkFolder != null) {
       // try to resolve via the filename
       for (IMovieSetFileNaming fileNaming : fileNamings) {
         for (MediaFile mediaFile : mediaFiles) {
           // first try to use our old logic
-          String movieSetName = MovieRenamer.replaceInvalidCharacters(movieSet.getTitle());
+          String movieSetName = MovieRenamer.replaceInvalidCharacters(movieSet.getTitle(), renamerProfile);
 
           // also remove illegal separators
           movieSetName = MovieRenamer.replacePathSeparators(movieSetName);
@@ -387,6 +389,8 @@ public class MovieSetArtworkHelper {
       return;
     }
 
+    MovieRenamerProfile renamerProfile = MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+
     // here we have 2 kinds of file names in the movie set artwork folder:
     // a) the movie set artwork automator style: <artwork folder>/<movie set name>-<artwork type>.ext
     // b) Artwork Beef style: <artwork folder>/<movie set name>/<artwork type>.ext
@@ -394,7 +398,7 @@ public class MovieSetArtworkHelper {
     // a)
     for (MediaFileType type : SUPPORTED_ARTWORK_TYPES) {
       // old tmm style
-      String movieSetName = MovieRenamer.replaceInvalidCharacters(movieSet.getTitle());
+      String movieSetName = MovieRenamer.replaceInvalidCharacters(movieSet.getTitle(), renamerProfile);
 
       // also remove illegal separators
       movieSetName = MovieRenamer.replacePathSeparators(movieSetName);
@@ -426,7 +430,7 @@ public class MovieSetArtworkHelper {
     // b)
     for (MediaFileType type : SUPPORTED_ARTWORK_TYPES) {
       // old tmm style
-      String movieSetName = MovieRenamer.replaceInvalidCharacters(movieSet.getTitle());
+      String movieSetName = MovieRenamer.replaceInvalidCharacters(movieSet.getTitle(), renamerProfile);
 
       // also remove illegal separators
       movieSetName = MovieRenamer.replacePathSeparators(movieSetName);
@@ -565,8 +569,10 @@ public class MovieSetArtworkHelper {
    *          the movie to look for the movie set artwork
    */
   private static void findArtworkInMovieFolder(MovieSet movieSet, Movie movie) {
+    MovieRenamerProfile renamerProfile = MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+
     // old tmm style
-    String movieSetName = MovieRenamer.replaceInvalidCharacters(movieSet.getTitle());
+    String movieSetName = MovieRenamer.replaceInvalidCharacters(movieSet.getTitle(), renamerProfile);
 
     // also remove illegal separators
     movieSetName = MovieRenamer.replacePathSeparators(movieSetName);
@@ -1139,8 +1145,10 @@ public class MovieSetArtworkHelper {
         return;
       }
 
+      MovieRenamerProfile renamerProfile = MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+
       // old tmm style
-      String movieSetName = MovieRenamer.replaceInvalidCharacters(movieSet.getTitle());
+      String movieSetName = MovieRenamer.replaceInvalidCharacters(movieSet.getTitle(), renamerProfile);
 
       // also remove illegal separators
       movieSetName = MovieRenamer.replacePathSeparators(movieSetName);

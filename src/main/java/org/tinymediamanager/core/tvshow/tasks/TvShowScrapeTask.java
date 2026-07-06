@@ -44,6 +44,7 @@ import org.tinymediamanager.core.tvshow.TvShowList;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
 import org.tinymediamanager.core.tvshow.TvShowScraperMetadataConfig;
 import org.tinymediamanager.core.tvshow.TvShowSearchAndScrapeOptions;
+import org.tinymediamanager.core.tvshow.TvShowSettings;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.scraper.ArtworkSearchAndScrapeOptions;
@@ -119,8 +120,10 @@ public class TvShowScrapeTask extends TmmThreadPool {
   }
 
   private class Worker implements Runnable {
-    private final TvShowList tvShowList = TvShowModuleManager.getInstance().getTvShowList();
-    private final TvShow     tvShow;
+    private final TvShow   tvShow;
+
+    private TvShowList     tvShowList;
+    private TvShowSettings settings;
 
     private Worker(TvShow tvShow) {
       this.tvShow = tvShow;
@@ -128,6 +131,9 @@ public class TvShowScrapeTask extends TmmThreadPool {
 
     @Override
     public void run() {
+      tvShowList = TvShowModuleManager.getInstance().getTvShowList();
+      settings = TvShowModuleManager.getInstance().getSettings();
+
       try {
         // set up scrapers
         MediaScraper mediaMetadataScraper = tvShowScrapeParams.scrapeOptions.getMetadataScraper();
@@ -209,10 +215,9 @@ public class TvShowScrapeTask extends TmmThreadPool {
             MediaIdUtil.injectMissingIds(md.getIds(), MediaType.TV_SHOW);
 
             // also fill other ratings if ratings are requested
-            if (TvShowModuleManager.getInstance().getSettings().isFetchAllRatings()
-                && tvShowScrapeParams.tvShowScraperMetadataConfig.contains(TvShowScraperMetadataConfig.RATING)) {
-              for (MediaRating rating : ListUtils.nullSafe(RatingProvider.getRatings(md.getIds(),
-                  TvShowModuleManager.getInstance().getSettings().getFetchRatingSources(), MediaType.TV_SHOW))) {
+            if (settings.isFetchAllRatings() && tvShowScrapeParams.tvShowScraperMetadataConfig.contains(TvShowScraperMetadataConfig.RATING)) {
+              for (MediaRating rating : ListUtils
+                  .nullSafe(RatingProvider.getRatings(md.getIds(), settings.getFetchRatingSources(), MediaType.TV_SHOW))) {
                 if (!md.getRatings().contains(rating)) {
                   md.addRating(rating);
                 }
@@ -242,15 +247,14 @@ public class TvShowScrapeTask extends TmmThreadPool {
             tvShow.setLastScrapeLanguage(tvShowScrapeParams.scrapeOptions.getLanguage().name());
 
             // automatic rename? rename the TV show itself
-            if (TvShowModuleManager.getInstance().getSettings().isRenameAfterScrape()) {
-              TmmTask task = new TvShowRenameTask(tvShow);
+            if (settings.isRenameAfterScrape()) {
+              TmmTask task = new TvShowRenameTask(tvShow, settings.getDefaultRenamerProfile());
               // blocking
               task.run();
             }
 
             // write actor images after possible rename (to have a good folder structure)
-            if (ScraperMetadataConfig.containsAnyCast(tvShowScrapeParams.tvShowScraperMetadataConfig)
-                && TvShowModuleManager.getInstance().getSettings().isWriteActorImages()) {
+            if (ScraperMetadataConfig.containsAnyCast(tvShowScrapeParams.tvShowScraperMetadataConfig) && settings.isWriteActorImages()) {
               tvShow.writeActorImages(tvShowScrapeParams.overwriteExistingItems);
             }
           }
@@ -321,9 +325,8 @@ public class TvShowScrapeTask extends TmmThreadPool {
             tvShow.saveToDb();
 
             // start automatic movie trailer download
-            if (TvShowModuleManager.getInstance().getSettings().isUseTrailerPreference()
-                && TvShowModuleManager.getInstance().getSettings().isAutomaticTrailerDownload()
-                && tvShow.getMediaFiles(MediaFileType.TRAILER).isEmpty() && !tvShow.getTrailer().isEmpty()) {
+            if (settings.isUseTrailerPreference() && settings.isAutomaticTrailerDownload() && tvShow.getMediaFiles(MediaFileType.TRAILER).isEmpty()
+                && !tvShow.getTrailer().isEmpty()) {
               TmmTaskManager.getInstance().addDownloadTask(new TvShowTrailerDownloadTask(tvShow));
             }
           }
@@ -368,9 +371,9 @@ public class TvShowScrapeTask extends TmmThreadPool {
 
           // last but not least - call a further rename task on the TV show root to move the season fanart into the right folders
           // but only if there has been anything scraped
-          if (TvShowModuleManager.getInstance().getSettings().isRenameAfterScrape()
+          if (settings.isRenameAfterScrape()
               && (!tvShowScrapeParams.tvShowScraperMetadataConfig.isEmpty() || !tvShowScrapeParams.episodeScraperMetadataConfig.isEmpty())) {
-            TvShowRenameTask task = new TvShowRenameTask(tvShow);
+            TvShowRenameTask task = new TvShowRenameTask(tvShow, settings.getDefaultRenamerProfile());
             // start this task embedded (to the abortable)
             task.run();
           }
@@ -414,9 +417,9 @@ public class TvShowScrapeTask extends TmmThreadPool {
       ArtworkSearchAndScrapeOptions options = new ArtworkSearchAndScrapeOptions(MediaType.TV_SHOW);
       options.setDataFromOtherOptions(tvShowScrapeParams.scrapeOptions);
       options.setArtworkType(MediaArtworkType.ALL);
-      options.setFanartSize(TvShowModuleManager.getInstance().getSettings().getImageFanartSize());
-      options.setPosterSize(TvShowModuleManager.getInstance().getSettings().getImagePosterSize());
-      options.setThumbSize(TvShowModuleManager.getInstance().getSettings().getImageThumbSize());
+      options.setFanartSize(settings.getImageFanartSize());
+      options.setPosterSize(settings.getImagePosterSize());
+      options.setThumbSize(settings.getImageThumbSize());
       options.setMetadata(metadata);
       options.addIds(tvShow.getIds());
 

@@ -39,6 +39,7 @@ import org.tinymediamanager.core.tvshow.TvShowEpisodeScraperMetadataConfig;
 import org.tinymediamanager.core.tvshow.TvShowEpisodeSearchAndScrapeOptions;
 import org.tinymediamanager.core.tvshow.TvShowExporter;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
+import org.tinymediamanager.core.tvshow.TvShowRenamerProfile;
 import org.tinymediamanager.core.tvshow.TvShowScraperMetadataConfig;
 import org.tinymediamanager.core.tvshow.TvShowSearchAndScrapeOptions;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
@@ -404,6 +405,8 @@ class TvShowCommand implements Runnable {
   }
 
   private void renameTvShows(List<TvShow> showsToScrape, List<TvShowEpisode> episodesToScrape) {
+    TvShowRenamerProfile renamerProfile = TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+
     List<TvShow> tvShowsToRename = new ArrayList<>();
     List<TvShowEpisode> episodesToRename = new ArrayList<>();
 
@@ -424,7 +427,7 @@ class TvShowCommand implements Runnable {
 
     if (!tvShowsToRename.isEmpty() || !episodesToRename.isEmpty()) {
       // rename tvShows
-      Runnable task = new TvShowRenameTask(tvShowsToRename, episodesToRename);
+      Runnable task = new TvShowRenameTask(tvShowsToRename, episodesToRename, renamerProfile);
       task.run(); // blocking
     }
   }

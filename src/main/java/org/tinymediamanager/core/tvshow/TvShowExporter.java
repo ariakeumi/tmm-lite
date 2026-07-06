@@ -56,10 +56,13 @@ import com.floreysoft.jmte.RenderFormatInfo;
  * @author Manuel Laggner
  */
 public class TvShowExporter extends MediaEntityExporter {
-  private static final Logger LOGGER = LoggerFactory.getLogger(TvShowExporter.class);
+  private static final Logger        LOGGER = LoggerFactory.getLogger(TvShowExporter.class);
+
+  private final TvShowRenamerProfile renamerProfile;
 
   public TvShowExporter(Path pathToTemplate) throws Exception {
     super(pathToTemplate, TemplateType.TV_SHOW);
+    renamerProfile = TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
   }
 
   /**
@@ -81,8 +84,8 @@ public class TvShowExporter extends MediaEntityExporter {
     }
 
     // register specific renderers
-    engine.registerNamedRenderer(new TvShowFilenameRenderer());
-    engine.registerNamedRenderer(new TvShowArtworkCopyRenderer(exportDir));
+    engine.registerNamedRenderer(new TvShowFilenameRenderer(renamerProfile));
+    engine.registerNamedRenderer(new TvShowArtworkCopyRenderer(exportDir, renamerProfile));
 
     // register default renderers
     registerDefaultRenderers();
@@ -128,7 +131,7 @@ public class TvShowExporter extends MediaEntityExporter {
 
         TvShow show = (TvShow) me;
         // create a TV show dir
-        Path showDir = exportDir.resolve(getFilename(show));
+        Path showDir = exportDir.resolve(getFilename(show, renamerProfile));
         try {
           Files.createDirectory(showDir);
         }
@@ -151,12 +154,12 @@ public class TvShowExporter extends MediaEntityExporter {
 
             List<MediaFile> mfs = episode.getMediaFiles(MediaFileType.VIDEO);
             if (!mfs.isEmpty()) {
-              Path seasonDir = showDir.resolve(TvShowRenamer.getSeasonFoldername("", episode.getTvShow(), episode));
+              Path seasonDir = showDir.resolve(TvShowRenamer.getSeasonFoldername("", episode.getTvShow(), episode, renamerProfile));
               if (!Files.isDirectory(seasonDir)) {
                 Files.createDirectory(seasonDir);
               }
 
-              String episodeFileName = getFilename(episode) + "." + fileExtension;
+              String episodeFileName = getFilename(episode, renamerProfile) + "." + fileExtension;
               Path episodeExportFile = seasonDir.resolve(episodeFileName);
               root = new HashMap<>();
               root.put("episode", episode);
@@ -191,16 +194,16 @@ public class TvShowExporter extends MediaEntityExporter {
     }
   }
 
-  private static String getFilename(MediaEntity entity) {
+  private static String getFilename(MediaEntity entity, TvShowRenamerProfile renamerProfile) {
     if (entity instanceof TvShow tvShow) {
-      return TvShowRenamer.createDestination("${showTitle} (${showYear})", tvShow);
+      return TvShowRenamer.createDestination("${showTitle} (${showYear})", tvShow, renamerProfile);
     }
     if (entity instanceof TvShowEpisode episode) {
       MediaFile mainVideoFile = episode.getMainVideoFile();
       return FilenameUtils.getBaseName(
           TvShowRenamer
               .generateEpisodeFilenames(DEFAULT_RENAMER_FILE_PATTERN, episode.getTvShow(), mainVideoFile,
-                  FilenameUtils.getBaseName(mainVideoFile.getFilename()))
+                  FilenameUtils.getBaseName(mainVideoFile.getFilename()), renamerProfile)
               .get(0)
               .getFilename());
     }
@@ -211,6 +214,12 @@ public class TvShowExporter extends MediaEntityExporter {
    * helper classes
    *******************************************************************************/
   private static class TvShowFilenameRenderer implements NamedRenderer {
+    private final TvShowRenamerProfile renamerProfile;
+
+    public TvShowFilenameRenderer(TvShowRenamerProfile renamerProfile) {
+      this.renamerProfile = renamerProfile;
+    }
+
     @Override
     public RenderFormatInfo getFormatInfo() {
       return null;
@@ -233,7 +242,7 @@ public class TvShowExporter extends MediaEntityExporter {
         parameters = parseParameters(pattern);
       }
       if (o instanceof TvShow show) {
-        String filename = getFilename(show);
+        String filename = getFilename(show, renamerProfile);
         if (parameters.get("escape") == Boolean.TRUE) {
           try {
             filename = URLEncoder.encode(filename, StandardCharsets.UTF_8).replace("+", "%20");
@@ -295,9 +304,11 @@ public class TvShowExporter extends MediaEntityExporter {
    * @author Manuel Laggner
    */
   private static class TvShowArtworkCopyRenderer extends ArtworkCopyRenderer {
+    private final TvShowRenamerProfile renamerProfile;
 
-    public TvShowArtworkCopyRenderer(Path pathToExport) {
+    public TvShowArtworkCopyRenderer(Path pathToExport, TvShowRenamerProfile renamerProfile) {
       super(pathToExport);
+      this.renamerProfile = renamerProfile;
     }
 
     @Override
@@ -322,7 +333,7 @@ public class TvShowExporter extends MediaEntityExporter {
           return ""; // pass an emtpy string to prevent tvShow.toString() gets triggered by jmte
         }
 
-        String filename = getFilename(entity) + "-" + mf.getType();
+        String filename = getFilename(entity, renamerProfile) + "-" + mf.getType();
 
         Path imageDir;
         if (StringUtils.isNotBlank((String) parameters.get("destination"))) {

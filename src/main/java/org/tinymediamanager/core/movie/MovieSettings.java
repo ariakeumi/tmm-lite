@@ -15,10 +15,13 @@
  */
 package org.tinymediamanager.core.movie;
 
+import static org.tinymediamanager.core.movie.MovieRenamerProfile.DEFAULT_RENAMER_PROFILE;
+
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
@@ -26,6 +29,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.observablecollections.ObservableCollections;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.AbstractSettings;
@@ -67,7 +71,7 @@ import org.tinymediamanager.scraper.entities.MediaLanguages;
 import org.tinymediamanager.scraper.rating.RatingProvider;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -88,6 +92,7 @@ public final class MovieSettings extends AbstractSettings {
    */
   public static final String                MOVIE_UI_FILTER_PRESETS        = "movieUiFilterPresets";
   public static final String                MOVIE_SET_UI_FILTER_PRESETS    = "movieSetUiFilterPresets";
+  static final String                       RENAMER_PROFILES               = "renamerProfiles";
   static final String                       MOVIE_DATA_SOURCE              = "movieDataSource";
   static final String                       NFO_FILENAME                   = "nfoFilename";
   static final String                       POSTER_FILENAME                = "posterFilename";
@@ -162,22 +167,11 @@ public final class MovieSettings extends AbstractSettings {
   boolean                                   nfoWriteArtworkUrls;
 
   // renamer
-  boolean                                   renameAfterScrape;
-  boolean                                   updateOnStart;
-  String                                    renamerPathname;
-  String                                    renamerFilename;
-  boolean                                   renamerPathnameSpaceSubstitution;
-  String                                    renamerPathnameSpaceReplacement;
-  boolean                                   renamerFilenameSpaceSubstitution;
-  String                                    renamerFilenameSpaceReplacement;
-  String                                    renamerColonReplacement;
-  boolean                                   renamerNfoCleanup;
-  boolean                                   renamerCleanupUnwanted;
-  boolean                                   renamerCreateMoviesetForSingleMovie;
-  String                                    renamerFirstCharacterNumberReplacement;
-  boolean                                   asciiReplacement;
-  boolean                                   unicodeReplacement;
-  boolean                                   allowMultipleMoviesInSameDir;
+  boolean                                   renameAfterScrape              = false;
+  boolean                                   updateOnStart                  = false;
+
+  // renamer profiles
+  final Map<String, MovieRenamerProfile>    renamerProfiles                = new LinkedHashMap<>();
 
   // meta data scraper
   String                                    movieScraper;
@@ -283,13 +277,19 @@ public final class MovieSettings extends AbstractSettings {
   final List<MovieSetDiscartNaming>         movieSetDiscartFilenames       = new ArrayList<>();
   final Map<String, List<UIFilters>>        movieSetUiFilterPresets        = new HashMap<>();
 
+  final PropertyChangeListener              propertyChangeListener;
+
   public MovieSettings() {
     super();
+    propertyChangeListener = evt -> setDirty();
 
     // set default entries - they will be overwritten by jackson later
     setDefaultValues();
 
-    addPropertyChangeListener(evt -> setDirty());
+    // add a default renamer Profile
+    addRenamerProfile(new MovieRenamerProfile());
+
+    addPropertyChangeListener(propertyChangeListener);
   }
 
   /**
@@ -322,20 +322,6 @@ public final class MovieSettings extends AbstractSettings {
     // renamer
     setRenameAfterScrape(false);
     setUpdateOnStart(false);
-    setRenamerPathname(DEFAULT_RENAMER_FOLDER_PATTERN);
-    setRenamerFilename(DEFAULT_RENAMER_FILE_PATTERN);
-    setRenamerPathnameSpaceSubstitution(false);
-    setRenamerPathnameSpaceReplacement("_");
-    setRenamerFilenameSpaceSubstitution(false);
-    setRenamerFilenameSpaceReplacement("_");
-    setRenamerColonReplacement("-");
-    setRenamerNfoCleanup(false);
-    setRenamerCleanupUnwanted(false);
-    setRenamerCreateMoviesetForSingleMovie(false);
-    setRenamerFirstCharacterNumberReplacement("#");
-    setAsciiReplacement(false);
-    setUnicodeReplacement(false);
-    setAllowMultipleMoviesInSameDir(false);
 
     // meta data scraper
     setMovieScraper(MediaMetadata.TMDB);
@@ -347,7 +333,7 @@ public final class MovieSettings extends AbstractSettings {
     setDoNotOverwriteExistingData(false);
     setCapitalWordsInTitles(false);
     setFetchAllRatings(true);
-    setFetchRatingSources(Arrays.asList(RatingProvider.RatingSource.IMDB));
+    setFetchRatingSources(List.of(RatingProvider.RatingSource.IMDB));
 
     // artwork scraper
     setImagePosterSize(PosterSizes.LARGE);
@@ -413,7 +399,7 @@ public final class MovieSettings extends AbstractSettings {
     setStoreMovieSetUiFilters(false);
 
     // default skip folders
-    setSkipFolder(Arrays.asList("MAKEMKV"));
+    setSkipFolder(List.of("MAKEMKV"));
 
     // file names
     clearNfoFilenames();
@@ -474,7 +460,7 @@ public final class MovieSettings extends AbstractSettings {
     addTrailerFilename(MovieTrailerNaming.FILENAME_TRAILER);
 
     // UI settings
-    setShowArtworkTypes(Arrays.asList(MediaFileType.POSTER, MediaFileType.FANART, MediaFileType.THUMB));
+    setShowArtworkTypes(List.of(MediaFileType.POSTER, MediaFileType.FANART, MediaFileType.THUMB));
 
     clearMovieCheckMetadata();
     addMovieCheckMetadata(MovieScraperMetadataConfig.ID);
@@ -491,9 +477,9 @@ public final class MovieSettings extends AbstractSettings {
     addMovieCheckArtwork(MovieScraperMetadataConfig.POSTER);
     addMovieCheckArtwork(MovieScraperMetadataConfig.FANART);
 
-    setRatingSources(Arrays.asList(MediaMetadata.IMDB));
+    setRatingSources(List.of(MediaMetadata.IMDB));
 
-    setImageScraperLanguages(Arrays.asList(ml, MediaLanguages.en));
+    setImageScraperLanguages(List.of(ml, MediaLanguages.en));
 
     clearMovieSetCheckMetadata();
     addMovieSetCheckMetadata(MovieSetScraperMetadataConfig.ID);
@@ -504,8 +490,8 @@ public final class MovieSettings extends AbstractSettings {
     addMovieSetCheckArtwork(MovieSetScraperMetadataConfig.POSTER);
     addMovieSetCheckArtwork(MovieSetScraperMetadataConfig.FANART);
 
-    setUniversalFilterFields(Arrays.asList(UniversalFilterFields.values()));
-    setScraperMetadataConfig(Arrays.asList(MovieScraperMetadataConfig.values()));
+    setUniversalFilterFields(List.of(UniversalFilterFields.values()));
+    setScraperMetadataConfig(List.of(MovieScraperMetadataConfig.values()));
   }
 
   @Override
@@ -556,6 +542,31 @@ public final class MovieSettings extends AbstractSettings {
   @Override
   protected Logger getLogger() {
     return LOGGER;
+  }
+
+  @Override
+  protected void upgradeSettings() {
+    if (StringUtils.isNoneBlank(getStringFromUnknownFields("renamerPathname"), getStringFromUnknownFields("renamerFilename"))) {
+      // upgrade to the new renamer profiles
+      MovieRenamerProfile profile = new MovieRenamerProfile(DEFAULT_RENAMER_PROFILE);
+
+      profile.setRenamerPathname(getStringFromUnknownFields("renamerPathname"));
+      profile.setRenamerFilename(getStringFromUnknownFields("renamerFilename"));
+      profile.setRenamerPathnameSpaceSubstitution(getBooleanFromUnknownFields("renamerPathnameSpaceSubstitution"));
+      profile.setRenamerPathnameSpaceReplacement(getStringFromUnknownFields("renamerPathnameSpaceReplacement"));
+      profile.setRenamerFilenameSpaceSubstitution(getBooleanFromUnknownFields("renamerSpaceSubstitution"));
+      profile.setRenamerFilenameSpaceReplacement(getStringFromUnknownFields("renamerSpaceReplacement"));
+      profile.setRenamerColonReplacement(getStringFromUnknownFields("renamerColonReplacement"));
+      profile.setRenamerNfoCleanup(getBooleanFromUnknownFields("renamerNfoCleanup"));
+      profile.setRenamerCleanupUnwanted(getBooleanFromUnknownFields("renamerCleanupUnwanted"));
+      profile.setRenamerCreateMoviesetForSingleMovie(getBooleanFromUnknownFields("renamerCreateMoviesetForSingleMovie"));
+      profile.setRenamerFirstCharacterNumberReplacement(getStringFromUnknownFields("renamerFirstCharacterNumberReplacement"));
+      profile.setAsciiReplacement(getBooleanFromUnknownFields("asciiReplacement"));
+      profile.setUnicodeReplacement(getBooleanFromUnknownFields("unicodeReplacement"));
+      profile.setAllowMultipleMoviesInSameDir(getBooleanFromUnknownFields("allowMultipleMoviesInSameDir"));
+
+      addRenamerProfile(profile);
+    }
   }
 
   @Override
@@ -1033,47 +1044,6 @@ public final class MovieSettings extends AbstractSettings {
     firePropertyChange("movieConnector", oldValue, newValue);
   }
 
-  public String getRenamerPathname() {
-    return renamerPathname;
-  }
-
-  public void setRenamerPathname(String newValue) {
-    String oldValue = this.renamerPathname;
-    this.renamerPathname = newValue;
-    firePropertyChange("renamerPathname", oldValue, newValue);
-  }
-
-  public String getRenamerFilename() {
-    return renamerFilename;
-  }
-
-  public void setRenamerFilename(String newValue) {
-    String oldValue = this.renamerFilename;
-    this.renamerFilename = newValue;
-    firePropertyChange("renamerFilename", oldValue, newValue);
-  }
-
-  public boolean isRenamerPathnameSpaceSubstitution() {
-    return renamerPathnameSpaceSubstitution;
-  }
-
-  public void setRenamerPathnameSpaceSubstitution(boolean newValue) {
-    boolean oldValue = this.renamerPathnameSpaceSubstitution;
-    this.renamerPathnameSpaceSubstitution = newValue;
-    firePropertyChange("renamerPathnameSpaceSubstitution", oldValue, newValue);
-  }
-
-  public boolean isRenamerFilenameSpaceSubstitution() {
-    return renamerFilenameSpaceSubstitution;
-  }
-
-  @JsonProperty(value = "renamerSpaceSubstitution")
-  public void setRenamerFilenameSpaceSubstitution(boolean newValue) {
-    boolean oldValue = this.renamerFilenameSpaceSubstitution;
-    this.renamerFilenameSpaceSubstitution = newValue;
-    firePropertyChange("renamerFilenameSpaceSubstitution", oldValue, newValue);
-  }
-
   public void setRenameAfterScrape(boolean newValue) {
     boolean oldValue = this.renameAfterScrape;
     this.renameAfterScrape = newValue;
@@ -1092,47 +1062,6 @@ public final class MovieSettings extends AbstractSettings {
     boolean oldValue = this.updateOnStart;
     this.updateOnStart = newValue;
     firePropertyChange("updateOnStart", oldValue, newValue);
-  }
-
-  public String getRenamerPathnameSpaceReplacement() {
-    return renamerPathnameSpaceReplacement;
-  }
-
-  public void setRenamerPathnameSpaceReplacement(String newValue) {
-    String oldValue = this.renamerPathnameSpaceReplacement;
-    this.renamerPathnameSpaceReplacement = newValue;
-    firePropertyChange("renamerPathnameSpaceReplacement", oldValue, newValue);
-  }
-
-  @JsonProperty(value = "renamerSpaceReplacement")
-  public String getRenamerFilenameSpaceReplacement() {
-    return renamerFilenameSpaceReplacement;
-  }
-
-  public void setRenamerFilenameSpaceReplacement(String newValue) {
-    String oldValue = this.renamerFilenameSpaceReplacement;
-    this.renamerFilenameSpaceReplacement = newValue;
-    firePropertyChange("renamerFilenameSpaceReplacement", oldValue, newValue);
-  }
-
-  public String getRenamerColonReplacement() {
-    return renamerColonReplacement;
-  }
-
-  public void setRenamerColonReplacement(String newValue) {
-    String oldValue = this.renamerColonReplacement;
-    this.renamerColonReplacement = newValue;
-    firePropertyChange("renamerColonReplacement", oldValue, newValue);
-  }
-
-  public String getRenamerFirstCharacterNumberReplacement() {
-    return renamerFirstCharacterNumberReplacement;
-  }
-
-  public void setRenamerFirstCharacterNumberReplacement(String newValue) {
-    String oldValue = this.renamerFirstCharacterNumberReplacement;
-    this.renamerFirstCharacterNumberReplacement = newValue;
-    firePropertyChange("renamerFirstCharacterNumberReplacement", oldValue, newValue);
   }
 
   public String getMovieScraper() {
@@ -1358,26 +1287,6 @@ public final class MovieSettings extends AbstractSettings {
     firePropertyChange("scraperThreshold", oldValue, newValue);
   }
 
-  public boolean isRenamerCleanupUnwanted() {
-    return renamerCleanupUnwanted;
-  }
-
-  public void setRenamerCleanupUnwanted(boolean newValue) {
-    boolean oldValue = this.renamerCleanupUnwanted;
-    this.renamerCleanupUnwanted = newValue;
-    firePropertyChange("renamerCleanupUnwanted", oldValue, newValue);
-  }
-
-  public boolean isRenamerNfoCleanup() {
-    return renamerNfoCleanup;
-  }
-
-  public void setRenamerNfoCleanup(boolean newValue) {
-    boolean oldValue = this.renamerNfoCleanup;
-    this.renamerNfoCleanup = newValue;
-    firePropertyChange("renamerNfoCleanup", oldValue, newValue);
-  }
-
   public boolean isSkipFoldersWithNomedia() {
     return skipFoldersWithNomedia;
   }
@@ -1396,16 +1305,6 @@ public final class MovieSettings extends AbstractSettings {
     boolean oldValue = this.buildImageCacheOnImport;
     this.buildImageCacheOnImport = newValue;
     firePropertyChange("buildImageCacheOnImport", oldValue, newValue);
-  }
-
-  public boolean isRenamerCreateMoviesetForSingleMovie() {
-    return renamerCreateMoviesetForSingleMovie;
-  }
-
-  public void setRenamerCreateMoviesetForSingleMovie(boolean newValue) {
-    boolean oldValue = this.renamerCreateMoviesetForSingleMovie;
-    this.renamerCreateMoviesetForSingleMovie = newValue;
-    firePropertyChange("renamerCreateMoviesetForSingleMovie", oldValue, newValue);
   }
 
   public boolean isRuntimeFromMediaInfo() {
@@ -1508,34 +1407,80 @@ public final class MovieSettings extends AbstractSettings {
     firePropertyChange("includeExternalAudioStreams", oldValue, newValue);
   }
 
-  public boolean isAsciiReplacement() {
-    return asciiReplacement;
+  public Map<String, MovieRenamerProfile> getRenamerProfiles() {
+    return renamerProfiles;
   }
 
-  public void setAsciiReplacement(boolean newValue) {
-    boolean oldValue = this.asciiReplacement;
-    this.asciiReplacement = newValue;
-    firePropertyChange("asciiReplacement", oldValue, newValue);
+  /**
+   * Returns the default renamer profile. <b>Mutable!</b> - Copy before using in tasks
+   *
+   * @return the default {@link MovieRenamerProfile}
+   */
+  @JsonIgnore
+  public MovieRenamerProfile getDefaultRenamerProfile() {
+    return getRenamerProfile(DEFAULT_RENAMER_PROFILE);
   }
 
-  public boolean isUnicodeReplacement() {
-    return unicodeReplacement;
+  /**
+   * get the given {@link MovieRenamerProfile} or create a new one if it does not exist yet. <b>Mutable!</b> - Copy before using in tasks
+   *
+   * @param name
+   *          the name of the renamer profile to get
+   * @return the {@link MovieRenamerProfile}
+   */
+  public MovieRenamerProfile getRenamerProfile(String name) {
+    MovieRenamerProfile renamerProfile = renamerProfiles.get(name);
+
+    if (renamerProfile == null) {
+      renamerProfile = new MovieRenamerProfile(name);
+      renamerProfiles.put(name, renamerProfile);
+      renamerProfile.addPropertyChangeListener(propertyChangeListener);
+    }
+
+    return renamerProfile;
   }
 
-  public void setUnicodeReplacement(boolean newValue) {
-    boolean oldValue = this.unicodeReplacement;
-    this.unicodeReplacement = newValue;
-    firePropertyChange("unicodeReplacement", oldValue, newValue);
+  public void setRenamerProfiles(Map<String, MovieRenamerProfile> newValues) {
+    renamerProfiles.values().forEach(renamerProfile -> renamerProfile.removePropertyChangeListener(propertyChangeListener));
+    renamerProfiles.clear();
+    renamerProfiles.putAll(newValues);
+
+    // register event listeners, to get noticed when their values change
+    newValues.forEach((key, entry) -> entry.addPropertyChangeListener(propertyChangeListener));
+    firePropertyChange(RENAMER_PROFILES, null, renamerProfiles);
   }
 
-  public boolean isAllowMultipleMoviesInSameDir() {
-    return allowMultipleMoviesInSameDir;
+  /**
+   * Deletes the named renamer profile.
+   *
+   * @param name
+   *          the profile name to delete
+   */
+  public void deleteRenamerProfile(String name) {
+    if (DEFAULT_RENAMER_PROFILE.equals(name)) {
+      throw new IllegalArgumentException("Default profile must not be deleted");
+    }
+
+    MovieRenamerProfile deletedProfile = renamerProfiles.remove(name);
+    if (deletedProfile != null) {
+      deletedProfile.removePropertyChangeListener(propertyChangeListener);
+    }
+
+    firePropertyChange(RENAMER_PROFILES, null, renamerProfiles);
+    setDirty();
   }
 
-  public void setAllowMultipleMoviesInSameDir(boolean newValue) {
-    boolean oldValue = allowMultipleMoviesInSameDir;
-    this.allowMultipleMoviesInSameDir = newValue;
-    firePropertyChange("allowMultipleMoviesInSameDir", oldValue, newValue);
+  public void addRenamerProfile(@NotNull MovieRenamerProfile newProfile) {
+    if (renamerProfiles.containsKey(newProfile.getName())) {
+      MovieRenamerProfile oldProfile = renamerProfiles.get(newProfile.getName());
+      oldProfile.removePropertyChangeListener(propertyChangeListener);
+    }
+
+    newProfile.addPropertyChangeListener(propertyChangeListener);
+    renamerProfiles.put(newProfile.getName(), newProfile);
+
+    firePropertyChange(RENAMER_PROFILES, null, renamerProfiles);
+    setDirty();
   }
 
   public void addBadWord(String badWord) {

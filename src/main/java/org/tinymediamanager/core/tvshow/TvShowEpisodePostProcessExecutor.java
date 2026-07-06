@@ -104,7 +104,7 @@ public class TvShowEpisodePostProcessExecutor extends PostProcessExecutor {
     engine.registerNamedRenderer(new NamedSplitRenderer());
     engine.registerNamedRenderer(new NamedTitleCaseRenderer());
     engine.registerNamedRenderer(new NamedUpperCaseRenderer());
-    engine.registerNamedRenderer(new TvShowNamedFirstCharacterRenderer());
+    engine.registerNamedRenderer(new TvShowNamedFirstCharacterRenderer(TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile()));
     engine.registerNamedRenderer(new ChainedNamedRenderer(engine.getAllNamedRenderers()));
 
     engine.registerAnnotationProcessor(new RegexpProcessor());

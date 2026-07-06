@@ -74,6 +74,7 @@ import org.tinymediamanager.core.entities.Person;
 import org.tinymediamanager.core.jmte.JmteUtils;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
 import org.tinymediamanager.core.tvshow.TvShowRenamer;
+import org.tinymediamanager.core.tvshow.TvShowRenamerProfile;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.core.tvshow.entities.TvShowSeason;
@@ -113,13 +114,16 @@ import net.miginfocom.swing.MigLayout;
  */
 public class TvShowJmteExplorerDialog extends TmmDialog {
 
-  private final Engine                       engine;
+  private Engine                             engine;
   private final boolean                      renamerMode;
   private final ButtonGroup                  buttonGroup;
 
+  private JComboBox<String>                  cbProfile;
   private JComboBox<TvShowPreviewContainer>  cbTvShowForPreview;
   private JComboBox<EpisodePreviewContainer> cbEpisodeForPreview;
   private JComboBox<EntityContainer>         cbEntity;
+
+  private TvShowRenamerProfile               renamerProfile;
 
   private JTextArea                          taJmteTokens;
   private JRadioButton                       btnPureJmte;
@@ -142,7 +146,8 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
   public TvShowJmteExplorerDialog(Window owner) {
     super(owner, TmmResourceBundle.getString("jmteexplorer.title"), "tvshowjmteexplorer");
     setMinimumSize(new Dimension(900, 600));
-    engine = TvShowRenamer.createEngine();
+    this.renamerProfile = TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+    this.engine = TvShowRenamer.createEngine(renamerProfile);
     buttonGroup = new ButtonGroup();
 
     if (owner instanceof SettingsDialog) {
@@ -163,6 +168,11 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
     setModal(false);
 
     initComponents();
+
+    // add profiles
+    for (String profileName : TvShowModuleManager.getInstance().getSettings().getRenamerProfiles().keySet()) {
+      cbProfile.addItem(profileName);
+    }
 
     setListeners();
 
@@ -228,6 +238,14 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
 
       cbEpisodeForPreview = new JComboBox<>();
       panelTop.add(cbEpisodeForPreview, "cell 1 1, wmin 0");
+      {
+        // renamer profile
+        JLabel lblProfile = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.profile"));
+        panelTop.add(lblProfile, "cell 0 2");
+
+        cbProfile = new JComboBox();
+        panelTop.add(cbProfile, "cell 1 2");
+      }
 
       panelHeader.add(panelTop, "cell 0 0, growx");
 
@@ -355,15 +373,15 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
       if (StringUtils.isNotBlank(taJmteTokens.getText())) {
         try {
           if (btnPureJmte.isSelected()) {
-            result = processPattern(tvShow, episode, taJmteTokens.getText());
+            result = processPattern(tvShow, episode, taJmteTokens.getText(), renamerProfile);
           }
           else if (btnRenamerFoldername.isSelected()) {
-            result = TvShowRenamer.getTvShowFoldername(taJmteTokens.getText(), tvShow);
+            result = TvShowRenamer.getTvShowFoldername(taJmteTokens.getText(), tvShow, renamerProfile);
           }
           else if (btnRenamerFilename.isSelected()) {
             MediaFile episodeMf = TvShowRenamer
                 .generateEpisodeFilenames(taJmteTokens.getText(), tvShow, episode.getMainVideoFile(),
-                    FilenameUtils.getBaseName(episode.getMainVideoFile().getFilename()))
+                    FilenameUtils.getBaseName(episode.getMainVideoFile().getFilename()), renamerProfile)
                 .get(0);
 
             result = episodeMf.getFile().toString().replace(episode.getTvShow().getPath() + File.separator, "");
@@ -387,7 +405,7 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
     }
   }
 
-  private String processPattern(TvShow tvShow, TvShowEpisode episode, String pattern) throws Exception {
+  private String processPattern(TvShow tvShow, TvShowEpisode episode, String pattern, TvShowRenamerProfile renamerProfile) throws Exception {
     Map<String, Object> root = new HashMap<>();
 
     root.put("tvShow", tvShow);
@@ -601,22 +619,22 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
     btnGetFolderPattern = new SquareIconButton(IconManager.FILE_IMPORT_INV);
     btnGetFolderPattern.setToolTipText(TmmResourceBundle.getString("jmteexplorer.foldername.import"));
     btnGetFolderPattern.addActionListener(e -> {
-      taJmteTokens.setText(TvShowModuleManager.getInstance().getSettings().getRenamerTvShowFoldername());
+      taJmteTokens.setText(renamerProfile.getRenamerTvShowFoldername());
       createRenamerExample();
     });
     btnSetFolderPattern = new SquareIconButton(IconManager.FILE_EXPORT_INV);
     btnSetFolderPattern.setToolTipText(TmmResourceBundle.getString("jmteexplorer.foldername.export"));
-    btnSetFolderPattern.addActionListener(e -> TvShowModuleManager.getInstance().getSettings().setRenamerTvShowFoldername(taJmteTokens.getText()));
+    btnSetFolderPattern.addActionListener(e -> renamerProfile.setRenamerTvShowFoldername(taJmteTokens.getText()));
 
     btnGetFilePattern = new SquareIconButton(IconManager.FILE_IMPORT_INV);
     btnGetFilePattern.setToolTipText(TmmResourceBundle.getString("jmteexplorer.filename.import"));
     btnGetFilePattern.addActionListener(e -> {
-      taJmteTokens.setText(TvShowModuleManager.getInstance().getSettings().getRenamerFilename());
+      taJmteTokens.setText(renamerProfile.getRenamerFilename());
       createRenamerExample();
     });
     btnSetFilePattern = new SquareIconButton(IconManager.FILE_EXPORT_INV);
     btnSetFilePattern.setToolTipText(TmmResourceBundle.getString("jmteexplorer.filename.export"));
-    btnSetFilePattern.addActionListener(e -> TvShowModuleManager.getInstance().getSettings().setRenamerFilename(taJmteTokens.getText()));
+    btnSetFilePattern.addActionListener(e -> renamerProfile.setRenamerFilename(taJmteTokens.getText()));
 
     if (renamerMode) {
       panelTop.add(new TmmLabel(TmmResourceBundle.getString("jmteexplorer.processmode")), "cell 0 2 2 1, gaptop 10lp");
@@ -706,6 +724,16 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
       updateExamples();
     });
     cbEpisodeForPreview.addActionListener(e -> updateExamples());
+    cbProfile.addActionListener(e -> {
+      String profileName = TvShowRenamerProfile.DEFAULT_RENAMER_PROFILE;
+      if (cbProfile.getSelectedItem() instanceof String name) {
+        profileName = name;
+      }
+      renamerProfile = TvShowModuleManager.getInstance().getSettings().getRenamerProfile(profileName);
+      engine = TvShowRenamer.createEngine(renamerProfile);
+
+      updateExamples();
+    });
 
     cbEntity.addActionListener(e -> {
       TvShow tvShow = null;
@@ -792,8 +820,8 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
 
               case "tvShow" -> entityExampleEventList.add(new EntityExample(title, "TvShow[...]"));
 
-              default -> entityExampleEventList
-                  .add(new EntityExample(title, processPattern(tvShow, episode, entityContainer.getTemplate().replace("}", "." + title + "}"))));
+              default -> entityExampleEventList.add(new EntityExample(title,
+                  processPattern(tvShow, episode, entityContainer.getTemplate().replace("}", "." + title + "}"), renamerProfile)));
             }
           }
           catch (Exception ignored) {
@@ -869,7 +897,7 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
       }
       else {
         try {
-          example = processPattern(tvShow, episode, token);
+          example = processPattern(tvShow, episode, token, renamerProfile);
         }
         catch (Exception ignored) {
           // ignored
@@ -1013,7 +1041,7 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
       }
       else {
         try {
-          result = processPattern(tvShow, episode, token);
+          result = processPattern(tvShow, episode, token, renamerProfile);
         }
         catch (Exception ignored) {
           // ignored

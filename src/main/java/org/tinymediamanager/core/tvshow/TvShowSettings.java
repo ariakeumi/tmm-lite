@@ -15,11 +15,12 @@
  */
 package org.tinymediamanager.core.tvshow;
 
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
@@ -27,6 +28,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.observablecollections.ObservableCollections;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.AbstractSettings;
@@ -65,6 +67,7 @@ import org.tinymediamanager.scraper.entities.MediaArtwork;
 import org.tinymediamanager.scraper.entities.MediaLanguages;
 import org.tinymediamanager.scraper.rating.RatingProvider;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -92,8 +95,7 @@ public final class TvShowSettings extends AbstractSettings {
   static final String                            TRAILER_FILENAME               = "trailerFilename";
 
   static final String                            CERTIFICATION_COUNTRY          = "certificationCountry";
-  static final String                            RENAMER_SEASON_FOLDER          = "renamerSeasonFoldername";
-  static final String                            RENAMER_MULTI_EPISODE_STYLE    = "renamerMultiEpisodeStyle";
+  static final String                            RENAMER_PROFILES               = "renamerProfiles";
   static final String                            BAD_WORD                       = "badWord";
   static final String                            SKIP_FOLDER                    = "skipFolder";
   static final String                            SUBTITLE_SCRAPERS              = "subtitleScrapers";
@@ -174,23 +176,9 @@ public final class TvShowSettings extends AbstractSettings {
   // renamer
   boolean                                        renameAfterScrape;
   boolean                                        updateOnStart;
-  String                                         renamerTvShowFoldername;
-  String                                         renamerSeasonFoldername;
-  String                                         renamerFilename;
-  TvShowMultiEpisodeStyle                        renamerMultiEpisodeStyle;
-  boolean                                        renamerShowPathnameSpaceSubstitution;
-  String                                         renamerShowPathnameSpaceReplacement;
-  boolean                                        renamerSeasonPathnameSpaceSubstitution;
-  String                                         renamerSeasonPathnameSpaceReplacement;
-  boolean                                        renamerFilenameSpaceSubstitution;
-  String                                         renamerFilenameSpaceReplacement;
-  String                                         renamerColonReplacement;
-  boolean                                        renamerCleanupUnwanted;
-  String                                         renamerFirstCharacterNumberReplacement;
-  boolean                                        asciiReplacement;
-  boolean                                        unicodeReplacement;
-  boolean                                        specialSeason;
-  boolean                                        createMissingSeasonItems;
+
+  // renamer profiles
+  final Map<String, TvShowRenamerProfile>        renamerProfiles                = new LinkedHashMap<>();
 
   // meta data scraper
   String                                         scraper;
@@ -275,13 +263,19 @@ public final class TvShowSettings extends AbstractSettings {
   boolean                                        englishTitle;
   final List<String>                             ratingSources                  = ObservableCollections.observableList(new ArrayList<>());
 
+  final PropertyChangeListener                   propertyChangeListener;
+
   public TvShowSettings() {
     super();
+    propertyChangeListener = evt -> setDirty();
 
     // set default values - they will be overwritten by jackson later
     setDefaultValues();
 
-    addPropertyChangeListener(evt -> setDirty());
+    // add a default renamer Profile
+    addRenamerProfile(new TvShowRenamerProfile());
+
+    addPropertyChangeListener(propertyChangeListener);
   }
 
   /**
@@ -313,23 +307,6 @@ public final class TvShowSettings extends AbstractSettings {
     // renamer
     setRenameAfterScrape(false);
     setUpdateOnStart(false);
-    setRenamerTvShowFoldername(DEFAULT_RENAMER_FOLDER_PATTERN);
-    setRenamerSeasonFoldername(DEFAULT_RENAMER_SEASON_PATTERN);
-    setRenamerFilename(DEFAULT_RENAMER_FILE_PATTERN);
-    setRenamerMultiEpisodeStyle(TvShowMultiEpisodeStyle.REPEAT);
-    setRenamerShowPathnameSpaceSubstitution(false);
-    setRenamerShowPathnameSpaceReplacement("_");
-    setRenamerSeasonPathnameSpaceSubstitution(false);
-    setRenamerSeasonPathnameSpaceReplacement("_");
-    setRenamerFilenameSpaceSubstitution(false);
-    setRenamerFilenameSpaceReplacement("_");
-    setRenamerColonReplacement("");
-    setRenamerCleanupUnwanted(false);
-    setRenamerFirstCharacterNumberReplacement("#");
-    setAsciiReplacement(false);
-    setUnicodeReplacement(false);
-    setSpecialSeason(true);
-    setCreateMissingSeasonItems(false);
 
     // meta data scraper
     setScraper(MediaMetadata.TVDB);
@@ -399,7 +376,7 @@ public final class TvShowSettings extends AbstractSettings {
     setEnglishTitle(true);
 
     // skip folders
-    setSkipFolder(Arrays.asList("MAKEMKV"));
+    setSkipFolder(List.of("MAKEMKV"));
 
     // file names
     clearNfoFilenames();
@@ -456,9 +433,9 @@ public final class TvShowSettings extends AbstractSettings {
     addEpisodeThumbFilename(TvShowEpisodeThumbNaming.FILENAME_THUMB);
 
     // artwork types
-    setShowTvShowArtworkTypes(Arrays.asList(MediaFileType.POSTER, MediaFileType.FANART, MediaFileType.BANNER));
-    setShowSeasonArtworkTypes(Arrays.asList(MediaFileType.SEASON_POSTER, MediaFileType.SEASON_THUMB, MediaFileType.SEASON_BANNER));
-    setShowEpisodeArtworkTypes(Arrays.asList(MediaFileType.THUMB));
+    setShowTvShowArtworkTypes(List.of(MediaFileType.POSTER, MediaFileType.FANART, MediaFileType.BANNER));
+    setShowSeasonArtworkTypes(List.of(MediaFileType.SEASON_POSTER, MediaFileType.SEASON_THUMB, MediaFileType.SEASON_BANNER));
+    setShowEpisodeArtworkTypes(List.of(MediaFileType.THUMB));
 
     // check metadata
     clearTvShowCheckMetadata();
@@ -490,15 +467,15 @@ public final class TvShowSettings extends AbstractSettings {
     addEpisodeCheckArtwork(TvShowEpisodeScraperMetadataConfig.THUMB);
 
     // rating sources
-    setRatingSources(Arrays.asList(MediaMetadata.IMDB));
+    setRatingSources(List.of(MediaMetadata.IMDB));
 
     // image scraper languages
-    setImageScraperLanguages(Arrays.asList(ml, MediaLanguages.en));
+    setImageScraperLanguages(List.of(ml, MediaLanguages.en));
 
     // scraper metadata config
-    setTvShowScraperMetadataConfig(Arrays.asList(TvShowScraperMetadataConfig.values()));
-    setEpisodeScraperMetadataConfig(Arrays.asList(TvShowEpisodeScraperMetadataConfig.values()));
-    setUniversalFilterFields(Arrays.asList(UniversalFilterFields.values()));
+    setTvShowScraperMetadataConfig(List.of(TvShowScraperMetadataConfig.values()));
+    setEpisodeScraperMetadataConfig(List.of(TvShowEpisodeScraperMetadataConfig.values()));
+    setUniversalFilterFields(List.of(UniversalFilterFields.values()));
   }
 
   @Override
@@ -549,6 +526,33 @@ public final class TvShowSettings extends AbstractSettings {
   @Override
   protected Logger getLogger() {
     return LOGGER;
+  }
+
+  @Override
+  protected void upgradeSettings() {
+    if (StringUtils.isNoneBlank(getStringFromUnknownFields("renamerTvShowFoldername"), getStringFromUnknownFields("renamerFilename"))) {
+      // upgrade to the new renamer profiles
+      TvShowRenamerProfile profile = new TvShowRenamerProfile(TvShowRenamerProfile.DEFAULT_RENAMER_PROFILE);
+
+      profile.setRenamerTvShowFoldername(getStringFromUnknownFields("renamerTvShowFoldername"));
+      profile.setRenamerSeasonFoldername(getStringFromUnknownFields("renamerSeasonFoldername"));
+      profile.setRenamerFilename(getStringFromUnknownFields("renamerFilename"));
+      profile.setRenamerShowPathnameSpaceSubstitution(getBooleanFromUnknownFields("renamerShowPathnameSpaceSubstitution"));
+      profile.setRenamerShowPathnameSpaceReplacement(getStringFromUnknownFields("renamerShowPathnameSpaceReplacement"));
+      profile.setRenamerSeasonPathnameSpaceSubstitution(getBooleanFromUnknownFields("renamerSeasonPathnameSpaceSubstitution"));
+      profile.setRenamerSeasonPathnameSpaceReplacement(getStringFromUnknownFields("renamerSeasonPathnameSpaceReplacement"));
+      profile.setRenamerFilenameSpaceSubstitution(getBooleanFromUnknownFields("renamerFilenameSpaceSubstitution"));
+      profile.setRenamerFilenameSpaceReplacement(getStringFromUnknownFields("renamerFilenameSpaceReplacement"));
+      profile.setRenamerColonReplacement(getStringFromUnknownFields("renamerColonReplacement"));
+      profile.setRenamerCleanupUnwanted(getBooleanFromUnknownFields("renamerCleanupUnwanted"));
+      profile.setRenamerFirstCharacterNumberReplacement(getStringFromUnknownFields("renamerFirstCharacterNumberReplacement"));
+      profile.setAsciiReplacement(getBooleanFromUnknownFields("asciiReplacement"));
+      profile.setUnicodeReplacement(getBooleanFromUnknownFields("unicodeReplacement"));
+      profile.setSpecialSeason(getBooleanFromUnknownFields("specialSeason"));
+      profile.setCreateMissingSeasonItems(getBooleanFromUnknownFields("createMissingSeasonItems"));
+
+      addRenamerProfile(profile);
+    }
   }
 
   @Override
@@ -797,55 +801,80 @@ public final class TvShowSettings extends AbstractSettings {
     firePropertyChange("releaseDateCountry", oldValue, newValue);
   }
 
-  public String getRenamerSeasonFoldername() {
-    return renamerSeasonFoldername;
-  }
-
-  public void setRenamerSeasonFoldername(String newValue) {
-    String oldValue = this.renamerSeasonFoldername;
-    this.renamerSeasonFoldername = newValue;
-    firePropertyChange(RENAMER_SEASON_FOLDER, oldValue, newValue);
-  }
-
-  public String getRenamerTvShowFoldername() {
-    return renamerTvShowFoldername;
-  }
-
-  public void setRenamerTvShowFoldername(String newValue) {
-    String oldValue = this.renamerTvShowFoldername;
-    this.renamerTvShowFoldername = newValue;
-    firePropertyChange("renamerTvShowFoldername", oldValue, newValue);
-  }
-
-  public String getRenamerFilename() {
-    return renamerFilename;
-  }
-
-  public void setRenamerFilename(String newValue) {
-    String oldValue = this.renamerFilename;
-    this.renamerFilename = newValue;
-    firePropertyChange("renamerFilename", oldValue, newValue);
+  public Map<String, TvShowRenamerProfile> getRenamerProfiles() {
+    return renamerProfiles;
   }
 
   /**
-   * Gets the configured multi-episode rendering style for the TV show renamer.
+   * Returns the default renamer profile. <b>Mutable!</b> - Copy before using in tasks
    *
-   * @return the configured multi-episode rendering style
+   * @return the default {@link TvShowRenamerProfile}
    */
-  public TvShowMultiEpisodeStyle getRenamerMultiEpisodeStyle() {
-    return renamerMultiEpisodeStyle;
+  @JsonIgnore
+  public TvShowRenamerProfile getDefaultRenamerProfile() {
+    return getRenamerProfile(TvShowRenamerProfile.DEFAULT_RENAMER_PROFILE);
   }
 
   /**
-   * Sets the configured multi-episode rendering style for the TV show renamer.
+   * get the given {@link TvShowRenamerProfile} or create a new one if it does not exist yet. <b>Mutable!</b> - Copy before using in tasks
    *
-   * @param newValue
-   *          the new multi-episode rendering style
+   * @param name
+   *          the name of the renamer profile to get
+   * @return the {@link TvShowRenamerProfile}
    */
-  public void setRenamerMultiEpisodeStyle(TvShowMultiEpisodeStyle newValue) {
-    TvShowMultiEpisodeStyle oldValue = this.renamerMultiEpisodeStyle;
-    this.renamerMultiEpisodeStyle = newValue;
-    firePropertyChange(RENAMER_MULTI_EPISODE_STYLE, oldValue, this.renamerMultiEpisodeStyle);
+  public TvShowRenamerProfile getRenamerProfile(String name) {
+    TvShowRenamerProfile renamerProfile = renamerProfiles.get(name);
+
+    if (renamerProfile == null) {
+      renamerProfile = new TvShowRenamerProfile(name);
+      renamerProfiles.put(name, renamerProfile);
+      renamerProfile.addPropertyChangeListener(propertyChangeListener);
+    }
+
+    return renamerProfile;
+  }
+
+  public void setRenamerProfiles(Map<String, TvShowRenamerProfile> newValues) {
+    renamerProfiles.values().forEach(renamerProfile -> renamerProfile.removePropertyChangeListener(propertyChangeListener));
+    renamerProfiles.clear();
+    renamerProfiles.putAll(newValues);
+
+    // register event listeners, to get noticed when their values change
+    newValues.forEach((key, entry) -> entry.addPropertyChangeListener(propertyChangeListener));
+    firePropertyChange(RENAMER_PROFILES, null, renamerProfiles);
+  }
+
+  /**
+   * Deletes the named renamer profile.
+   *
+   * @param name
+   *          the profile name to delete
+   */
+  public void deleteRenamerProfile(String name) {
+    if (TvShowRenamerProfile.DEFAULT_RENAMER_PROFILE.equals(name)) {
+      throw new IllegalArgumentException("Default profile must not be deleted");
+    }
+
+    TvShowRenamerProfile deletedProfile = renamerProfiles.remove(name);
+    if (deletedProfile != null) {
+      deletedProfile.removePropertyChangeListener(propertyChangeListener);
+    }
+
+    firePropertyChange(RENAMER_PROFILES, null, renamerProfiles);
+    setDirty();
+  }
+
+  public void addRenamerProfile(@NotNull TvShowRenamerProfile newProfile) {
+    if (renamerProfiles.containsKey(newProfile.getName())) {
+      TvShowRenamerProfile oldProfile = renamerProfiles.get(newProfile.getName());
+      oldProfile.removePropertyChangeListener(propertyChangeListener);
+    }
+
+    newProfile.addPropertyChangeListener(propertyChangeListener);
+    renamerProfiles.put(newProfile.getName(), newProfile);
+
+    firePropertyChange(RENAMER_PROFILES, null, renamerProfiles);
+    setDirty();
   }
 
   public boolean isUpdateOnStart() {
@@ -896,136 +925,6 @@ public final class TvShowSettings extends AbstractSettings {
     boolean oldValue = this.useMediainfoMetadata;
     this.useMediainfoMetadata = newValue;
     firePropertyChange("useMediainfoMetadata", oldValue, newValue);
-  }
-
-  public boolean isAsciiReplacement() {
-    return asciiReplacement;
-  }
-
-  public void setAsciiReplacement(boolean newValue) {
-    boolean oldValue = this.asciiReplacement;
-    this.asciiReplacement = newValue;
-    firePropertyChange("asciiReplacement", oldValue, newValue);
-  }
-
-  public boolean isUnicodeReplacement() {
-    return unicodeReplacement;
-  }
-
-  public void setUnicodeReplacement(boolean newValue) {
-    boolean oldValue = this.unicodeReplacement;
-    this.unicodeReplacement = newValue;
-    firePropertyChange("unicodeReplacement", oldValue, newValue);
-  }
-
-  public boolean isRenamerCleanupUnwanted() {
-    return renamerCleanupUnwanted;
-  }
-
-  public void setRenamerCleanupUnwanted(boolean newValue) {
-    boolean oldValue = this.renamerCleanupUnwanted;
-    this.renamerCleanupUnwanted = newValue;
-    firePropertyChange("renamerCleanupUnwanted", oldValue, newValue);
-  }
-
-  public boolean isSpecialSeason() {
-    return specialSeason;
-  }
-
-  public void setSpecialSeason(boolean newValue) {
-    boolean oldValue = this.specialSeason;
-    this.specialSeason = newValue;
-    firePropertyChange("specialSeason", oldValue, newValue);
-  }
-
-  public boolean isCreateMissingSeasonItems() {
-    return createMissingSeasonItems;
-  }
-
-  public void setCreateMissingSeasonItems(boolean newValue) {
-    boolean oldValue = this.createMissingSeasonItems;
-    this.createMissingSeasonItems = newValue;
-    firePropertyChange("createMissingSeasonItems", oldValue, newValue);
-  }
-
-  public String getRenamerShowPathnameSpaceReplacement() {
-    return renamerShowPathnameSpaceReplacement;
-  }
-
-  public void setRenamerShowPathnameSpaceReplacement(String newValue) {
-    String oldValue = this.renamerShowPathnameSpaceReplacement;
-    this.renamerShowPathnameSpaceReplacement = newValue;
-    firePropertyChange("renamerShowPathnameSpaceReplacement", oldValue, newValue);
-  }
-
-  public String getRenamerSeasonPathnameSpaceReplacement() {
-    return renamerSeasonPathnameSpaceReplacement;
-  }
-
-  public void setRenamerSeasonPathnameSpaceReplacement(String newValue) {
-    String oldValue = this.renamerSeasonPathnameSpaceReplacement;
-    this.renamerSeasonPathnameSpaceReplacement = newValue;
-    firePropertyChange("renamerSeasonPathnameSpaceReplacement", oldValue, newValue);
-  }
-
-  public String getRenamerFilenameSpaceReplacement() {
-    return renamerFilenameSpaceReplacement;
-  }
-
-  public void setRenamerFilenameSpaceReplacement(String newValue) {
-    String oldValue = this.renamerFilenameSpaceReplacement;
-    this.renamerFilenameSpaceReplacement = newValue;
-    firePropertyChange("renamerFilenameSpaceReplacement", oldValue, newValue);
-  }
-
-  public String getRenamerColonReplacement() {
-    return renamerColonReplacement;
-  }
-
-  public void setRenamerColonReplacement(String newValue) {
-    String oldValue = this.renamerColonReplacement;
-    this.renamerColonReplacement = newValue;
-    firePropertyChange("renamerColonReplacement", oldValue, newValue);
-  }
-
-  public String getRenamerFirstCharacterNumberReplacement() {
-    return renamerFirstCharacterNumberReplacement;
-  }
-
-  public void setRenamerFirstCharacterNumberReplacement(String newValue) {
-    String oldValue = this.renamerFirstCharacterNumberReplacement;
-    this.renamerFirstCharacterNumberReplacement = newValue;
-    firePropertyChange("renamerFirstCharacterNumberReplacement", oldValue, newValue);
-  }
-
-  public boolean isRenamerShowPathnameSpaceSubstitution() {
-    return renamerShowPathnameSpaceSubstitution;
-  }
-
-  public void setRenamerShowPathnameSpaceSubstitution(boolean newValue) {
-    boolean oldValue = this.renamerShowPathnameSpaceSubstitution;
-    this.renamerShowPathnameSpaceSubstitution = newValue;
-    firePropertyChange("renamerShowPathnameSpaceSubstitution", oldValue, newValue);
-  }
-
-  public boolean isRenamerSeasonPathnameSpaceSubstitution() {
-    return renamerSeasonPathnameSpaceSubstitution;
-  }
-
-  public void setRenamerSeasonPathnameSpaceSubstitution(boolean newValue) {
-    boolean oldValue = this.renamerSeasonPathnameSpaceSubstitution;
-    this.renamerSeasonPathnameSpaceSubstitution = newValue;
-    firePropertyChange("renamereasonPathnameSpaceSubstitution", oldValue, newValue);
-  }
-
-  public boolean isRenamerFilenameSpaceSubstitution() {
-    return renamerFilenameSpaceSubstitution;
-  }
-
-  public void setRenamerFilenameSpaceSubstitution(boolean newValue) {
-    boolean oldValue = this.renamerFilenameSpaceSubstitution;
-    this.renamerFilenameSpaceSubstitution = newValue;
-    firePropertyChange("renamerFilenameSpaceSubstitution", oldValue, newValue);
   }
 
   public void setSyncTrakt(boolean newValue) {

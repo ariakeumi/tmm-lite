@@ -34,11 +34,13 @@ import org.tinymediamanager.core.movie.entities.Movie;
  */
 public class MovieRenamerPreview {
 
+  private final MovieRenamerProfile     renamerProfile;
   private final Movie                   movie;
-  private final Movie                   clone;    // unused for movies, as the generate makes its own clone
+  private final Movie                   clone;         // unused for movies, as the generate makes its own clone
   private final RenamerPreviewContainer container;
 
-  public MovieRenamerPreview(Movie movie) {
+  public MovieRenamerPreview(Movie movie, MovieRenamerProfile renamerProfile) {
+    this.renamerProfile = renamerProfile;
     this.movie = movie;
     this.clone = new Movie();
     this.clone.merge(movie);
@@ -47,15 +49,15 @@ public class MovieRenamerPreview {
   }
 
   public RenamerPreviewContainer generatePreview() {
+    // use existing path
+    container.newPath = movie.getPathNIO();
 
-    // generate the new path
-    String newPath = MovieRenamer.createDestinationForFoldername(MovieModuleManager.getInstance().getSettings().getRenamerPathname(), movie);
-    if (StringUtils.isNotBlank(newPath)) {
-      container.newPath = Paths.get(movie.getDataSource(), newPath);
-    }
-    else {
-      // use existing path
-      container.newPath = movie.getPathNIO();
+    if (renamerProfile.isRenamerPathnameEnabled()) {
+      // generate the new path
+      String newPath = MovieRenamer.createDestinationForFoldername(renamerProfile, movie);
+      if (StringUtils.isNotBlank(newPath)) {
+        container.newPath = Paths.get(movie.getDataSource(), newPath);
+      }
     }
 
     this.clone.setPath(container.newPath.toString());
@@ -87,12 +89,12 @@ public class MovieRenamerPreview {
 
   private void processMovie() {
     String oldVideoBasename = movie.getVideoBasenameWithoutStacking();
-    String newVideoBasename = MovieRenamer.generateNewVideoBasename(movie);
+    String newVideoBasename = MovieRenamer.generateNewVideoBasename(movie, renamerProfile);
     for (MediaFileType type : MediaFileType.values()) {
       MediaFileTypeContainer c = new MediaFileTypeContainer();
       for (MediaFile typeMf : movie.getMediaFiles(type)) {
         c.oldFiles.add(container.getOldPath().relativize(typeMf.getFileAsPath()).toString());
-        List<MediaFile> mfs = MovieRenamer.generateFilename(movie, new MediaFile(typeMf), newVideoBasename, oldVideoBasename);
+        List<MediaFile> mfs = MovieRenamer.generateFilename(movie, new MediaFile(typeMf), newVideoBasename, oldVideoBasename, renamerProfile);
         for (MediaFile mf : mfs) {
           c.newFiles.add(container.getNewPath().relativize(mf.getFileAsPath()).toString());
         }

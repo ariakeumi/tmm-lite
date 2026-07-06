@@ -106,8 +106,9 @@ public class TvShowTest extends BasicTvShowTest {
     // setup done
 
     // display renamed EP name :)
-    System.out.println(TvShowRenamer.createDestination(TvShowModuleManager.getInstance().getSettings().getRenamerFilename(), show.getEpisodes()));
-    System.out.println(TvShowRenamer.generateEpisodeFilenames(show, dmf, "").get(0).getFilename());
+    TvShowRenamerProfile renamerProfile = new TvShowRenamerProfile();
+    System.out.println(TvShowRenamer.createDestination(renamerProfile.getRenamerFilename(), show.getEpisodes(), renamerProfile));
+    System.out.println(TvShowRenamer.generateEpisodeFilenames(show, dmf, "", renamerProfile).get(0).getFilename());
 
     TvShowModuleManager.getInstance().shutDown();
     TmmModuleManager.getInstance().shutDown();
@@ -447,7 +448,8 @@ public class TvShowTest extends BasicTvShowTest {
 
   @Test
   public void testSeasonFolderDetection() {
-    TvShowSettings.getInstance().setRenamerSeasonFoldername("S${seasonNr}");
+    // TvShowSettings.getInstance().getDefaultRenamerProfile().setRenamerSeasonFoldername("S${seasonNr}");
+
     TvShow tvShow = new TvShow();
     tvShow.setPath(getWorkFolder().resolve("show").toString());
 

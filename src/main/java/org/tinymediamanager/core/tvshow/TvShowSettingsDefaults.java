@@ -52,17 +52,7 @@ public class TvShowSettingsDefaults {
   public static void setDefaultSettings() {
     TvShowSettings tvShowSettings = TvShowSettings.getInstance();
 
-    String tvShowPattern = tvShowSettings.getRenamerTvShowFoldername();
-    String seasonPattern = tvShowSettings.getRenamerSeasonFoldername();
-    String episodePattern = tvShowSettings.getRenamerFilename();
-
     tvShowSettings.setDefaultValues();
-
-    // FIXME - change on renamer profile branch
-    tvShowSettings.setRenamerTvShowFoldername(tvShowPattern);
-    tvShowSettings.setRenamerSeasonFoldername(seasonPattern);
-    tvShowSettings.setRenamerFilename(episodePattern);
-
     tvShowSettings.firePropertyChange("preset", false, true);
   }
 

@@ -28,6 +28,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.tinymediamanager.core.jmte.JmteUtils;
 import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.MovieRenamer;
@@ -46,14 +47,17 @@ import ca.odell.glazedlists.matchers.Matcher;
  * @author Manuel Laggner
  */
 public class MovieTextMatcherEditor extends AbstractMatcherEditor<Movie> {
-  private final MovieSettings  settings = MovieModuleManager.getInstance().getSettings();
+  private final MovieSettings  settings;
   private final JTextComponent textComponent;
-  private static final Engine  ENGINE   = MovieRenamer.createEngine();
+  private final Engine         engine;
 
   private String               normalizedFilterText;
   private Pattern              filterPattern;
 
   public MovieTextMatcherEditor(JTextComponent textComponent) {
+    this.settings = MovieModuleManager.getInstance().getSettings();
+    this.engine = MovieRenamer.createEngine(settings.getDefaultRenamerProfile());
+
     this.textComponent = textComponent;
     this.textComponent.getDocument().addDocumentListener(new DocumentListener() {
       @Override
@@ -161,8 +165,8 @@ public class MovieTextMatcherEditor extends AbstractMatcherEditor<Movie> {
           if (MovieRenamer.getTokenMap().containsKey(kv[0])) {
             Map<String, Object> root = new HashMap<>();
             root.put("movie", movie);
-            String val = ENGINE.transform(JmteUtils.morphTemplate("${" + kv[0] + "}", MovieRenamer.getTokenMap()), root);
-            if (StringUtils.containsIgnoreCase(val, kv[1])) {
+            String val = engine.transform(JmteUtils.morphTemplate("${" + kv[0] + "}", MovieRenamer.getTokenMap()), root);
+            if (Strings.CI.contains(val, kv[1])) {
               return true;
             }
           }

@@ -54,15 +54,7 @@ public class MovieSettingsDefaults {
   public static void setDefaultSettings() {
     MovieSettings movieSettings = MovieSettings.getInstance();
 
-    String folderPattern = movieSettings.getRenamerPathname();
-    String filenamePattern = movieSettings.getRenamerFilename();
-
     movieSettings.setDefaultValues();
-
-    // FIXME - change on renamer profile branch
-    movieSettings.setRenamerPathname(folderPattern);
-    movieSettings.setRenamerFilename(filenamePattern);
-
     movieSettings.firePropertyChange("preset", false, true);
   }
 

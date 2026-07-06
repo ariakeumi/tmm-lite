@@ -30,6 +30,7 @@ import javax.swing.KeyStroke;
 
 import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
+import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.movie.tasks.MovieRenameTask;
 import org.tinymediamanager.core.threading.TmmTaskManager;
@@ -82,7 +83,7 @@ public class MovieRenameAction extends TmmAction {
     }
 
     // rename
-    TmmThreadPool renameTask = new MovieRenameTask(selectedMovies);
+    TmmThreadPool renameTask = new MovieRenameTask(selectedMovies, MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
     TmmTaskManager.getInstance().addMainTask(renameTask);
   }
 }

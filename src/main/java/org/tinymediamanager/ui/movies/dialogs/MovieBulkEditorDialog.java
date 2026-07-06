@@ -62,6 +62,7 @@ import org.tinymediamanager.core.movie.MovieEdition;
 import org.tinymediamanager.core.movie.MovieList;
 import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.MovieRenamer;
+import org.tinymediamanager.core.movie.MovieSettings;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.movie.entities.MovieSet;
 import org.tinymediamanager.core.threading.TmmTaskManager;
@@ -97,6 +98,7 @@ import net.miginfocom.swing.MigLayout;
  * @author Manuel Laggner
  */
 public class MovieBulkEditorDialog extends TmmDialog {
+  private final MovieSettings            settings;
   private final MovieList                movieList    = MovieModuleManager.getInstance().getMovieList();
   private final List<Movie>              moviesToEdit = new ArrayList<>();
 
@@ -117,7 +119,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
    */
   public MovieBulkEditorDialog(final List<Movie> movies) {
     super(TmmResourceBundle.getString("movie.edit"), "movieBulkEditor");
-
+    settings = MovieModuleManager.getInstance().getSettings();
     movieValuesEventList = GlazedLists
         .threadSafeList(new ObservableElementList<>(new BasicEventList<>(), GlazedLists.beanConnector(MovieValues.class)));
 
@@ -313,8 +315,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
         panelContent.add(lblCertificationT, "cell 0 4,alignx right");
 
         final JComboBox cbCertification = new JComboBox();
-        for (MediaCertification cert : MediaCertification
-            .getCertificationsforCountry(MovieModuleManager.getInstance().getSettings().getCertificationCountry())) {
+        for (MediaCertification cert : MediaCertification.getCertificationsforCountry(settings.getCertificationCountry())) {
           cbCertification.addItem(cert);
         }
         panelContent.add(cbCertification, "cell 1 4,growx");
@@ -758,11 +759,11 @@ public class MovieBulkEditorDialog extends TmmDialog {
               movie.saveToDb();
             }
             // if configured - sync with trakt.tv
-            if (MovieModuleManager.getInstance().getSettings().getSyncTrakt()) {
+            if (settings.getSyncTrakt()) {
               MovieSyncTraktTvTask task = new MovieSyncTraktTvTask(moviesToEdit);
-              task.setSyncCollection(MovieModuleManager.getInstance().getSettings().getSyncTraktCollection());
-              task.setSyncWatched(MovieModuleManager.getInstance().getSettings().getSyncTraktWatched());
-              task.setSyncRating(MovieModuleManager.getInstance().getSettings().getSyncTraktRating());
+              task.setSyncCollection(settings.getSyncTraktCollection());
+              task.setSyncWatched(settings.getSyncTraktWatched());
+              task.setSyncRating(settings.getSyncTraktRating());
 
               TmmTaskManager.getInstance().addUnnamedTask(task);
             }
@@ -826,14 +827,16 @@ public class MovieBulkEditorDialog extends TmmDialog {
   }
 
   private static class MovieValues extends AbstractModelObject {
-    private final Movie movie;
+    private final Movie  movie;
+    private final Engine engine;
 
-    private String      property;
-    private String      propertyValue = "";
-    private String      patternValue  = "";
+    private String       property;
+    private String       propertyValue = "";
+    private String       patternValue  = "";
 
     public MovieValues(Movie movie) {
       this.movie = movie;
+      this.engine = MovieRenamer.createEngine(MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
     }
 
     public void changeProperty(String property) {
@@ -864,7 +867,6 @@ public class MovieBulkEditorDialog extends TmmDialog {
 
     private String getPatternValue(String pattern) {
       try {
-        Engine engine = MovieRenamer.createEngine();
         Map<String, Object> root = new HashMap<>();
         root.put("movie", movie);
         return engine.transform(JmteUtils.morphTemplate(pattern, MovieRenamer.getTokenMap()), root);

@@ -43,7 +43,7 @@ public class TmmTreeTextFilter<E extends TmmTreeNode> extends EnhancedTextField 
   protected Pattern filterPattern;
 
   public TmmTreeTextFilter() {
-    super(TmmResourceBundle.getString("tmm.searchfield"), IconManager.SEARCH_GREY);
+    super(TmmResourceBundle.getString("tmm.searchfield"), IconManager.SEARCH_GRAY);
     lblIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
     lblIcon.addMouseListener(new MouseAdapter() {
       @Override
@@ -84,10 +84,10 @@ public class TmmTreeTextFilter<E extends TmmTreeNode> extends EnhancedTextField 
 
       private void changeIcon() {
         if (StringUtils.isBlank(getText())) {
-          lblIcon.setIcon(IconManager.SEARCH_GREY);
+          lblIcon.setIcon(IconManager.SEARCH_GRAY);
         }
         else {
-          lblIcon.setIcon(IconManager.CLEAR_GREY);
+          lblIcon.setIcon(IconManager.CLEAR_GRAY);
         }
       }
 

@@ -1,5 +1,8 @@
 Version 5.3.0
 =======================
++ [Renamer] the support for renamer profiles has been added!
+  !!! All your renamer related settings have been migrated to the "Default" profile. PLEASE REVIEW YOUR SETTINGS !!!
+
 + [TV shows] added the new renamer token 'episode.folderName' to get the folder name of the current episode (relative to the TV show root)
 + [Movies/ TV shows] added a button to reset settings to their defaults
 + [Movies/ TV shows] added a preset for "read-only"

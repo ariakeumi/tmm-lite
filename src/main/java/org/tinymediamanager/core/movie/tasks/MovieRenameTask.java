@@ -16,6 +16,7 @@
 package org.tinymediamanager.core.movie.tasks;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -29,6 +30,7 @@ import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.movie.MovieRenamer;
+import org.tinymediamanager.core.movie.MovieRenamerProfile;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.threading.TmmThreadPool;
 
@@ -38,19 +40,24 @@ import org.tinymediamanager.core.threading.TmmThreadPool;
  * @author Manuel Laggner
  */
 public class MovieRenameTask extends TmmThreadPool {
-  private static final Logger LOGGER = LoggerFactory.getLogger(MovieRenameTask.class);
+  private static final Logger       LOGGER = LoggerFactory.getLogger(MovieRenameTask.class);
 
-  private final List<Movie>   moviesToRename;
+  private final List<Movie>         moviesToRename;
+  private final MovieRenamerProfile profile;
 
   /**
    * Instantiates a new movie rename task.
    * 
    * @param moviesToRename
-   *          the movies to rename
+   *          a {@link Collection} of {@link Movie}s to rename
+   * @param profile
+   *          the {@link MovieRenamerProfile} to use for renaming
    */
-  public MovieRenameTask(List<Movie> moviesToRename) {
+  public MovieRenameTask(Collection<Movie> moviesToRename, MovieRenamerProfile profile) {
     super(TmmResourceBundle.getString("movie.rename"));
     this.moviesToRename = new ArrayList<>(moviesToRename);
+    // copy to make it immutable
+    this.profile = new MovieRenamerProfile(profile);
   }
 
   @Override
@@ -67,7 +74,7 @@ public class MovieRenameTask extends TmmThreadPool {
         if (cancel) {
           break;
         }
-        submitTask(new RenameMovieTask(movie));
+        submitTask(new RenameMovieTask(movie, profile));
       }
       waitForCompletionOrCancel();
 
@@ -98,15 +105,18 @@ public class MovieRenameTask extends TmmThreadPool {
    * @version 1.0
    */
   private static class RenameMovieTask implements Callable<Object> {
-    private final Movie movie;
+    private final Movie               movie;
+    private final MovieRenamerProfile renamerProfile;
 
-    private RenameMovieTask(Movie movie) {
+    private RenameMovieTask(Movie movie, MovieRenamerProfile renamerProfile) {
+      this.renamerProfile = renamerProfile;
       this.movie = movie;
+
     }
 
     @Override
     public String call() {
-      MovieRenamer.renameMovie(movie);
+      MovieRenamer.renameMovie(movie, renamerProfile);
       return movie.getTitle();
     }
   }

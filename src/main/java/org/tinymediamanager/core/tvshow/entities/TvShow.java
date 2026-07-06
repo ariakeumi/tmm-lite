@@ -2136,7 +2136,8 @@ public class TvShow extends MediaEntity implements IMediaInformation {
    */
   public String getTrailerFilename(@NotNull TvShowTrailerNaming trailer) {
     // basename is the TV show title itself
-    return FilenameUtils.removeExtension(TvShowRenamer.replaceInvalidCharacters(trailer.getFilename(getTitle(), "ext")));
+    return FilenameUtils.removeExtension(TvShowRenamer.replaceInvalidCharacters(trailer.getFilename(getTitle(), "ext"),
+        TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile()));
   }
 
   /**

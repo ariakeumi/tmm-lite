@@ -34,6 +34,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -48,13 +49,16 @@ import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
 import org.jdesktop.beansbinding.Bindings;
 import org.jdesktop.beansbinding.Property;
+import org.tinymediamanager.core.AbstractModelObject;
 import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.MovieRenamer;
+import org.tinymediamanager.core.movie.MovieRenamerProfile;
 import org.tinymediamanager.core.movie.MovieSettings;
 import org.tinymediamanager.core.movie.entities.Movie;
+import org.tinymediamanager.core.tvshow.TvShowRenamerProfile;
 import org.tinymediamanager.scraper.util.ListUtils;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmFontHelper;
@@ -75,43 +79,75 @@ import net.miginfocom.swing.MigLayout;
  * The class MovieRenamerSettingsPanel.
  */
 public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListener {
-  private final MovieSettings settings         = MovieModuleManager.getInstance().getSettings();
-  private final List<String>  spaceReplacement = new ArrayList<>(Arrays.asList("_", ".", "-"));
-  private final List<String>  colonReplacement = new ArrayList<>(Arrays.asList(" ", "-", "_", "∶"));
+  private final MovieSettings                settings         = MovieModuleManager.getInstance().getSettings();
+  private final List<String>                 spaceReplacement = new ArrayList<>(Arrays.asList("_", ".", "-"));
+  private final List<String>                 colonReplacement = new ArrayList<>(Arrays.asList(" ", "-", "_", "∶"));
+
+  private final MovieRenamerProfileContainer renamerProfileContainer;
+  private final ActionListener               profileActionListener;
 
   /**
    * UI components
    */
-  private JTextArea           tfMoviePath;
-  private JTextArea           tfMovieFilename;
-  private LinkLabel           lblExampleDatasource;
-  private JLabel              lblExampleFoldername;
-  private JLabel              lblExampleFilename;
+  private JTextArea                          tfMoviePath;
+  private JTextArea                          tfMovieFilename;
+  private LinkLabel                          lblExampleDatasource;
+  private JLabel                             lblExampleFoldername;
+  private JLabel                             lblExampleFilename;
 
-  private JCheckBox           chckbxFoldernameSpaceReplacement;
-  private JComboBox           cbFoldernameSpaceReplacement;
-  private JCheckBox           chckbxFilenameSpaceReplacement;
-  private JComboBox           cbFilenameSpaceReplacement;
-  private JComboBox           cbMovieForPreview;
-  private JCheckBox           chckbxRemoveOtherNfos;
-  private JCheckBox           chckbxCleanupUnwanted;
-  private JCheckBox           chckbxMoviesetSingleMovie;
+  private JCheckBox                          chckbxEnableFolderRename;
+  private JCheckBox                          chckbxEnableFileRename;
+  private JCheckBox                          chckbxFoldernameSpaceReplacement;
+  private JComboBox                          cbFoldernameSpaceReplacement;
+  private JCheckBox                          chckbxFilenameSpaceReplacement;
+  private JComboBox                          cbFilenameSpaceReplacement;
+  private JComboBox                          cbMovieForPreview;
+  private JCheckBox                          chckbxRemoveOtherNfos;
+  private JCheckBox                          chckbxCleanupUnwanted;
+  private JCheckBox                          chckbxMoviesetSingleMovie;
 
-  private ReadOnlyTextArea    taWarning;
-  private JComboBox           cbColonReplacement;
-  private JTextField          tfFirstCharacter;
-  private JCheckBox           chckbxAllowMerge;
-  private JCheckBox           chckbxAutomaticRename;
-  private JHintCheckBox       chckbxAsciiReplacement;
-  private JHintCheckBox       chckbxUnicodeReplacement;
+  private ReadOnlyTextArea                   taWarning;
+  private JButton                            btnDeleteProfile;
+  private JComboBox<String>                  cbProfile;
+
+  private JComboBox                          cbColonReplacement;
+  private JTextField                         tfFirstCharacter;
+  private JCheckBox                          chckbxAllowMerge;
+  private JHintCheckBox                      chckbxAsciiReplacement;
+  private JHintCheckBox                      chckbxUnicodeReplacement;
+  private JButton                            btnResetFolderPattern;
+  private JButton                            btnResetFilenamePattern;
 
   public MovieRenamerSettingsPanel() {
+
+    renamerProfileContainer = new MovieRenamerProfileContainer();
+    renamerProfileContainer.setProfile(settings.getRenamerProfile(MovieRenamerProfile.DEFAULT_RENAMER_PROFILE));
 
     // UI initializations
     initComponents();
     initDataBindings();
 
     // data init
+    profileActionListener = evt -> {
+      String item = (String) cbProfile.getSelectedItem();
+      renamerProfileContainer.setProfile(settings.getRenamerProfile(item));
+
+      if (TvShowRenamerProfile.DEFAULT_RENAMER_PROFILE.equals(item)) {
+        btnDeleteProfile.setEnabled(false);
+      }
+      else {
+        btnDeleteProfile.setEnabled(true);
+      }
+
+      createRenamerExample();
+    };
+
+    cbProfile.addActionListener(profileActionListener);
+    for (String profileName : settings.getRenamerProfiles().keySet()) {
+      cbProfile.addItem(profileName);
+    }
+    cbProfile.setSelectedItem(MovieRenamerProfile.DEFAULT_RENAMER_PROFILE);
+
     DocumentListener documentListener = new DocumentListener() {
       @Override
       public void removeUpdate(DocumentEvent arg0) {
@@ -130,6 +166,8 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
     };
 
     tfFirstCharacter.getDocument().addDocumentListener(documentListener);
+    tfMoviePath.getDocument().addDocumentListener(documentListener);
+    tfMovieFilename.getDocument().addDocumentListener(documentListener);
 
     settings.addPropertyChangeListener(e -> {
       switch (e.getPropertyName()) {
@@ -138,43 +176,28 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
     });
 
     // foldername space replacement
-    String replacement = settings.getRenamerPathnameSpaceReplacement();
-    int index = spaceReplacement.indexOf(replacement);
-    if (index >= 0) {
-      cbFoldernameSpaceReplacement.setSelectedIndex(index);
-    }
+    String replacement = renamerProfileContainer.getProfile().getRenamerPathnameSpaceReplacement();
+    cbFoldernameSpaceReplacement.setSelectedItem(replacement);
 
     // filename space replacement
-    replacement = settings.getRenamerFilenameSpaceReplacement();
-    index = spaceReplacement.indexOf(replacement);
-    if (index >= 0) {
-      cbFilenameSpaceReplacement.setSelectedIndex(index);
-    }
+    replacement = renamerProfileContainer.getProfile().getRenamerFilenameSpaceReplacement();
+    cbFilenameSpaceReplacement.setSelectedItem(replacement);
 
     // colon replacement
-    replacement = settings.getRenamerColonReplacement();
-    index = colonReplacement.indexOf(replacement);
-    if (index >= 0) {
-      cbColonReplacement.setSelectedIndex(index);
-    }
+    replacement = renamerProfileContainer.getProfile().getRenamerColonReplacement();
+    cbColonReplacement.setSelectedItem(replacement);
 
-    if (settings.isAsciiReplacement()) {
+    if (renamerProfileContainer.getProfile().isAsciiReplacement()) {
       chckbxUnicodeReplacement.setEnabled(false);
       cbColonReplacement.removeItem(colonReplacement.get(colonReplacement.size() - 1));
     }
 
-    cbFoldernameSpaceReplacement.addActionListener(arg0 -> {
-      checkChanges();
-      createRenamerExample();
-    });
-    cbFilenameSpaceReplacement.addActionListener(arg0 -> {
-      checkChanges();
-      createRenamerExample();
-    });
-    cbColonReplacement.addActionListener(arg0 -> {
-      checkChanges();
-      createRenamerExample();
-    });
+    // event listener must be at the end
+    ActionListener renamerActionListener = arg0 -> createRenamerExample();
+
+    cbFoldernameSpaceReplacement.addActionListener(renamerActionListener);
+    cbFilenameSpaceReplacement.addActionListener(renamerActionListener);
+    cbColonReplacement.addActionListener(renamerActionListener);
     chckbxAsciiReplacement.addActionListener(arg0 -> {
       if (chckbxAsciiReplacement.isSelected()) {
         cbColonReplacement.removeItem(ListUtils.getLast(colonReplacement));
@@ -186,45 +209,131 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
         chckbxUnicodeReplacement.setEnabled(true);
       }
 
-      checkChanges();
       createRenamerExample();
     });
-    chckbxUnicodeReplacement.addActionListener(arg0 -> {
-      checkChanges();
-      createRenamerExample();
-    });
+    chckbxUnicodeReplacement.addActionListener(renamerActionListener);
 
     lblExampleFilename.putClientProperty("clipPosition", SwingConstants.LEFT);
 
     // event listener must be at the end
-    ActionListener actionCreateRenamerExample = e -> createRenamerExample();
-    cbMovieForPreview.addActionListener(actionCreateRenamerExample);
-    chckbxMoviesetSingleMovie.addActionListener(actionCreateRenamerExample);
-    chckbxAsciiReplacement.addActionListener(actionCreateRenamerExample);
-    chckbxFilenameSpaceReplacement.addActionListener(actionCreateRenamerExample);
-    chckbxFoldernameSpaceReplacement.addActionListener(actionCreateRenamerExample);
+    chckbxEnableFolderRename.addActionListener(renamerActionListener);
+    chckbxEnableFileRename.addActionListener(renamerActionListener);
+    cbMovieForPreview.addActionListener(renamerActionListener);
+    chckbxMoviesetSingleMovie.addActionListener(renamerActionListener);
+    chckbxAsciiReplacement.addActionListener(renamerActionListener);
+    chckbxFilenameSpaceReplacement.addActionListener(renamerActionListener);
+    chckbxFoldernameSpaceReplacement.addActionListener(renamerActionListener);
   }
 
   private void initComponents() {
-    setLayout(new MigLayout("hidemode 1", "[grow]", "[][15lp!][][15lp!][][15lp!][]"));
+    setLayout(new MigLayout("hidemode 1", "[grow]", "[][15lp!][][15lp!][][15lp!][][15lp!][]"));
     {
-      JPanel panelPatterns = new JPanel(new MigLayout("insets 0, hidemode 1", "[20lp!][15lp][][400lp,grow][grow]", "[][][][][][]"));
+      JPanel panelProfile = new JPanel(new MigLayout("insets 0, hidemode 1", "[15lp][16lp!][200lp:350lp,grow]", "[][grow]"));
+
+      JLabel lblProfileTitle = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.profile"), H3);
+      CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelProfile, lblProfileTitle, true);
+      collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/settings#renamer-profile"));
+      add(collapsiblePanel, "cell 0 0,growx, wmin 0");
+      {
+        JLabel lblProfileT = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.profile"));
+        panelProfile.add(lblProfileT, "flowx,cell 1 0 2 1");
+
+        cbProfile = new JComboBox<>();
+        panelProfile.add(cbProfile, "cell 1 0");
+
+        JButton btnAddNewProfile = new FlatButton(IconManager.ADD_GRAY);
+        btnAddNewProfile.setToolTipText(TmmResourceBundle.getString("Settings.renamer.profile.add"));
+        btnAddNewProfile.addActionListener(e -> {
+          String name = JOptionPane.showInputDialog(this, TmmResourceBundle.getString("Settings.renamer.profile.enter.name"),
+              TmmResourceBundle.getString("Settings.renamer.profile.savedialog"), JOptionPane.PLAIN_MESSAGE);
+          if (StringUtils.isNotBlank(name)) {
+            name = name.trim();
+            if (settings.getRenamerProfiles().containsKey(name)) {
+              JOptionPane.showMessageDialog(this, TmmResourceBundle.getString("Settings.renamer.profile.duplicate.name"),
+                  TmmResourceBundle.getString("Settings.renamer.profile.savedialog"), JOptionPane.WARNING_MESSAGE);
+              return;
+            }
+
+            MovieRenamerProfile newProfile = new MovieRenamerProfile(name);
+            settings.addRenamerProfile(newProfile);
+            cbProfile.addItem(name);
+            cbProfile.setSelectedItem(name);
+
+            createRenamerExample();
+          }
+        });
+
+        panelProfile.add(btnAddNewProfile, "cell 1 0");
+
+        FlatButton btnCopyProfile = new FlatButton(IconManager.COPY_GRAY);
+        btnCopyProfile.setToolTipText(TmmResourceBundle.getString("Settings.renamer.profile.copy"));
+        btnCopyProfile.addActionListener(e -> {
+          String name = JOptionPane.showInputDialog(this, TmmResourceBundle.getString("Settings.renamer.profile.enter.name"),
+              TmmResourceBundle.getString("Settings.renamer.profile.savedialog"), JOptionPane.PLAIN_MESSAGE);
+          if (StringUtils.isNotBlank(name)) {
+            name = name.trim();
+            if (settings.getRenamerProfiles().containsKey(name)) {
+              JOptionPane.showMessageDialog(this, TmmResourceBundle.getString("Settings.renamer.profile.duplicate.name"),
+                  TmmResourceBundle.getString("Settings.renamer.profile.savedialog"), JOptionPane.WARNING_MESSAGE);
+              return;
+            }
+
+            MovieRenamerProfile newProfile = new MovieRenamerProfile(name, renamerProfileContainer.getProfile());
+            settings.addRenamerProfile(newProfile);
+            cbProfile.addItem(name);
+            cbProfile.setSelectedItem(name);
+
+            createRenamerExample();
+          }
+        });
+        panelProfile.add(btnCopyProfile, "cell 1 0");
+
+        btnDeleteProfile = new FlatButton(IconManager.DELETE_GRAY);
+        btnDeleteProfile.setToolTipText(
+            TmmResourceBundle.getString("Settings.renamer.profile.delete") + "\n" + TmmResourceBundle.getString("Settings.renamer.profile.hint"));
+        btnDeleteProfile.addActionListener(e -> {
+          String profileName = (String) cbProfile.getSelectedItem();
+          if (profileName != null && !MovieRenamerProfile.DEFAULT_RENAMER_PROFILE.equals(profileName)) {
+            String message = TmmResourceBundle.getString("Settings.renamer.profile.confirm.delete");
+            int result = JOptionPane.showConfirmDialog(this, message.replace("{0}", profileName),
+                TmmResourceBundle.getString("Settings.renamer.profile.delete"), JOptionPane.YES_NO_OPTION);
+            if (result == JOptionPane.YES_OPTION) {
+              settings.deleteRenamerProfile(profileName);
+              cbProfile.setSelectedItem(MovieRenamerProfile.DEFAULT_RENAMER_PROFILE);
+              cbProfile.removeItem(profileName);
+
+              createRenamerExample();
+            }
+          }
+        });
+        panelProfile.add(btnDeleteProfile, "cell 1 0");
+      }
+
+      {
+        JTextArea taProfileHint = new ReadOnlyTextArea(TmmResourceBundle.getString("Settings.renamer.profile.desc"));
+        panelProfile.add(taProfileHint, "cell 2 1,wmin 0,grow");
+      }
+
+    }
+    {
+      JPanel panelPatterns = new JPanel(new MigLayout("insets 0, hidemode 1", "[20lp!][15lp][][400lp,grow][grow]", "[][][][][10lp!][]"));
 
       JLabel lblPatternsT = new TmmLabel(TmmResourceBundle.getString("Settings.movie.renamer.title"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelPatterns, lblPatternsT, true);
       collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/settings#renamer-pattern"));
-      add(collapsiblePanel, "cell 0 0,growx, wmin 0");
+      add(collapsiblePanel, "cell 0 2,growx, wmin 0");
       {
-        JLabel lblMoviePath = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.folder"));
-        panelPatterns.add(lblMoviePath, "cell 1 0 2 1,alignx right");
+        chckbxEnableFolderRename = new JCheckBox(TmmResourceBundle.getString("Settings.renamer.folder"));
+        chckbxEnableFolderRename.setToolTipText(TmmResourceBundle.getString("Settings.renamer.enablefolderrename"));
+        panelPatterns.add(chckbxEnableFolderRename, "cell 1 0 2 1");
 
         tfMoviePath = new TmmRoundTextArea();
         panelPatterns.add(tfMoviePath, "cell 3 0, growx, wmin 0");
 
-        JButton btnReset = new FlatButton(IconManager.UNDO_GREY);
-        btnReset.setToolTipText(TmmResourceBundle.getString("Settings.renamer.reverttodefault"));
-        btnReset.addActionListener(l -> tfMoviePath.setText(MovieSettings.DEFAULT_RENAMER_FOLDER_PATTERN));
-        panelPatterns.add(btnReset, "cell 3 0, aligny top");
+        btnResetFolderPattern = new FlatButton(IconManager.UNDO_GRAY);
+        btnResetFolderPattern.setToolTipText(TmmResourceBundle.getString("Settings.renamer.reverttodefault"));
+        btnResetFolderPattern.addActionListener(l -> tfMoviePath.setText(MovieSettings.DEFAULT_RENAMER_FOLDER_PATTERN));
+        panelPatterns.add(btnResetFolderPattern, "cell 3 0, aligny top");
 
         JLabel lblDefault = new JLabel(TmmResourceBundle.getString("Settings.default"));
         panelPatterns.add(lblDefault, "cell 1 1 2 1,alignx right");
@@ -235,16 +344,17 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
         TmmFontHelper.changeFont(tpDefaultFolderPattern, L2);
       }
       {
-        JLabel lblMovieFilename = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.file"));
-        panelPatterns.add(lblMovieFilename, "cell 1 2 2 1,alignx right");
+        chckbxEnableFileRename = new JCheckBox(TmmResourceBundle.getString("Settings.renamer.file"));
+        chckbxEnableFileRename.setToolTipText(TmmResourceBundle.getString("Settings.renamer.enablefilerename"));
+        panelPatterns.add(chckbxEnableFileRename, "cell 1 2 2 1, gapright 10");
 
         tfMovieFilename = new TmmRoundTextArea();
         panelPatterns.add(tfMovieFilename, "cell 3 2, growx, wmin 0");
 
-        JButton btnReset = new FlatButton(IconManager.UNDO_GREY);
-        btnReset.setToolTipText(TmmResourceBundle.getString("Settings.renamer.reverttodefault"));
-        btnReset.addActionListener(l -> tfMovieFilename.setText(MovieSettings.DEFAULT_RENAMER_FILE_PATTERN));
-        panelPatterns.add(btnReset, "cell 3 2, aligny top");
+        btnResetFilenamePattern = new FlatButton(IconManager.UNDO_GRAY);
+        btnResetFilenamePattern.setToolTipText(TmmResourceBundle.getString("Settings.renamer.reverttodefault"));
+        btnResetFilenamePattern.addActionListener(l -> tfMovieFilename.setText(MovieSettings.DEFAULT_RENAMER_FILE_PATTERN));
+        panelPatterns.add(btnResetFilenamePattern, "cell 3 2, aligny top");
 
         JLabel lblDefault = new JLabel(TmmResourceBundle.getString("Settings.default"));
         panelPatterns.add(lblDefault, "cell 1 3 2 1,alignx right");
@@ -253,11 +363,6 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
         JTextArea tpDefaultFilePattern = new ReadOnlyTextArea(MovieSettings.DEFAULT_RENAMER_FILE_PATTERN);
         panelPatterns.add(tpDefaultFilePattern, "cell 3 3,growx,wmin 0");
         TmmFontHelper.changeFont(tpDefaultFilePattern, L2);
-      }
-      {
-
-        JLabel lblRenamerHintT = new JLabel(TmmResourceBundle.getString("Settings.movie.renamer.example"));
-        panelPatterns.add(lblRenamerHintT, "cell 1 4 3 1");
       }
       {
         JButton btnJmteExplorer = new JButton(TmmResourceBundle.getString("jmteexplorer.title"));
@@ -275,36 +380,27 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
     }
     {
       JPanel panelAdvancedOptions = new JPanel();
-      panelAdvancedOptions.setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][][][][]")); // 16lp ~ width of the
+      panelAdvancedOptions.setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][][][]")); // 16lp ~ width of the
 
       JLabel lblAdvancedOptions = new TmmLabel(TmmResourceBundle.getString("Settings.advancedoptions"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelAdvancedOptions, lblAdvancedOptions, true);
       collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/settings#advanced-options-4"));
-      add(collapsiblePanel, "cell 0 2,growx, wmin 0");
-
-      {
-        chckbxAutomaticRename = new JCheckBox(TmmResourceBundle.getString("Settings.movie.automaticrename"));
-        panelAdvancedOptions.add(chckbxAutomaticRename, "cell 1 0 2 1");
-
-        JLabel lblAutomaticRenameHint = new JLabel(IconManager.HINT);
-        lblAutomaticRenameHint.setToolTipText(TmmResourceBundle.getString("Settings.movie.automaticrename.desc"));
-        panelAdvancedOptions.add(lblAutomaticRenameHint, "cell 1 0 2 1");
-      }
+      add(collapsiblePanel, "cell 0 4,growx, wmin 0");
       {
         chckbxMoviesetSingleMovie = new JCheckBox(TmmResourceBundle.getString("Settings.renamer.moviesetsinglemovie"));
-        panelAdvancedOptions.add(chckbxMoviesetSingleMovie, "cell 1 1 2 1");
+        panelAdvancedOptions.add(chckbxMoviesetSingleMovie, "cell 1 0 2 1");
       }
       {
         chckbxRemoveOtherNfos = new JCheckBox(TmmResourceBundle.getString("Settings.renamer.removenfo"));
-        panelAdvancedOptions.add(chckbxRemoveOtherNfos, "cell 1 2 2 1");
+        panelAdvancedOptions.add(chckbxRemoveOtherNfos, "cell 1 1 2 1");
       }
       {
         chckbxCleanupUnwanted = new JCheckBox(TmmResourceBundle.getString("Settings.cleanupfiles"));
-        panelAdvancedOptions.add(chckbxCleanupUnwanted, "cell 1 3 2 1");
+        panelAdvancedOptions.add(chckbxCleanupUnwanted, "cell 1 2 2 1");
       }
       {
         chckbxAllowMerge = new JCheckBox(TmmResourceBundle.getString("Settings.renamer.movie.allowmerge"));
-        panelAdvancedOptions.add(chckbxAllowMerge, "cell 1 4 2 1");
+        panelAdvancedOptions.add(chckbxAllowMerge, "cell 1 3 2 1");
       }
     }
     {
@@ -314,7 +410,7 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
       JLabel lblReplacementsT = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.replacements"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelReplacements, lblReplacementsT, true);
       collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/settings#advanced-options-4"));
-      add(collapsiblePanel, "cell 0 4,growx, wmin 0");
+      add(collapsiblePanel, "cell 0 6,growx, wmin 0");
       {
         chckbxFoldernameSpaceReplacement = new JCheckBox(TmmResourceBundle.getString("Settings.renamer.folderspacereplacement"));
         chckbxFoldernameSpaceReplacement.setToolTipText(TmmResourceBundle.getString("Settings.renamer.folderspacereplacement.hint"));
@@ -340,6 +436,14 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
         tfFirstCharacter.setColumns(2);
       }
       {
+        JLabel lblColonReplacement = new JLabel(TmmResourceBundle.getString("Settings.renamer.colonreplacement"));
+        panelReplacements.add(lblColonReplacement, "flowx,cell 1 3 2 1");
+        lblColonReplacement.setToolTipText(TmmResourceBundle.getString("Settings.renamer.colonreplacement.hint"));
+
+        cbColonReplacement = new JComboBox<>(colonReplacement.toArray());
+        panelReplacements.add(cbColonReplacement, "cell 1 3 2 1");
+      }
+      {
         chckbxAsciiReplacement = new JHintCheckBox(TmmResourceBundle.getString("Settings.renamer.asciireplacement"));
 
         String examples = "<html>" + TmmResourceBundle.getString("Settings.renamer.examples") + "<br>";
@@ -352,15 +456,7 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
         examples += "…</html>";
 
         chckbxAsciiReplacement.setToolTipText(examples);
-        panelReplacements.add(chckbxAsciiReplacement, "cell 1 3 2 1");
-      }
-      {
-        JLabel lblColonReplacement = new JLabel(TmmResourceBundle.getString("Settings.renamer.colonreplacement"));
-        panelReplacements.add(lblColonReplacement, "flowx,cell 1 4 2 1");
-        lblColonReplacement.setToolTipText(TmmResourceBundle.getString("Settings.renamer.colonreplacement.hint"));
-
-        cbColonReplacement = new JComboBox<>(colonReplacement.toArray());
-        panelReplacements.add(cbColonReplacement, "cell 1 4 2 1");
+        panelReplacements.add(chckbxAsciiReplacement, "cell 1 4 2 1");
       }
       {
         chckbxUnicodeReplacement = new JHintCheckBox(TmmResourceBundle.getString("Settings.renamer.unicodereplacement"));
@@ -382,7 +478,7 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
       JLabel lblExampleHeader = new TmmLabel(TmmResourceBundle.getString("Settings.example"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelExample, lblExampleHeader, true);
       collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/settings#example"));
-      add(collapsiblePanel, "cell 0 6, growx, wmin 0");
+      add(collapsiblePanel, "cell 0 8, growx, wmin 0");
       {
         JLabel lblExampleT = new TmmLabel(TmmResourceBundle.getString("tmm.movie"));
         panelExample.add(lblExampleT, "cell 1 0");
@@ -430,8 +526,8 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
     Movie movie = null;
 
     String warning = "";
-    // empty is valid (although not unique)
-    if (!tfMoviePath.getText().isEmpty() && !MovieRenamer.isFolderPatternUnique(tfMoviePath.getText())) {
+
+    if (chckbxEnableFolderRename.isSelected() && !MovieRenamer.isFolderPatternUnique(tfMoviePath.getText())) {
       warning = TmmResourceBundle.getString("Settings.renamer.folder.warning");
     }
     if (!warning.isEmpty()) {
@@ -449,8 +545,8 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
     if (movie != null) {
       String path = "";
       String filename = "";
-      if (StringUtils.isNotBlank(tfMoviePath.getText())) {
-        path = MovieRenamer.createDestinationForFoldername(tfMoviePath.getText(), movie);
+      if (renamerProfileContainer.getProfile().isRenamerPathnameEnabled() && StringUtils.isNotBlank(tfMoviePath.getText())) {
+        path = MovieRenamer.createDestinationForFoldername(renamerProfileContainer.getProfile(), movie);
         try {
           path = Paths.get(movie.getDataSource(), path).toString();
         }
@@ -463,11 +559,11 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
         path = movie.getPathNIO().toString();
       }
 
-      if (StringUtils.isNotBlank(tfMovieFilename.getText())) {
+      if (renamerProfileContainer.getProfile().isRenamerFilenameEnabled() && StringUtils.isNotBlank(tfMovieFilename.getText())) {
         List<MediaFile> mediaFiles = movie.getMediaFiles(MediaFileType.VIDEO);
         if (!mediaFiles.isEmpty()) {
           String extension = FilenameUtils.getExtension(mediaFiles.get(0).getFilename());
-          filename = MovieRenamer.createDestinationForFilename(tfMovieFilename.getText(), movie);
+          filename = MovieRenamer.createDestinationForFilename(renamerProfileContainer.getProfile(), movie);
           // patterns are always w/o extension, but when having the originalFilename, it will be there.
           if (!filename.endsWith(extension)) {
             filename += "." + extension;
@@ -487,20 +583,6 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
       lblExampleFoldername.setText(TmmResourceBundle.getString("Settings.movie.renamer.nomovie"));
       lblExampleFilename.setText(TmmResourceBundle.getString("Settings.movie.renamer.nomovie"));
     }
-  }
-
-  private void checkChanges() {
-    // foldername space replacement
-    String replacement = (String) cbFoldernameSpaceReplacement.getSelectedItem();
-    settings.setRenamerPathnameSpaceReplacement(replacement);
-
-    // filename space replacement
-    replacement = (String) cbFilenameSpaceReplacement.getSelectedItem();
-    settings.setRenamerFilenameSpaceReplacement(replacement);
-
-    // colon replacement
-    replacement = (String) cbColonReplacement.getSelectedItem();
-    settings.setRenamerColonReplacement(replacement);
   }
 
   @Override
@@ -541,69 +623,124 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
     }
   }
 
+  /*
+   * Helper classes
+   */
+  public static class MovieRenamerProfileContainer extends AbstractModelObject {
+    private MovieRenamerProfile profile;
+
+    public MovieRenamerProfile getProfile() {
+      return profile;
+    }
+
+    public void setProfile(MovieRenamerProfile newValue) {
+      MovieRenamerProfile oldValue = this.profile;
+      this.profile = newValue;
+      firePropertyChange("profile", oldValue, newValue);
+    }
+  }
+
   protected void initDataBindings() {
-    Property settingsBeanProperty_11 = BeanProperty.create("renamerPathname");
-    Property jTextFieldBeanProperty_3 = BeanProperty.create("text");
-    AutoBinding autoBinding_10 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, settingsBeanProperty_11, tfMoviePath,
-        jTextFieldBeanProperty_3);
-    autoBinding_10.bind();
-    //
-    Property settingsBeanProperty_12 = BeanProperty.create("renamerFilename");
-    Property jTextFieldBeanProperty_4 = BeanProperty.create("text");
-    AutoBinding autoBinding_11 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, settingsBeanProperty_12, tfMovieFilename,
-        jTextFieldBeanProperty_4);
-    autoBinding_11.bind();
-    //
-    Property settingsBeanProperty = BeanProperty.create("renamerPathnameSpaceSubstitution");
+    Property movieRenamerProfileContainerBeanProperty = BeanProperty.create("profile.renamerNfoCleanup");
     Property jCheckBoxBeanProperty = BeanProperty.create("selected");
-    AutoBinding autoBinding = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, settingsBeanProperty, chckbxFoldernameSpaceReplacement,
-        jCheckBoxBeanProperty);
-    autoBinding.bind();
-    //
-    Property settingsBeanProperty_2 = BeanProperty.create("renamerFilenameSpaceSubstitution");
-    AutoBinding autoBinding_2 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, settingsBeanProperty_2,
-        chckbxFilenameSpaceReplacement, jCheckBoxBeanProperty);
-    autoBinding_2.bind();
-    //
-    Property settingsBeanProperty_1 = BeanProperty.create("renamerNfoCleanup");
-    AutoBinding autoBinding_1 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, settingsBeanProperty_1, chckbxRemoveOtherNfos,
-        jCheckBoxBeanProperty);
+    AutoBinding autoBinding_1 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty, chckbxRemoveOtherNfos, jCheckBoxBeanProperty);
     autoBinding_1.bind();
     //
-    Property settingsBeanProperty_5 = BeanProperty.create("renamerCreateMoviesetForSingleMovie");
-    AutoBinding autoBinding_4 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, settingsBeanProperty_5, chckbxMoviesetSingleMovie,
-        jCheckBoxBeanProperty);
-    autoBinding_4.bind();
-    //
-    Property settingsBeanProperty_7 = BeanProperty.create("asciiReplacement");
-    AutoBinding autoBinding_5 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, settingsBeanProperty_7, chckbxAsciiReplacement,
-        jCheckBoxBeanProperty);
-    autoBinding_5.bind();
-    //
-    Property movieSettingsBeanProperty = BeanProperty.create("renamerFirstCharacterNumberReplacement");
-    Property jTextFieldBeanProperty = BeanProperty.create("text");
-    AutoBinding autoBinding_3 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty, tfFirstCharacter,
-        jTextFieldBeanProperty);
-    autoBinding_3.bind();
-    //
-    Property movieSettingsBeanProperty_1 = BeanProperty.create("allowMultipleMoviesInSameDir");
-    AutoBinding autoBinding_6 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty_1, chckbxAllowMerge,
-        jCheckBoxBeanProperty);
-    autoBinding_6.bind();
-    //
-    Property movieSettingsBeanProperty_2 = BeanProperty.create("renameAfterScrape");
-    AutoBinding autoBinding_7 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty_2, chckbxAutomaticRename,
-        jCheckBoxBeanProperty);
+    Property movieRenamerProfileContainerBeanProperty_1 = BeanProperty.create("profile.renamerPathname");
+    Property tmmRoundTextAreaBeanProperty = BeanProperty.create("text");
+    AutoBinding autoBinding_7 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_1, tfMoviePath, tmmRoundTextAreaBeanProperty);
     autoBinding_7.bind();
     //
-    Property movieSettingsBeanProperty_3 = BeanProperty.create("renamerCleanupUnwanted");
-    AutoBinding autoBinding_8 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty_3, chckbxCleanupUnwanted,
-        jCheckBoxBeanProperty);
+    Property movieRenamerProfileContainerBeanProperty_2 = BeanProperty.create("profile.renamerFilename");
+    Property tmmRoundTextAreaBeanProperty_1 = BeanProperty.create("text");
+    AutoBinding autoBinding_10 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_2, tfMovieFilename, tmmRoundTextAreaBeanProperty_1);
+    autoBinding_10.bind();
+    //
+    Property movieRenamerProfileContainerBeanProperty_5 = BeanProperty.create("profile.renamerCreateMoviesetForSingleMovie");
+    AutoBinding autoBinding_4 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_5, chckbxMoviesetSingleMovie, jCheckBoxBeanProperty);
+    autoBinding_4.bind();
+    //
+    Property movieRenamerProfileContainerBeanProperty_6 = BeanProperty.create("profile.asciiReplacement");
+    AutoBinding autoBinding_5 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_6, chckbxAsciiReplacement, jCheckBoxBeanProperty);
+    autoBinding_5.bind();
+    //
+    Property movieRenamerProfileContainerBeanProperty_7 = BeanProperty.create("profile.renamerFirstCharacterNumberReplacement");
+    Property jTextFieldBeanProperty = BeanProperty.create("text");
+    AutoBinding autoBinding_3 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_7, tfFirstCharacter, jTextFieldBeanProperty);
+    autoBinding_3.bind();
+    //
+    Property movieRenamerProfileContainerBeanProperty_8 = BeanProperty.create("profile.allowMultipleMoviesInSameDir");
+    AutoBinding autoBinding_6 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_8, chckbxAllowMerge, jCheckBoxBeanProperty);
+    autoBinding_6.bind();
+    //
+    Property movieRenamerProfileContainerBeanProperty_9 = BeanProperty.create("profile.renamerCleanupUnwanted");
+    AutoBinding autoBinding_8 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_9, chckbxCleanupUnwanted, jCheckBoxBeanProperty);
     autoBinding_8.bind();
     //
-    Property movieSettingsBeanProperty_4 = BeanProperty.create("unicodeReplacement");
-    AutoBinding autoBinding_9 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty_4, chckbxUnicodeReplacement,
-        jCheckBoxBeanProperty);
+    Property movieRenamerProfileContainerBeanProperty_10 = BeanProperty.create("profile.unicodeReplacement");
+    AutoBinding autoBinding_9 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_10, chckbxUnicodeReplacement, jCheckBoxBeanProperty);
     autoBinding_9.bind();
+    //
+    Property movieRenamerProfileContainerBeanProperty_3 = BeanProperty.create("profile.renamerPathnameSpaceSubstitution");
+    AutoBinding autoBinding = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_3, chckbxFoldernameSpaceReplacement, jCheckBoxBeanProperty);
+    autoBinding.bind();
+    //
+    Property movieRenamerProfileContainerBeanProperty_4 = BeanProperty.create("profile.renamerFilenameSpaceSubstitution");
+    AutoBinding autoBinding_2 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_4, chckbxFilenameSpaceReplacement, jCheckBoxBeanProperty);
+    autoBinding_2.bind();
+    //
+    Property movieRenamerProfileContainerBeanProperty_11 = BeanProperty.create("profile.renamerPathnameSpaceReplacement");
+    Property jComboBoxBeanProperty = BeanProperty.create("selectedItem");
+    AutoBinding autoBinding_11 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_11, cbFoldernameSpaceReplacement, jComboBoxBeanProperty);
+    autoBinding_11.bind();
+    //
+    Property movieRenamerProfileContainerBeanProperty_12 = BeanProperty.create("profile.renamerFilenameSpaceReplacement");
+    AutoBinding autoBinding_12 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_12, cbFilenameSpaceReplacement, jComboBoxBeanProperty);
+    autoBinding_12.bind();
+    //
+    Property movieRenamerProfileContainerBeanProperty_13 = BeanProperty.create("profile.renamerColonReplacement");
+    AutoBinding autoBinding_13 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_13, cbColonReplacement, jComboBoxBeanProperty);
+    autoBinding_13.bind();
+    //
+    Property movieRenamerProfileContainerBeanProperty_14 = BeanProperty.create("profile.renamerPathnameEnabled");
+    AutoBinding autoBinding_14 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_14, chckbxEnableFolderRename, jCheckBoxBeanProperty);
+    autoBinding_14.bind();
+    //
+    Property movieRenamerProfileContainerBeanProperty_15 = BeanProperty.create("profile.renamerFilenameEnabled");
+    AutoBinding autoBinding_15 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, renamerProfileContainer,
+        movieRenamerProfileContainerBeanProperty_15, chckbxEnableFileRename, jCheckBoxBeanProperty);
+    autoBinding_15.bind();
+    //
+    Property tmmRoundTextAreaBeanProperty_2 = BeanProperty.create("enabled");
+    AutoBinding autoBinding_16 = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxEnableFolderRename, jCheckBoxBeanProperty, tfMoviePath,
+        tmmRoundTextAreaBeanProperty_2);
+    autoBinding_16.bind();
+    //
+    AutoBinding autoBinding_17 = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxEnableFileRename, jCheckBoxBeanProperty, tfMovieFilename,
+        tmmRoundTextAreaBeanProperty_2);
+    autoBinding_17.bind();
+    //
+    AutoBinding autoBinding_18 = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxEnableFolderRename, jCheckBoxBeanProperty,
+        btnResetFolderPattern, tmmRoundTextAreaBeanProperty_2);
+    autoBinding_18.bind();
+    //
+    AutoBinding autoBinding_19 = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxEnableFileRename, jCheckBoxBeanProperty,
+        btnResetFilenamePattern, tmmRoundTextAreaBeanProperty_2);
+    autoBinding_19.bind();
   }
 }

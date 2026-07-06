@@ -29,28 +29,32 @@ import org.tinymediamanager.core.MessageManager;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.threading.TmmThreadPool;
 import org.tinymediamanager.core.tvshow.TvShowRenamer;
+import org.tinymediamanager.core.tvshow.TvShowRenamerProfile;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 
 /**
- * The class MovieRenameTask. rename all chosen movies
- * 
+ * The class TvShowRenameTask. rename all chosen TV shows
+ *
  * @author Manuel Laggner
  */
 public class TvShowRenameTask extends TmmThreadPool {
-  private static final Logger       LOGGER           = LoggerFactory.getLogger(TvShowRenameTask.class);
+  private static final Logger        LOGGER           = LoggerFactory.getLogger(TvShowRenameTask.class);
 
-  private final List<TvShow>        tvShowsToRename  = new ArrayList<>();
-  private final List<TvShowEpisode> episodesToRename = new ArrayList<>();
+  private final List<TvShow>         tvShowsToRename  = new ArrayList<>();
+  private final List<TvShowEpisode>  episodesToRename = new ArrayList<>();
+  private final TvShowRenamerProfile profile;
 
   /**
    * Rename just the given {@link TvShow} root (and {@link org.tinymediamanager.core.entities.MediaFile}s)
    *
    * @param tvShowToRename
    *          the {@link TvShow} to rename
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use for renaming
    */
-  public TvShowRenameTask(TvShow tvShowToRename) {
-    this(Collections.singletonList(tvShowToRename), null);
+  public TvShowRenameTask(TvShow tvShowToRename, TvShowRenamerProfile profile) {
+    this(Collections.singletonList(tvShowToRename), null, profile);
   }
 
   /**
@@ -58,9 +62,11 @@ public class TvShowRenameTask extends TmmThreadPool {
    *
    * @param tvShowsToRename
    *          the {@link TvShow}s to rename
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use for renaming
    */
-  public TvShowRenameTask(Collection<TvShow> tvShowsToRename) {
-    this(tvShowsToRename, null);
+  public TvShowRenameTask(Collection<TvShow> tvShowsToRename, TvShowRenamerProfile profile) {
+    this(tvShowsToRename, null, profile);
   }
 
   /**
@@ -70,9 +76,13 @@ public class TvShowRenameTask extends TmmThreadPool {
    *          the {@link TvShow}s to rename (only TV show MFs and root folder)
    * @param episodesToRename
    *          the {@link TvShowEpisode}s to rename
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use for renaming
    */
-  public TvShowRenameTask(Collection<TvShow> tvShowsToRename, Collection<TvShowEpisode> episodesToRename) {
+  public TvShowRenameTask(Collection<TvShow> tvShowsToRename, Collection<TvShowEpisode> episodesToRename, TvShowRenamerProfile profile) {
     super(TmmResourceBundle.getString("tvshow.rename"));
+    this.profile = new TvShowRenamerProfile(profile);
+
     if (tvShowsToRename != null) {
       this.tvShowsToRename.addAll(tvShowsToRename);
     }
@@ -94,7 +104,7 @@ public class TvShowRenameTask extends TmmThreadPool {
         if (cancel) {
           break;
         }
-        submitTask(new RenameEpisodeTask(tvEpisodesToRename));
+        submitTask(new RenameEpisodeTask(tvEpisodesToRename, profile));
       }
 
       waitForCompletionOrCancel();
@@ -104,7 +114,7 @@ public class TvShowRenameTask extends TmmThreadPool {
 
       // 2. rename TV show root
       for (TvShow tvShow : tvShowsToRename) {
-        TvShowRenamer.renameTvShow(tvShow); // rename root and artwork and update ShowMFs
+        TvShowRenamer.renameTvShow(tvShow, profile); // rename root and artwork and update ShowMFs
       }
 
       LOGGER.info("Finished renaming TV shows/episodes - took {} ms", getRuntime());
@@ -119,15 +129,17 @@ public class TvShowRenameTask extends TmmThreadPool {
    * ThreadpoolWorker to work off ONE episode
    */
   private static class RenameEpisodeTask implements Callable<Object> {
-    private final TvShowEpisode episode;
+    private final TvShowEpisode        episode;
+    private final TvShowRenamerProfile renamerProfile;
 
-    public RenameEpisodeTask(TvShowEpisode episode) {
+    public RenameEpisodeTask(TvShowEpisode episode, TvShowRenamerProfile renamerProfile) {
       this.episode = episode;
+      this.renamerProfile = renamerProfile;
     }
 
     @Override
     public String call() {
-      TvShowRenamer.renameEpisode(episode);
+      TvShowRenamer.renameEpisode(episode, renamerProfile);
       return episode.getTitle();
     }
   }

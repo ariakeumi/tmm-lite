@@ -46,6 +46,7 @@ import org.tinymediamanager.core.tvshow.TvShowHelpers;
 import org.tinymediamanager.core.tvshow.TvShowList;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
 import org.tinymediamanager.core.tvshow.TvShowScraperMetadataConfig;
+import org.tinymediamanager.core.tvshow.TvShowSettings;
 import org.tinymediamanager.core.tvshow.connector.ITvShowSeasonConnector;
 import org.tinymediamanager.core.tvshow.connector.TvShowSeasonToEmbyConnector;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowSeasonNfoNaming;
@@ -510,11 +511,13 @@ public class TvShowSeason extends MediaEntity implements Comparable<TvShowSeason
   public void writeNFO() {
     ITvShowSeasonConnector connector;
 
+    TvShowSettings settings = TvShowModuleManager.getInstance().getSettings();
+
     // only write the NFO if there is at least one episode existing (or the setting activated)
-    if (!episodes.isEmpty() || TvShowModuleManager.getInstance().getSettings().isCreateMissingSeasonItems()) {
-      List<TvShowSeasonNfoNaming> nfoNamings = TvShowModuleManager.getInstance().getSettings().getSeasonNfoFilenames();
+    if (!episodes.isEmpty() || settings.getDefaultRenamerProfile().isCreateMissingSeasonItems()) {
+      List<TvShowSeasonNfoNaming> nfoNamings = settings.getSeasonNfoFilenames();
       if (!nfoNamings.isEmpty()) {
-        connector = switch (TvShowModuleManager.getInstance().getSettings().getTvShowConnector()) {
+        connector = switch (settings.getTvShowConnector()) {
           default -> new TvShowSeasonToEmbyConnector(this);
         };
 

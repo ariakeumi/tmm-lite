@@ -668,7 +668,7 @@ public class TvShowChooserDialog extends TmmDialog implements ActionListener {
 
           // automatic rename? rename the TV show itself
           if (TvShowModuleManager.getInstance().getSettings().isRenameAfterScrape()) {
-            model.addTask(new TvShowRenameTask(tvShowToScrape));
+            model.addTask(new TvShowRenameTask(tvShowToScrape, TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile()));
           }
 
           // write actor images after possible rename (to have a good folder structure)

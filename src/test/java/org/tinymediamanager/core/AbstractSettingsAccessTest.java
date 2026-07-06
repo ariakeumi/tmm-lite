@@ -263,6 +263,11 @@ public class AbstractSettingsAccessTest {
       return objectMapper.writerFor(DummySettings.class);
     }
 
+    @Override
+    protected void upgradeSettings() {
+      // no-op for this test class
+    }
+
     /**
      * {@inheritDoc}
      */

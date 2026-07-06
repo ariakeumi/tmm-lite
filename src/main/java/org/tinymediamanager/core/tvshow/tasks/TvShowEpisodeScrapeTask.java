@@ -222,7 +222,7 @@ public class TvShowEpisodeScrapeTask extends TmmTask {
     // all episodes scraped now - dedicated rename all if wanted
     if (TvShowModuleManager.getInstance().getSettings().isRenameAfterScrape()) {
       for (TvShowEpisode episode : episodes) {
-        TvShowRenamer.renameEpisode(episode);
+        TvShowRenamer.renameEpisode(episode, TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
       }
     }
 

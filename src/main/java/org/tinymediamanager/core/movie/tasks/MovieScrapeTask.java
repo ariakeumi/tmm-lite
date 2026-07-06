@@ -37,6 +37,7 @@ import org.tinymediamanager.core.movie.MovieList;
 import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.MovieScraperMetadataConfig;
 import org.tinymediamanager.core.movie.MovieSearchAndScrapeOptions;
+import org.tinymediamanager.core.movie.MovieSettings;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.threading.TmmTask;
 import org.tinymediamanager.core.threading.TmmTaskManager;
@@ -153,8 +154,10 @@ public class MovieScrapeTask extends TmmThreadPool {
    * Helper classes
    ****************************************************************************************/
   private class Worker implements Runnable {
-    private MovieList   movieList;
-    private final Movie movie;
+    private final Movie   movie;
+
+    private MovieSettings settings;
+    private MovieList     movieList;
 
     public Worker(Movie movie) {
       this.movie = movie;
@@ -162,7 +165,9 @@ public class MovieScrapeTask extends TmmThreadPool {
 
     @Override
     public void run() {
+      settings = MovieModuleManager.getInstance().getSettings();
       movieList = MovieModuleManager.getInstance().getMovieList();
+
       // set up scrapers
       MediaScraper mediaMetadataScraper = movieScrapeParams.searchAndScrapeOptions.getMetadataScraper();
       List<MediaScraper> artworkScrapers = movieScrapeParams.searchAndScrapeOptions.getArtworkScrapers();
@@ -225,10 +230,9 @@ public class MovieScrapeTask extends TmmThreadPool {
             }
 
             // also fill other ratings if ratings are requested
-            if (MovieModuleManager.getInstance().getSettings().isFetchAllRatings()
-                && movieScrapeParams.scraperMetadataConfig.contains(MovieScraperMetadataConfig.RATING)) {
-              for (MediaRating rating : ListUtils.nullSafe(
-                  RatingProvider.getRatings(md.getIds(), MovieModuleManager.getInstance().getSettings().getFetchRatingSources(), MediaType.MOVIE))) {
+            if (settings.isFetchAllRatings() && movieScrapeParams.scraperMetadataConfig.contains(MovieScraperMetadataConfig.RATING)) {
+              for (MediaRating rating : ListUtils
+                  .nullSafe(RatingProvider.getRatings(md.getIds(), settings.getFetchRatingSources(), MediaType.MOVIE))) {
                 if (!md.getRatings().contains(rating)) {
                   md.addRating(rating);
                 }
@@ -255,15 +259,14 @@ public class MovieScrapeTask extends TmmThreadPool {
             movie.setLastScraperId(movieScrapeParams.searchAndScrapeOptions.getMetadataScraper().getId());
             movie.setLastScrapeLanguage(movieScrapeParams.searchAndScrapeOptions.getLanguage().name());
 
-            if (MovieModuleManager.getInstance().getSettings().isRenameAfterScrape()) {
-              TmmTask task = new MovieRenameTask(Collections.singletonList(movie));
+            if (settings.isRenameAfterScrape()) {
+              TmmTask task = new MovieRenameTask(Collections.singletonList(movie), settings.getDefaultRenamerProfile());
               // blocking
               task.run();
             }
 
             // write actor images after possible rename (to have a good folder structure)
-            if (ScraperMetadataConfig.containsAnyCast(movieScrapeParams.scraperMetadataConfig)
-                && MovieModuleManager.getInstance().getSettings().isWriteActorImages()) {
+            if (ScraperMetadataConfig.containsAnyCast(movieScrapeParams.scraperMetadataConfig) && settings.isWriteActorImages()) {
               movie.writeActorImages(movieScrapeParams.overwriteExistingItems);
             }
           }
@@ -289,8 +292,7 @@ public class MovieScrapeTask extends TmmThreadPool {
             movie.writeNFO();
 
             // start automatic movie trailer download
-            if (MovieModuleManager.getInstance().getSettings().isUseTrailerPreference()
-                && MovieModuleManager.getInstance().getSettings().isAutomaticTrailerDownload() && movie.getMediaFiles(MediaFileType.TRAILER).isEmpty()
+            if (settings.isUseTrailerPreference() && settings.isAutomaticTrailerDownload() && movie.getMediaFiles(MediaFileType.TRAILER).isEmpty()
                 && !movie.getTrailer().isEmpty()) {
               TmmTaskManager.getInstance().addDownloadTask(new MovieTrailerDownloadTask(movie));
             }
@@ -324,7 +326,7 @@ public class MovieScrapeTask extends TmmThreadPool {
         }
 
         // get threshold from settings (default 0.75) - to minimize false positives
-        final double scraperTreshold = MovieModuleManager.getInstance().getSettings().getScraperThreshold();
+        final double scraperTreshold = settings.getScraperThreshold();
         LOGGER.debug("using threshold from settings of {}", scraperTreshold);
         if (result.getScore() < scraperTreshold) {
           LOGGER.warn("Score ({}) is lower than minimum score ({}) for '{}' - ignore result", result.getScore(), scraperTreshold, movie.getTitle());
@@ -359,9 +361,9 @@ public class MovieScrapeTask extends TmmThreadPool {
       else {
         options.setId("mediaFile", movie.getMainFile());
       }
-      options.setLanguage(MovieModuleManager.getInstance().getSettings().getDefaultImageScraperLanguage());
-      options.setFanartSize(MovieModuleManager.getInstance().getSettings().getImageFanartSize());
-      options.setPosterSize(MovieModuleManager.getInstance().getSettings().getImagePosterSize());
+      options.setLanguage(settings.getDefaultImageScraperLanguage());
+      options.setFanartSize(settings.getImageFanartSize());
+      options.setPosterSize(settings.getImagePosterSize());
 
       // scrape providers
       artworkScrapers.parallelStream().forEach(scraper -> {

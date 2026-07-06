@@ -306,7 +306,7 @@ class MovieCommand implements Runnable {
     moviesToRename = moviesToRename.stream().filter(movie -> !movie.isLocked()).collect(Collectors.toList());
 
     if (!moviesToRename.isEmpty()) {
-      Runnable task = new MovieRenameTask(moviesToRename);
+      Runnable task = new MovieRenameTask(moviesToRename, MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
       task.run(); // blocking
     }
   }

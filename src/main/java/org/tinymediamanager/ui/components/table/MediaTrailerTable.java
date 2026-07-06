@@ -268,7 +268,7 @@ public class MediaTrailerTable extends TmmEditorTable {
             return IconManager.DOWNLOAD;
           }
           else {
-            return IconManager.DOWNLOAD_GREY;
+            return IconManager.DOWNLOAD_GRAY;
           }
         }
         return null;

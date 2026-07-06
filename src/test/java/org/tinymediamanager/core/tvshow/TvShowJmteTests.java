@@ -64,13 +64,14 @@ public class TvShowJmteTests extends BasicTvShowTest {
   public void testTvshowPatterns() {
     try {
       TvShow tvShow = createTvShow();
+      TvShowRenamerProfile renamerProfile = new TvShowRenamerProfile();
 
       engine = Engine.createEngine();
       engine.registerRenderer(Number.class, new ZeroNumberRenderer());
       engine.registerNamedRenderer(new NamedDateRenderer());
       engine.registerNamedRenderer(new NamedNumberRenderer());
       engine.registerNamedRenderer(new NamedUpperCaseRenderer());
-      engine.registerNamedRenderer(new TvShowRenamer.TvShowNamedFirstCharacterRenderer());
+      engine.registerNamedRenderer(new TvShowRenamer.TvShowNamedFirstCharacterRenderer(renamerProfile));
       engine.registerNamedRenderer(new NamedArrayRenderer());
 
       engine.setModelAdaptor(new TmmModelAdaptor());
@@ -82,12 +83,12 @@ public class TvShowJmteTests extends BasicTvShowTest {
             text = StrgUtils.replaceForbiddenFilesystemCharacters(text);
           }
 
-          return TvShowRenamer.replaceInvalidCharacters(text);
+          return TvShowRenamer.replaceInvalidCharacters(text, renamerProfile);
         }
 
         @Override
         protected boolean isUnicodeReplacementEnabled() {
-          return TvShowModuleManager.getInstance().getSettings().isUnicodeReplacement();
+          return TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile().isUnicodeReplacement();
         }
       });
 
@@ -123,13 +124,14 @@ public class TvShowJmteTests extends BasicTvShowTest {
   public void testEpisodePatterns() {
     try {
       TvShowEpisode episode = createEpisode();
+      TvShowRenamerProfile renamerProfile = new TvShowRenamerProfile();
 
       engine = Engine.createEngine();
       engine.registerRenderer(Number.class, new ZeroNumberRenderer());
       engine.registerNamedRenderer(new NamedDateRenderer());
       engine.registerNamedRenderer(new NamedNumberRenderer());
       engine.registerNamedRenderer(new NamedUpperCaseRenderer());
-      engine.registerNamedRenderer(new TvShowRenamer.TvShowNamedFirstCharacterRenderer());
+      engine.registerNamedRenderer(new TvShowRenamer.TvShowNamedFirstCharacterRenderer(renamerProfile));
       engine.registerNamedRenderer(new NamedArrayRenderer());
 
       engine.setModelAdaptor(new TmmModelAdaptor());
@@ -141,12 +143,12 @@ public class TvShowJmteTests extends BasicTvShowTest {
             text = StrgUtils.replaceForbiddenFilesystemCharacters(text);
           }
 
-          return TvShowRenamer.replaceInvalidCharacters(text);
+          return TvShowRenamer.replaceInvalidCharacters(text, renamerProfile);
         }
 
         @Override
         protected boolean isUnicodeReplacementEnabled() {
-          return TvShowModuleManager.getInstance().getSettings().isUnicodeReplacement();
+          return TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile().isUnicodeReplacement();
         }
       });
 
@@ -310,7 +312,7 @@ public class TvShowJmteTests extends BasicTvShowTest {
   }
 
   private void compare2(String template, String expectedValue, List<TvShowEpisode> episodes) {
-    String actualValue = TvShowRenamer.createDestination(template, episodes);
+    String actualValue = TvShowRenamer.createDestination(template, episodes, new TvShowRenamerProfile());
     assertThat(actualValue).isEqualTo(expectedValue);
   }
 

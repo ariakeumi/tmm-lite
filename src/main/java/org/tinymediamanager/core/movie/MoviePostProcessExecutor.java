@@ -37,9 +37,14 @@ import com.floreysoft.jmte.Engine;
  */
 public class MoviePostProcessExecutor extends PostProcessExecutor {
   private static final Logger LOGGER = LoggerFactory.getLogger(MoviePostProcessExecutor.class);
+  private final Engine        engine;
 
   public MoviePostProcessExecutor(PostProcess postProcess, List<Movie> movies) {
     super(postProcess, movies);
+    // copy to make it immutable
+    MovieRenamerProfile renamerProfile = new MovieRenamerProfile(MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
+    engine = MovieRenamer.createEngine(renamerProfile);
+    engine.setModelAdaptor(new TmmModelAdaptor());
   }
 
   @Override
@@ -62,9 +67,6 @@ public class MoviePostProcessExecutor extends PostProcessExecutor {
   }
 
   protected String[] substituteMovieTokens(Movie movie) {
-    Engine engine = MovieRenamer.createEngine();
-    engine.setModelAdaptor(new TmmModelAdaptor());
-
     Map<String, Object> root = new HashMap<>();
     root.put("movie", movie);
 

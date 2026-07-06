@@ -76,12 +76,14 @@ public class MovieJmteTests extends BasicMovieTest {
 
   @Test
   public void testMoviePatterns() {
+    MovieRenamerProfile defaultRenamerProfile = MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+
     try {
       Movie movie = createMovie();
 
       engine = Engine.createEngine();
       engine.registerRenderer(Number.class, new ZeroNumberRenderer());
-      engine.registerNamedRenderer(new MovieNamedFirstCharacterRenderer());
+      engine.registerNamedRenderer(new MovieNamedFirstCharacterRenderer(defaultRenamerProfile.getRenamerFirstCharacterNumberReplacement()));
       engine.registerNamedRenderer(new MovieNamedIndexOfMovieSetRenderer());
       engine.registerNamedRenderer(new MovieNamedIndexOfMovieSetWithDummyRenderer());
       engine.registerNamedRenderer(new NamedArrayRenderer());
@@ -107,12 +109,12 @@ public class MovieJmteTests extends BasicMovieTest {
             return StrgUtils.replaceForbiddenFilesystemCharacters(text);
           }
 
-          return MovieRenamer.replaceInvalidCharacters(text);
+          return MovieRenamer.replaceInvalidCharacters(text, defaultRenamerProfile);
         }
 
         @Override
         protected boolean isUnicodeReplacementEnabled() {
-          return MovieModuleManager.getInstance().getSettings().isUnicodeReplacement();
+          return defaultRenamerProfile.isUnicodeReplacement();
         }
       });
 

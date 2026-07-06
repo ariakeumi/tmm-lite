@@ -37,9 +37,14 @@ import com.floreysoft.jmte.Engine;
  */
 public class TvShowPostProcessExecutor extends PostProcessExecutor {
   private static final Logger LOGGER = LoggerFactory.getLogger(TvShowPostProcessExecutor.class);
+  private final Engine        engine;
 
   public TvShowPostProcessExecutor(PostProcess postProcess, List<TvShow> tvShows) {
     super(postProcess, tvShows);
+    // copy to make it immutable
+    TvShowRenamerProfile renamerProfile = new TvShowRenamerProfile(TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
+    engine = TvShowRenamer.createEngine(renamerProfile);
+    engine.setModelAdaptor(new TmmModelAdaptor());
   }
 
   @Override
@@ -67,10 +72,6 @@ public class TvShowPostProcessExecutor extends PostProcessExecutor {
   }
 
   private String[] substituteTokens(Map<String, Object> mappings) {
-    Engine engine = TvShowRenamer.createEngine();
-
-    engine.setModelAdaptor(new TmmModelAdaptor());
-
     if (postProcess.getPath() == null || postProcess.getPath().isEmpty()) {
       // scripting mode - transform as single string
       String transformed = engine.transform(JmteUtils.morphTemplate(postProcess.getCommand(), TvShowRenamer.getTokenMap()), mappings);

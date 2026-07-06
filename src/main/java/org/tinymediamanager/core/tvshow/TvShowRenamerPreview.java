@@ -41,9 +41,11 @@ public class TvShowRenamerPreview {
   private final TvShow                  tvShow;
   private final TvShow                  clone;
   private final RenamerPreviewContainer container;
+  private final TvShowRenamerProfile    renamerProfile;
 
-  public TvShowRenamerPreview(TvShow tvShow) {
+  public TvShowRenamerPreview(TvShow tvShow, TvShowRenamerProfile renamerProfile) {
     this.tvShow = tvShow;
+    this.renamerProfile = renamerProfile;
     this.clone = new TvShow();
     this.clone.merge(tvShow);
     this.clone.setDataSource(tvShow.getDataSource());
@@ -52,8 +54,12 @@ public class TvShowRenamerPreview {
 
   public RenamerPreviewContainer generatePreview() {
     // generate the new path
-    container.newPath = Paths
-        .get(TvShowRenamer.getTvShowFoldername(TvShowModuleManager.getInstance().getSettings().getRenamerTvShowFoldername(), tvShow));
+    if (renamerProfile.isRenamerTvShowFoldernameEnabled()) {
+      container.newPath = Paths.get(TvShowRenamer.getTvShowFoldername(renamerProfile, tvShow));
+    }
+    else {
+      container.newPath = tvShow.getPathNIO();
+    }
     this.clone.setPath(container.newPath.toString());
 
     // process TV show media files
@@ -96,7 +102,7 @@ public class TvShowRenamerPreview {
         MediaFile mediaFileClone = new MediaFile(typeMf);
         mediaFileClone.setPath(typeMf.getPath().replace(container.getOldPath().toString(), container.getNewPath().toString()));
 
-        List<MediaFile> mfs = TvShowRenamer.generateFilename(clone, mediaFileClone);
+        List<MediaFile> mfs = TvShowRenamer.generateFilename(clone, mediaFileClone, renamerProfile);
         for (MediaFile mf : mfs) {
           c.newFiles.add(container.getNewPath().relativize(mf.getFileAsPath()).toString());
         }
@@ -113,7 +119,7 @@ public class TvShowRenamerPreview {
         MediaFileTypeContainer c = new MediaFileTypeContainer();
         for (MediaFile typeMf : season.getMediaFiles(type)) {
           c.oldFiles.add(container.getOldPath().relativize(typeMf.getFileAsPath()).toString());
-          List<MediaFile> mfs = TvShowRenamer.generateSeasonFilenames(clone, season, new MediaFile(typeMf));
+          List<MediaFile> mfs = TvShowRenamer.generateSeasonFilenames(clone, season, new MediaFile(typeMf), renamerProfile);
           for (MediaFile mf : mfs) {
             c.newFiles.add(container.getNewPath().relativize(mf.getFileAsPath()).toString());
           }
@@ -143,15 +149,12 @@ public class TvShowRenamerPreview {
         multiCache.add(main);
       }
 
-      // BASENAME
-      String oldVideoBasename = episode.getVideoBasenameWithoutStacking();
-
       // let all episode MF be in ONE container - looks nicer, and we usually only have a few...
-      // for (MediaFileType type : MediaFileType.values()) {
       MediaFileTypeContainer c = new MediaFileTypeContainer();
       for (MediaFile typeMf : episode.getMediaFiles()) {
         c.oldFiles.add(container.getOldPath().relativize(typeMf.getFileAsPath()).toString());
-        List<MediaFile> mfs = TvShowRenamer.generateEpisodeFilenames(clone, new MediaFile(typeMf), oldVideoBasename);
+        List<MediaFile> mfs = TvShowRenamer.generateEpisodeFilenames(clone, new MediaFile(typeMf), episode.getVideoBasenameWithoutStacking(),
+            renamerProfile);
         for (MediaFile mf : mfs) {
           c.newFiles.add(container.getNewPath().relativize(mf.getFileAsPath()).toString());
         }
@@ -159,7 +162,6 @@ public class TvShowRenamerPreview {
       if (!c.oldFiles.isEmpty()) {
         container.addFile(c);
       }
-      // }
     }
   }
 }

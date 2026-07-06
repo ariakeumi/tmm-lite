@@ -23,7 +23,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.scraper.util.StrgUtils;
 
 import com.floreysoft.jmte.NamedRenderer;
@@ -37,6 +36,12 @@ import com.floreysoft.jmte.RenderFormatInfo;
 public class MovieNamedFirstCharacterRenderer implements NamedRenderer {
   private static final Pattern FIRST_ALPHANUM_PATTERN = Pattern.compile("[\\p{L}\\d]");
 
+  private final String         numberReplacement;
+
+  public MovieNamedFirstCharacterRenderer(String numberReplacement) {
+    this.numberReplacement = numberReplacement;
+  }
+
   @Override
   public String render(Object o, String s, Locale locale, Map<String, Object> map) {
     if (o instanceof String source && StringUtils.isNotBlank(source)) {
@@ -49,15 +54,15 @@ public class MovieNamedFirstCharacterRenderer implements NamedRenderer {
           return first.toUpperCase(Locale.ROOT);
         }
         else {
-          return MovieModuleManager.getInstance().getSettings().getRenamerFirstCharacterNumberReplacement();
+          return numberReplacement;
         }
       }
     }
     if (o instanceof Number) {
-      return MovieModuleManager.getInstance().getSettings().getRenamerFirstCharacterNumberReplacement();
+      return numberReplacement;
     }
     if (o instanceof Date) {
-      return MovieModuleManager.getInstance().getSettings().getRenamerFirstCharacterNumberReplacement();
+      return numberReplacement;
     }
     return "";
   }

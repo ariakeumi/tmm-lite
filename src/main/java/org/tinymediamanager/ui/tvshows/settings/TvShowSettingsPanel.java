@@ -72,7 +72,6 @@ class TvShowSettingsPanel extends JPanel {
   private JCheckBox            chckbxTraktCollection;
   private JCheckBox            chckbxTraktWatched;
   private JCheckBox            chckbxTraktRating;
-  private JCheckBox            chckbxSpecialSeason;
   private JCheckBox            chckbxCreateMissingSeasonItems;
   private JCheckBox            chckbxResetNewFlag;
   private JCheckBox            chckbxReadNomedia;
@@ -223,7 +222,7 @@ class TvShowSettingsPanel extends JPanel {
     }
     {
       JPanel panelMisc = new JPanel();
-      panelMisc.setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][][][][][][15lp!][][]")); // 16lp ~ width of the
+      panelMisc.setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][][][][][][15lp!][]")); // 16lp ~ width of the
 
       JLabel lblMiscT = new TmmLabel(TmmResourceBundle.getString("Settings.misc"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelMisc, lblMiscT, true);
@@ -257,16 +256,12 @@ class TvShowSettingsPanel extends JPanel {
         panelMisc.add(chckbxRuntimeFromMi, "cell 1 5 2 1");
       }
       {
-        chckbxSpecialSeason = new JCheckBox(TmmResourceBundle.getString("tvshow.renamer.specialseason"));
-        panelMisc.add(chckbxSpecialSeason, "cell 1 7 2 1");
-      }
-      {
         chckbxCreateMissingSeasonItems = new JCheckBox(TmmResourceBundle.getString("Settings.tvshow.writemissingitems"));
-        panelMisc.add(chckbxCreateMissingSeasonItems, "cell 1 8 2 1");
+        panelMisc.add(chckbxCreateMissingSeasonItems, "cell 1 7 2 1");
 
         JLabel lblCreateMissingSeasonItemsHint = new JLabel(IconManager.HINT);
         lblCreateMissingSeasonItemsHint.setToolTipText(TmmResourceBundle.getString("Settings.tvshow.writemissingitems.hint"));
-        panelMisc.add(lblCreateMissingSeasonItemsHint, "cell 1 8 2 1");
+        panelMisc.add(lblCreateMissingSeasonItemsHint, "cell 1 7 2 1");
       }
     }
   }
@@ -330,11 +325,6 @@ class TvShowSettingsPanel extends JPanel {
     AutoBinding autoBinding_18 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, tvShowSettingsBeanProperty_13, chckbxTraktRating,
         jCheckBoxBeanProperty);
     autoBinding_18.bind();
-    //
-    Property tvShowSettingsBeanProperty_1 = BeanProperty.create("specialSeason");
-    AutoBinding autoBinding_2 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, tvShowSettingsBeanProperty_1, chckbxSpecialSeason,
-        jCheckBoxBeanProperty);
-    autoBinding_2.bind();
     //
     Property tvShowSettingsBeanProperty_2 = BeanProperty.create("createMissingSeasonItems");
     AutoBinding autoBinding_3 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, tvShowSettingsBeanProperty_2,

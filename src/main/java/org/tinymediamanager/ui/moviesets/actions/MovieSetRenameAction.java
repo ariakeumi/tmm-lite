@@ -16,12 +16,12 @@
 package org.tinymediamanager.ui.moviesets.actions;
 
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.tinymediamanager.core.TmmResourceBundle;
+import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.movie.entities.MovieSet;
 import org.tinymediamanager.core.movie.tasks.MovieRenameTask;
@@ -62,7 +62,7 @@ public class MovieSetRenameAction extends TmmAction {
     }
 
     // rename
-    TmmThreadPool renameTask = new MovieRenameTask(new ArrayList<>(selectedMovies));
+    TmmThreadPool renameTask = new MovieRenameTask(selectedMovies, MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
     TmmTaskManager.getInstance().addMainTask(renameTask);
   }
 }

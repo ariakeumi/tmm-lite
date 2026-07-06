@@ -44,6 +44,7 @@ import org.tinymediamanager.license.License;
 import org.tinymediamanager.thirdparty.KodiRPC;
 import org.tinymediamanager.ui.AbstractTmmUIModule;
 import org.tinymediamanager.ui.IconManager;
+import org.tinymediamanager.ui.TmmLazyMenuAdapter;
 import org.tinymediamanager.ui.components.MenuScroller;
 import org.tinymediamanager.ui.components.tabbedpane.MainTabbedPane;
 import org.tinymediamanager.ui.dialogs.PostProcessResultDialog;
@@ -79,6 +80,7 @@ import org.tinymediamanager.ui.tvshows.actions.TvShowRebuildMediainfoXmlAction;
 import org.tinymediamanager.ui.tvshows.actions.TvShowRemoveAction;
 import org.tinymediamanager.ui.tvshows.actions.TvShowRenameAction;
 import org.tinymediamanager.ui.tvshows.actions.TvShowRenamePreviewAction;
+import org.tinymediamanager.ui.tvshows.actions.TvShowRenameWithProfileAction;
 import org.tinymediamanager.ui.tvshows.actions.TvShowResetNewFlagAction;
 import org.tinymediamanager.ui.tvshows.actions.TvShowRewriteEpisodeNfoAction;
 import org.tinymediamanager.ui.tvshows.actions.TvShowRewriteNfoAction;
@@ -383,6 +385,21 @@ public class TvShowUIModule extends AbstractTmmUIModule {
     renamePopupMenu.add(createAndRegisterAction(TvShowRenameAction.class));
     renamePopupMenu.add(createAndRegisterAction(TvShowRenamePreviewAction.class));
     renamePopupMenu.addSeparator();
+    JMenu renamerProfile = new JMenu(TmmResourceBundle.getString("Settings.renamer.profile"));
+    renamerProfile.setIcon(IconManager.MENU);
+    MenuScroller.setScrollerFor(renamerProfile, 20, 50, 0, 0);
+    renamerProfile.getPopupMenu().addPopupMenuListener(new TmmLazyMenuAdapter() {
+      @Override
+      protected void menuWillBecomeVisible(JMenu menu) {
+        menu.removeAll();
+
+        for (String profile : TvShowModuleManager.getInstance().getSettings().getRenamerProfiles().keySet()) {
+          menu.add(new TvShowRenameWithProfileAction(profile));
+        }
+      }
+    });
+    renamePopupMenu.add(renamerProfile);
+    renamePopupMenu.addSeparator();
     renamePopupMenu.add(createAndRegisterAction(TvShowUndoRenameAction.class));
     renamePopupMenu.addSeparator();
     renamePopupMenu.add(createAndRegisterAction(TvShowCleanUpFilesAction.class));
@@ -482,6 +499,21 @@ public class TvShowUIModule extends AbstractTmmUIModule {
     renamePopupMenu.setIcon(IconManager.MENU);
     renamePopupMenu.add(createAndRegisterAction(TvShowRenameAction.class));
     renamePopupMenu.add(createAndRegisterAction(TvShowRenamePreviewAction.class));
+    renamePopupMenu.addSeparator();
+    JMenu renamerProfile = new JMenu(TmmResourceBundle.getString("Settings.renamer.profile"));
+    renamerProfile.setIcon(IconManager.MENU);
+    MenuScroller.setScrollerFor(renamerProfile, 20, 50, 0, 0);
+    renamerProfile.getPopupMenu().addPopupMenuListener(new TmmLazyMenuAdapter() {
+      @Override
+      protected void menuWillBecomeVisible(JMenu menu) {
+        menu.removeAll();
+
+        for (String profile : TvShowModuleManager.getInstance().getSettings().getRenamerProfiles().keySet()) {
+          menu.add(new TvShowRenameWithProfileAction(profile));
+        }
+      }
+    });
+    renamePopupMenu.add(renamerProfile);
     renamePopupMenu.addSeparator();
     renamePopupMenu.add(createAndRegisterAction(TvShowUndoRenameAction.class));
     renamePopupMenu.addSeparator();

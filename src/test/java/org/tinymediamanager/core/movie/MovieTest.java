@@ -74,7 +74,7 @@ public class MovieTest extends BasicMovieTest {
     }
 
     // replace normal vars
-    str = MovieRenamer.createDestinationForFilename(str, m);
+    str = MovieRenamer.createDestinationForFilename(str, MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile(), m);
 
     System.out.println(str);
   }
@@ -83,7 +83,8 @@ public class MovieTest extends BasicMovieTest {
     Pattern regex = Pattern.compile("\\$.{1}"); // $x
     Matcher mat = regex.matcher(s);
     if (mat.find()) {
-      String rep = MovieRenamer.createDestinationForFilename(mat.group(), m);
+      String rep = MovieRenamer.createDestinationForFilename(mat.group(), MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile(),
+          m);
       if (rep.isEmpty()) {
         return "";
       }

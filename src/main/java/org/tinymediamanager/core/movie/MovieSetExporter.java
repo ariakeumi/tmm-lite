@@ -194,13 +194,14 @@ public class MovieSetExporter extends MediaEntityExporter {
   }
 
   private static String getMovieFilename(Movie movie) {
-    String filename = MovieRenamer.createDestinationForFilename(MovieModuleManager.getInstance().getSettings().getRenamerFilename(), movie);
+    String filename = MovieRenamer.createDestinationForFilename(movie);
     if (StringUtils.isNotBlank(filename)) {
       return filename;
     }
 
-    // fallback (no renamer settings)
-    filename = MovieRenamer.createDestinationForFilename(DEFAULT_RENAMER_FILE_PATTERN, movie);
+    // fallback (no renamer settings - use the hard coded default filename settings)
+    filename = MovieRenamer.createDestinationForFilename(DEFAULT_RENAMER_FILE_PATTERN,
+        MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile(), movie);
     if (StringUtils.isNotBlank(filename)) {
       return filename;
     }

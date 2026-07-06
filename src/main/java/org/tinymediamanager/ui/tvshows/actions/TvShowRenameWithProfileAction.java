@@ -17,21 +17,18 @@ package org.tinymediamanager.ui.tvshows.actions;
 
 import static org.tinymediamanager.ui.TmmFontHelper.L1;
 
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
 
 import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.core.threading.TmmThreadPool;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
+import org.tinymediamanager.core.tvshow.TvShowRenamerProfile;
 import org.tinymediamanager.core.tvshow.tasks.TvShowRenameTask;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmFontHelper;
@@ -41,16 +38,16 @@ import org.tinymediamanager.ui.tvshows.TvShowSelectionModel;
 import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 
 /**
- * The class {@link TvShowRenameAction}. To rename TV shows/episodes
- * 
+ * TvShowRenameWithProfileAction - rename TV shows/episodes with a specific renamer profile
+ *
  * @author Manuel Laggner
  */
-public class TvShowRenameAction extends TmmAction {
-  public TvShowRenameAction() {
-    putValue(NAME, TmmResourceBundle.getString("tvshow.rename"));
-    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("tvshow.rename"));
-    putValue(ACCELERATOR_KEY,
-        KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() + InputEvent.SHIFT_DOWN_MASK));
+public class TvShowRenameWithProfileAction extends TmmAction {
+  private final String profileName;
+
+  public TvShowRenameWithProfileAction(String profileName) {
+    this.profileName = profileName;
+    putValue(NAME, profileName);
   }
 
   @Override
@@ -74,7 +71,6 @@ public class TvShowRenameAction extends TmmAction {
       int answer = TmmOptionDialog.showOptionDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tvshow.rename"),
           TmmResourceBundle.getString("tvshow.rename.desc"), checkBox);
 
-      // the user don't want to show this dialog again
       if (checkBox.isSelected()) {
         TmmProperties.getInstance().putProperty("tvshow.hiderenamehint", String.valueOf(checkBox.isSelected()));
       }
@@ -85,8 +81,8 @@ public class TvShowRenameAction extends TmmAction {
     }
 
     // rename
-    TmmThreadPool renameTask = new TvShowRenameTask(selectedObjects.getTvShows(), selectedObjects.getEpisodesRecursive(),
-        TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
+    TvShowRenamerProfile profile = TvShowModuleManager.getInstance().getSettings().getRenamerProfile(profileName);
+    TmmThreadPool renameTask = new TvShowRenameTask(selectedObjects.getTvShows(), selectedObjects.getEpisodesRecursive(), profile);
     TmmTaskManager.getInstance().addMainTask(renameTask);
   }
 }

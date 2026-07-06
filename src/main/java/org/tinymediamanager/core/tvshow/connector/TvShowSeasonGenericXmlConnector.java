@@ -100,7 +100,8 @@ public abstract class TvShowSeasonGenericXmlConnector implements ITvShowSeasonCo
     List<MediaFile> newNfos = new ArrayList<>(1);
 
     for (TvShowSeasonNfoNaming nfoNaming : nfoNames) {
-      String nfoFilename = nfoNaming.getFilename(tvShowSeason, "nfo", false);
+      String nfoFilename = nfoNaming.getFilename(tvShowSeason, "nfo", false,
+          TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
       if (StringUtils.isBlank(nfoFilename)) {
         continue;
       }

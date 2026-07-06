@@ -28,10 +28,12 @@ import java.util.Map;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -47,7 +49,10 @@ import org.tinymediamanager.core.RenamerPreviewContainer;
 import org.tinymediamanager.core.RenamerPreviewContainer.MediaFileTypeContainer;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.movie.MovieComparator;
+import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.MovieRenamerPreview;
+import org.tinymediamanager.core.movie.MovieRenamerProfile;
+import org.tinymediamanager.core.movie.MovieSettings;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.movie.tasks.MovieRenameTask;
 import org.tinymediamanager.core.threading.TmmTaskManager;
@@ -75,12 +80,13 @@ import net.miginfocom.swing.MigLayout;
  * @author Manuel Laggner
  */
 public class MovieRenamerPreviewDialog extends TmmDialog {
-  private static final long                        serialVersionUID = 1L;
+  private final MovieSettings                      settings;
   private final EventList<RenamerPreviewContainer> results;
   private final ResultSelectionModel               resultSelectionModel;
   private final EventList<MediaFileTypeContainer>  mediaFileEventList;
 
   /** UI components */
+  private final JComboBox<String>                  cbRenamerProfile;
   private final TmmTable                           tableMovies;
   private final TmmTable                           tableMediaFiles;
   private final JLabel                             lblTitle;
@@ -89,24 +95,35 @@ public class MovieRenamerPreviewDialog extends TmmDialog {
   private final JLabel                             lblFolderNew;
   private final JCheckBox                          cbFilter;
 
-  private final MoviePreviewWorker                 worker;
+  private MoviePreviewWorker                       worker = null;
 
   public MovieRenamerPreviewDialog(final List<Movie> selectedMovies) {
     super(TmmResourceBundle.getString("movie.renamerpreview"), "movieRenamerPreview");
-
+    settings = MovieModuleManager.getInstance().getSettings();
     mediaFileEventList = GlazedLists.eventList(new ArrayList<>());
 
     results = GlazedListsSwing.swingThreadProxyList(GlazedLists.threadSafeList(new BasicEventList<>()));
     {
       JPanel panelContent = new JPanel();
       getContentPane().add(panelContent, BorderLayout.CENTER);
-      panelContent.setLayout(new MigLayout("", "[950lp,grow]", "[600lp,grow]"));
+      panelContent.setLayout(new MigLayout("", "[950lp,grow]", "[][shrink 0][600lp,grow]"));
+      {
+        JLabel lblRenamerProfileT = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.profile"));
+        panelContent.add(lblRenamerProfileT, "flowx,cell 0 0");
+
+        cbRenamerProfile = new JComboBox();
+        panelContent.add(cbRenamerProfile, "cell 0 0");
+      }
+      {
+        JSeparator separator = new JSeparator();
+        panelContent.add(separator, "cell 0 1,growx");
+      }
       {
         JSplitPane splitPane = new JSplitPane();
         splitPane.setName(getName() + ".splitPane");
         TmmUILayoutStore.getInstance().install(splitPane);
         splitPane.setResizeWeight(0.3);
-        panelContent.add(splitPane, "cell 0 0,grow");
+        panelContent.add(splitPane, "cell 0 2,grow");
         {
           TmmTableModel<RenamerPreviewContainer> tableModel = new TmmTableModel<>(GlazedListsSwing.swingThreadProxyList(results),
               new ResultTableFormat());
@@ -199,8 +216,14 @@ public class MovieRenamerPreviewDialog extends TmmDialog {
           selectedMovies1.add((Movie) result.get());
         }
 
+        String profileName = MovieRenamerProfile.DEFAULT_RENAMER_PROFILE;
+        if (cbRenamerProfile.getSelectedItem() instanceof String name) {
+          profileName = name;
+        }
+        MovieRenamerProfile renamerProfile = settings.getRenamerProfile(profileName);
+
         // rename
-        TmmThreadPool renameTask = new MovieRenameTask(selectedMovies1);
+        TmmThreadPool renameTask = new MovieRenameTask(selectedMovies1, renamerProfile);
         TmmTaskManager.getInstance().addMainTask(renameTask);
         results.getReadWriteLock().writeLock().lock();
         try {
@@ -219,6 +242,20 @@ public class MovieRenamerPreviewDialog extends TmmDialog {
       btnClose.addActionListener(arg0 -> setVisible(false));
       addDefaultButton(btnClose);
     }
+
+    for (String profileName : settings.getRenamerProfiles().keySet()) {
+      cbRenamerProfile.addItem(profileName);
+    }
+    cbRenamerProfile.setSelectedItem(MovieRenamerProfile.DEFAULT_RENAMER_PROFILE);
+    cbRenamerProfile.addActionListener(l -> {
+      if (worker != null && !worker.isDone()) {
+        worker.cancel(true);
+      }
+      results.clear();
+
+      worker = new MoviePreviewWorker(selectedMovies);
+      worker.execute();
+    });
 
     tableMediaFiles.addComponentListener(new ComponentAdapter() {
       @Override
@@ -342,13 +379,19 @@ public class MovieRenamerPreviewDialog extends TmmDialog {
       // Since this is uncommon and not desired, show an alert for those (TBD if we want to improve that)
       Map<Path, RenamerPreviewContainer> dupeNewPath = new HashMap<>();
 
+      String profileName = MovieRenamerProfile.DEFAULT_RENAMER_PROFILE;
+      if (cbRenamerProfile.getSelectedItem() instanceof String name) {
+        profileName = name;
+      }
+      MovieRenamerProfile renamerProfile = settings.getRenamerProfile(profileName);
+
       // rename them
       for (Movie movie : moviesToProcess) {
         if (isCancelled()) {
           return null;
         }
 
-        RenamerPreviewContainer container = new MovieRenamerPreview(movie).generatePreview();
+        RenamerPreviewContainer container = new MovieRenamerPreview(movie, renamerProfile).generatePreview();
         if (dupeNewPath.containsKey(container.newPath)) {
           // we have a dupe
           container.renamerProblems = true;
@@ -368,7 +411,6 @@ public class MovieRenamerPreviewDialog extends TmmDialog {
       SwingUtilities.invokeLater(() -> {
         if (results.isEmpty()) { // check has to be in here, since it needs some time to propagate
           JOptionPane.showMessageDialog(MovieRenamerPreviewDialog.this, TmmResourceBundle.getString("movie.renamerpreview.nothingtorename"));
-          setVisible(false);
         }
       });
 

@@ -573,7 +573,8 @@ public class MovieChooserDialog extends TmmDialog implements ActionListener {
 
           // automatic rename?
           if (MovieModuleManager.getInstance().getSettings().isRenameAfterScrape()) {
-            model.addTask(new MovieRenameTask(Collections.singletonList(movieToScrape)));
+            model.addTask(new MovieRenameTask(Collections.singletonList(movieToScrape),
+                MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile()));
           }
 
           // write actor images after possible rename (to have a good folder structure)

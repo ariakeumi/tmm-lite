@@ -783,12 +783,15 @@ public class TvShowArtworkHelper {
   private static void downloadSeasonArtwork(TvShowSeason tvShowSeason, List<? extends ITvShowSeasonFileNaming> fileNamings,
       MediaFileType mediaFileType) {
 
+    TvShowRenamerProfile renamerProfile = TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+
     // only write artwork if there is at least one episode in the season or the setting activated
-    if (!tvShowSeason.getEpisodes().isEmpty() || TvShowModuleManager.getInstance().getSettings().isCreateMissingSeasonItems()) {
+    if (!tvShowSeason.getEpisodes().isEmpty() || renamerProfile.isCreateMissingSeasonItems()) {
       String seasonArtworkUrl = tvShowSeason.getArtworkUrl(mediaFileType);
 
       for (ITvShowSeasonFileNaming fileNaming : fileNamings) {
-        String filename = fileNaming.getFilename(tvShowSeason, Utils.getArtworkExtensionFromUrl(seasonArtworkUrl), false);
+        String filename = fileNaming.getFilename(tvShowSeason, Utils.getArtworkExtensionFromUrl(seasonArtworkUrl), false,
+            TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
         if (StringUtils.isBlank(filename)) {
           LOGGER.warn("Empty filename for season artwork: '{}' - '{}'", fileNaming.name(), tvShowSeason); // NOSONAR
           MessageManager.getInstance().pushMessage(new Message(Message.MessageLevel.ERROR, tvShowSeason, "tvshow.seasondownload.failed"));

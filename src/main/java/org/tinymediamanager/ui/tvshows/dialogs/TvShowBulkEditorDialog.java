@@ -64,13 +64,13 @@ import org.tinymediamanager.core.entities.MediaRating;
 import org.tinymediamanager.core.entities.MediaSource;
 import org.tinymediamanager.core.entities.Person;
 import org.tinymediamanager.core.jmte.JmteUtils;
-import org.tinymediamanager.core.movie.MovieRenamer;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.core.tvshow.TvShowEpisodeEdition;
 import org.tinymediamanager.core.tvshow.TvShowList;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
 import org.tinymediamanager.core.tvshow.TvShowRenamer;
+import org.tinymediamanager.core.tvshow.TvShowSettings;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.scraper.entities.MediaCertification;
@@ -111,6 +111,7 @@ import net.miginfocom.swing.MigLayout;
  * @author Manuel Laggner
  */
 public class TvShowBulkEditorDialog extends TmmDialog {
+  private final TvShowSettings            settings;
   private final TvShowList                tvShowList      = TvShowModuleManager.getInstance().getTvShowList();
   private final Collection<TvShow>        tvShowsToEdit;
   private final Collection<TvShowEpisode> tvShowEpisodesToEdit;
@@ -136,6 +137,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
    */
   public TvShowBulkEditorDialog(final Collection<TvShow> tvShows, final Collection<TvShowEpisode> episodes) {
     super(TmmResourceBundle.getString("tvshow.bulkedit"), "tvShowBulkEditor");
+    settings = TvShowModuleManager.getInstance().getSettings();
 
     tvShowsToEdit = tvShows;
     tvShowEpisodesToEdit = episodes;
@@ -350,8 +352,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
         panelContent.add(lblCertificationT, "cell 0 5, alignx right");
 
         JComboBox<MediaCertification> cbCertification = new JComboBox<>();
-        for (MediaCertification cert : MediaCertification
-            .getCertificationsforCountry(TvShowModuleManager.getInstance().getSettings().getCertificationCountry())) {
+        for (MediaCertification cert : MediaCertification.getCertificationsforCountry(settings.getCertificationCountry())) {
           cbCertification.addItem(cert);
         }
         panelContent.add(cbCertification, "cell 1 5, growx");
@@ -1000,16 +1001,16 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
           }
 
-          if (TvShowModuleManager.getInstance().getSettings().getSyncTrakt()) {
+          if (settings.getSyncTrakt()) {
             Set<TvShow> tvShows1 = new HashSet<>();
             for (TvShowEpisode episode : tvShowEpisodesToEdit) {
               tvShows1.add(episode.getTvShow());
             }
             tvShows1.addAll(tvShowsToEdit);
             TvShowSyncTraktTvTask task = new TvShowSyncTraktTvTask(new ArrayList<>(tvShows1));
-            task.setSyncCollection(TvShowModuleManager.getInstance().getSettings().getSyncTraktCollection());
-            task.setSyncWatched(TvShowModuleManager.getInstance().getSettings().getSyncTraktWatched());
-            task.setSyncRating(TvShowModuleManager.getInstance().getSettings().getSyncTraktRating());
+            task.setSyncCollection(settings.getSyncTraktCollection());
+            task.setSyncWatched(settings.getSyncTraktWatched());
+            task.setSyncRating(settings.getSyncTraktRating());
 
             TmmTaskManager.getInstance().addUnnamedTask(task);
           }
@@ -1170,6 +1171,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
 
   private static class TvShowValues extends AbstractModelObject {
     private final TvShow tvShow;
+    private final Engine engine;
 
     private String       property;
     private String       propertyValue = "";
@@ -1177,6 +1179,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
 
     public TvShowValues(TvShow tvShow) {
       this.tvShow = tvShow;
+      this.engine = TvShowRenamer.createEngine(TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
     }
 
     public void changeProperty(String property) {
@@ -1207,7 +1210,6 @@ public class TvShowBulkEditorDialog extends TmmDialog {
 
     private String getPatternValue(String pattern) {
       try {
-        Engine engine = TvShowRenamer.createEngine();
         Map<String, Object> root = new HashMap<>();
         root.put("tvShow", tvShow);
         return engine.transform(JmteUtils.morphTemplate(pattern, TvShowRenamer.getTokenMap()), root);
@@ -1270,6 +1272,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
 
   private static class EpisodeValues extends AbstractModelObject {
     private final TvShowEpisode episode;
+    private final Engine        engine;
 
     private String              property;
     private String              propertyValue = "";
@@ -1277,6 +1280,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
 
     public EpisodeValues(TvShowEpisode tvShowEpisode) {
       this.episode = tvShowEpisode;
+      this.engine = TvShowRenamer.createEngine(TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
     }
 
     public void changeProperty(String property) {
@@ -1307,7 +1311,6 @@ public class TvShowBulkEditorDialog extends TmmDialog {
 
     private String getPatternValue(String pattern) {
       try {
-        Engine engine = MovieRenamer.createEngine();
         Map<String, Object> root = new HashMap<>();
         root.put("tvShow", episode.getTvShow());
         root.put("episode", episode);

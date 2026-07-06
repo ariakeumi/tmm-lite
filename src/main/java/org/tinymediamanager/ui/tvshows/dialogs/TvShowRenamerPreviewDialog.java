@@ -25,10 +25,12 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -43,10 +45,14 @@ import org.tinymediamanager.core.AbstractModelObject;
 import org.tinymediamanager.core.RenamerPreviewContainer;
 import org.tinymediamanager.core.RenamerPreviewContainer.MediaFileTypeContainer;
 import org.tinymediamanager.core.TmmResourceBundle;
+import org.tinymediamanager.core.movie.MovieRenamerProfile;
 import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.core.threading.TmmThreadPool;
 import org.tinymediamanager.core.tvshow.TvShowComparator;
+import org.tinymediamanager.core.tvshow.TvShowModuleManager;
 import org.tinymediamanager.core.tvshow.TvShowRenamerPreview;
+import org.tinymediamanager.core.tvshow.TvShowRenamerProfile;
+import org.tinymediamanager.core.tvshow.TvShowSettings;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.core.tvshow.tasks.TvShowRenameTask;
@@ -73,12 +79,14 @@ import net.miginfocom.swing.MigLayout;
  * @author Manuel Laggner
  */
 public class TvShowRenamerPreviewDialog extends TmmDialog {
-  private static final long                        serialVersionUID = 1L;
+  private final TvShowSettings                     settings;
+
   private final EventList<RenamerPreviewContainer> results;
   private final ResultSelectionModel               resultSelectionModel;
   private final EventList<MediaFileTypeContainer>  mediaFileEventList;
 
   /** UI components */
+  private final JComboBox<String>                  cbRenamerProfile;
   private final TmmTable                           tableTvShows;
   private final TmmTable                           tableMediaFiles;
   private final JLabel                             lblTitle;
@@ -87,24 +95,35 @@ public class TvShowRenamerPreviewDialog extends TmmDialog {
   private final JLabel                             lblFolderNew;
   private final JCheckBox                          cbFilter;
 
-  private final TvShowPreviewWorker                worker;
+  private TvShowPreviewWorker                      worker;
 
   public TvShowRenamerPreviewDialog(final List<TvShow> selectedTvShows) {
     super(TmmResourceBundle.getString("movie.renamerpreview"), "tvShowRenamerPreview"); // movie, yes. no separate translation used/needed
 
+    settings = TvShowModuleManager.getInstance().getSettings();
     mediaFileEventList = GlazedLists.eventList(new ArrayList<>());
-
     results = GlazedListsSwing.swingThreadProxyList(GlazedLists.threadSafeList(new BasicEventList<>()));
     {
       JPanel panelContent = new JPanel();
       getContentPane().add(panelContent, BorderLayout.CENTER);
-      panelContent.setLayout(new MigLayout("", "[950lp,grow]", "[600lp,grow]"));
+      panelContent.setLayout(new MigLayout("", "[950lp,grow]", "[][shrink 0][600lp,grow]"));
+      {
+        JLabel lblRenamerProfileT = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.profile"));
+        panelContent.add(lblRenamerProfileT, "flowx,cell 0 0");
+
+        cbRenamerProfile = new JComboBox();
+        panelContent.add(cbRenamerProfile, "cell 0 0");
+      }
+      {
+        JSeparator separator = new JSeparator();
+        panelContent.add(separator, "cell 0 1,growx");
+      }
       {
         JSplitPane splitPane = new JSplitPane();
         splitPane.setName(getName() + ".splitPane");
         TmmUILayoutStore.getInstance().install(splitPane);
         splitPane.setResizeWeight(0.3);
-        panelContent.add(splitPane, "cell 0 0,grow");
+        panelContent.add(splitPane, "cell 0 2,grow");
         {
           TmmTableModel<RenamerPreviewContainer> tableModel = new TmmTableModel<>(GlazedListsSwing.swingThreadProxyList(results),
               new ResultTableFormat());
@@ -199,8 +218,14 @@ public class TvShowRenamerPreviewDialog extends TmmDialog {
           selectedEpisodes.addAll(((TvShow) result.get()).getEpisodes());
         }
 
+        String profileName = TvShowRenamerProfile.DEFAULT_RENAMER_PROFILE;
+        if (cbRenamerProfile.getSelectedItem() instanceof String name) {
+          profileName = name;
+        }
+        TvShowRenamerProfile renamerProfile = settings.getRenamerProfile(profileName);
+
         // rename
-        TmmThreadPool renameTask = new TvShowRenameTask(selectedTvShows1, selectedEpisodes);
+        TmmThreadPool renameTask = new TvShowRenameTask(selectedTvShows1, selectedEpisodes, renamerProfile);
         TmmTaskManager.getInstance().addMainTask(renameTask);
         results.getReadWriteLock().writeLock().lock();
         try {
@@ -218,6 +243,20 @@ public class TvShowRenamerPreviewDialog extends TmmDialog {
       btnClose.addActionListener(arg0 -> setVisible(false));
       addDefaultButton(btnClose);
     }
+
+    for (String profileName : settings.getRenamerProfiles().keySet()) {
+      cbRenamerProfile.addItem(profileName);
+    }
+    cbRenamerProfile.setSelectedItem(MovieRenamerProfile.DEFAULT_RENAMER_PROFILE);
+    cbRenamerProfile.addActionListener(l -> {
+      if (worker != null && !worker.isDone()) {
+        worker.cancel(true);
+      }
+      results.clear();
+
+      worker = new TvShowPreviewWorker(selectedTvShows);
+      worker.execute();
+    });
 
     tableMediaFiles.addComponentListener(new ComponentAdapter() {
       @Override
@@ -335,13 +374,20 @@ public class TvShowRenamerPreviewDialog extends TmmDialog {
     protected Void doInBackground() {
       // sort shows
       tvShowsToProcess.sort(new TvShowComparator());
+
+      String profileName = TvShowRenamerProfile.DEFAULT_RENAMER_PROFILE;
+      if (cbRenamerProfile.getSelectedItem() instanceof String name) {
+        profileName = name;
+      }
+      TvShowRenamerProfile renamerProfile = settings.getRenamerProfile(profileName);
+
       // rename them
       for (TvShow tvShow : tvShowsToProcess) {
         if (isCancelled()) {
           return null;
         }
 
-        RenamerPreviewContainer container = new TvShowRenamerPreview(tvShow).generatePreview();
+        RenamerPreviewContainer container = new TvShowRenamerPreview(tvShow, renamerProfile).generatePreview();
         if (container.isNeedsRename() || container.hasRenamerProblems()) {
           results.add(container);
         }
@@ -350,7 +396,6 @@ public class TvShowRenamerPreviewDialog extends TmmDialog {
       SwingUtilities.invokeLater(() -> {
         if (results.isEmpty()) { // check has to be in here, since it needs some time to propagate
           JOptionPane.showMessageDialog(TvShowRenamerPreviewDialog.this, TmmResourceBundle.getString("movie.renamerpreview.nothingtorename"));
-          setVisible(false);
         }
       });
 

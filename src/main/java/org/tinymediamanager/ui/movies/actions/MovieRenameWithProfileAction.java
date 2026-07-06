@@ -13,70 +13,65 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.tinymediamanager.ui.tvshows.actions;
+package org.tinymediamanager.ui.movies.actions;
 
 import static org.tinymediamanager.ui.TmmFontHelper.L1;
 
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
 
 import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
+import org.tinymediamanager.core.movie.MovieModuleManager;
+import org.tinymediamanager.core.movie.MovieRenamerProfile;
+import org.tinymediamanager.core.movie.entities.Movie;
+import org.tinymediamanager.core.movie.tasks.MovieRenameTask;
 import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.core.threading.TmmThreadPool;
-import org.tinymediamanager.core.tvshow.TvShowModuleManager;
-import org.tinymediamanager.core.tvshow.tasks.TvShowRenameTask;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.actions.TmmAction;
 import org.tinymediamanager.ui.dialogs.TmmOptionDialog;
-import org.tinymediamanager.ui.tvshows.TvShowSelectionModel;
-import org.tinymediamanager.ui.tvshows.TvShowUIModule;
+import org.tinymediamanager.ui.movies.MovieUIModule;
 
 /**
- * The class {@link TvShowRenameAction}. To rename TV shows/episodes
+ * MovieRenameAction - rename movies
  * 
  * @author Manuel Laggner
  */
-public class TvShowRenameAction extends TmmAction {
-  public TvShowRenameAction() {
-    putValue(NAME, TmmResourceBundle.getString("tvshow.rename"));
-    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("tvshow.rename"));
-    putValue(ACCELERATOR_KEY,
-        KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() + InputEvent.SHIFT_DOWN_MASK));
+public class MovieRenameWithProfileAction extends TmmAction {
+  private final String profileName;
+
+  public MovieRenameWithProfileAction(String profileName) {
+    this.profileName = profileName;
+    putValue(NAME, profileName);
   }
 
   @Override
   protected void processAction(ActionEvent e) {
-    TvShowSelectionModel.SelectedObjects selectedObjects = TvShowUIModule.getInstance().getSelectionModel().getSelectedObjects();
+    List<Movie> selectedMovies = MovieUIModule.getInstance().getSelectionModel().getSelectedMovies();
 
-    if (selectedObjects.isLockedFound()) {
-      TvShowSelectionModel.showLockedInformation();
-    }
-
-    if (selectedObjects.isEmpty()) {
+    if (selectedMovies.isEmpty()) {
+      JOptionPane.showMessageDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
     // display warning and ask the user again
-    if (Boolean.FALSE.equals(TmmProperties.getInstance().getPropertyAsBoolean("tvshow.hiderenamehint"))) {
+    if (!TmmProperties.getInstance().getPropertyAsBoolean("movie.hiderenamehint")) {
       JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
       TmmFontHelper.changeFont(checkBox, L1);
       checkBox.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
 
-      int answer = TmmOptionDialog.showOptionDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tvshow.rename"),
-          TmmResourceBundle.getString("tvshow.rename.desc"), checkBox);
+      int answer = TmmOptionDialog.showOptionDialog(MainWindow.getInstance(), TmmResourceBundle.getString("movie.rename"),
+          TmmResourceBundle.getString("movie.rename.desc"), checkBox);
 
       // the user don't want to show this dialog again
       if (checkBox.isSelected()) {
-        TmmProperties.getInstance().putProperty("tvshow.hiderenamehint", String.valueOf(checkBox.isSelected()));
+        TmmProperties.getInstance().putProperty("movie.hiderenamehint", String.valueOf(checkBox.isSelected()));
       }
 
       if (answer != JOptionPane.YES_OPTION) {
@@ -85,8 +80,8 @@ public class TvShowRenameAction extends TmmAction {
     }
 
     // rename
-    TmmThreadPool renameTask = new TvShowRenameTask(selectedObjects.getTvShows(), selectedObjects.getEpisodesRecursive(),
-        TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
+    MovieRenamerProfile profile = MovieModuleManager.getInstance().getSettings().getRenamerProfile(profileName);
+    TmmThreadPool renameTask = new MovieRenameTask(selectedMovies, profile);
     TmmTaskManager.getInstance().addMainTask(renameTask);
   }
 }

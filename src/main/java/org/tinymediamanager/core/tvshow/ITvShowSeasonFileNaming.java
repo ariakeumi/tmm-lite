@@ -32,9 +32,11 @@ public interface ITvShowSeasonFileNaming {
    *          the file extension
    * @param forRenamer
    *          do we want to create the filename for the renamer (aka. clean season folder)
+   * @param renamerProfile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the file name or an empty string
    */
-  String getFilename(TvShowSeason tvShowSeason, String extension, boolean forRenamer);
+  String getFilename(TvShowSeason tvShowSeason, String extension, boolean forRenamer, TvShowRenamerProfile renamerProfile);
 
   /**
    * get the file name for this enum - renamer version (creates a clean season folder according to settings)
@@ -43,10 +45,12 @@ public interface ITvShowSeasonFileNaming {
    *          the TV show season
    * @param extension
    *          the file extension
+   * @param renamerProfile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the file name or an empty string
    */
-  default String getFilename(TvShowSeason tvShowSeason, String extension) {
-    return getFilename(tvShowSeason, extension, true);
+  default String getFilename(TvShowSeason tvShowSeason, String extension, TvShowRenamerProfile renamerProfile) {
+    return getFilename(tvShowSeason, extension, true, renamerProfile);
   }
 
   /**
@@ -56,14 +60,16 @@ public interface ITvShowSeasonFileNaming {
    *          the {@link TvShowSeason} to get the folder for
    * @param forRenamer
    *          do we want to create the filename for the renamer (aka. clean season folder)
+   * @param renamerProfile
+   *          the renamer profile to use for the renamer (if forRenamer is true)
    * @return the season folder name
    */
-  default String getSeasonFolder(TvShowSeason tvShowSeason, boolean forRenamer) {
+  default String getSeasonFolder(TvShowSeason tvShowSeason, boolean forRenamer, TvShowRenamerProfile renamerProfile) {
     TvShow tvShow = tvShowSeason.getTvShow();
 
     if (forRenamer) {
       // create a clean folder name
-      return TvShowRenamer.getSeasonFoldername(tvShow, tvShowSeason);
+      return TvShowRenamer.getSeasonFoldername(tvShow, tvShowSeason, renamerProfile);
     }
     else {
       // search for the best-fitting existing folder

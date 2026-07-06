@@ -119,7 +119,7 @@ public class EnhancedTextField extends JTextField {
    * @return the JTextField for searching
    */
   public static EnhancedTextField createSearchTextField() {
-    EnhancedTextField textField = new EnhancedTextField(TmmResourceBundle.getString("tmm.searchfield"), IconManager.SEARCH_GREY);
+    EnhancedTextField textField = new EnhancedTextField(TmmResourceBundle.getString("tmm.searchfield"), IconManager.SEARCH_GRAY);
     textField.addIconMouseListener(new MouseAdapter() {
       @Override
       public void mouseClicked(MouseEvent e) {
@@ -146,10 +146,10 @@ public class EnhancedTextField extends JTextField {
 
       private void changeIcon() {
         if (StringUtils.isBlank(textField.getText())) {
-          textField.lblIcon.setIcon(IconManager.SEARCH_GREY);
+          textField.lblIcon.setIcon(IconManager.SEARCH_GRAY);
         }
         else {
-          textField.lblIcon.setIcon(IconManager.CLEAR_GREY);
+          textField.lblIcon.setIcon(IconManager.CLEAR_GRAY);
         }
       }
     });

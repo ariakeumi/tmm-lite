@@ -185,6 +185,11 @@ public final class Settings extends AbstractSettings {
   }
 
   @Override
+  protected void upgradeSettings() {
+    // not needed yet
+  }
+
+  @Override
   protected void afterLoading() {
     // create a new HTTP client to force setting the right proxy/SSL params
     setProxy();

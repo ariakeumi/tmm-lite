@@ -72,6 +72,8 @@ import org.tinymediamanager.core.entities.Person;
 import org.tinymediamanager.core.jmte.JmteUtils;
 import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.MovieRenamer;
+import org.tinymediamanager.core.movie.MovieRenamerProfile;
+import org.tinymediamanager.core.movie.MovieSettings;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.scraper.util.ListUtils;
 import org.tinymediamanager.ui.IconManager;
@@ -108,11 +110,15 @@ import net.miginfocom.swing.MigLayout;
  * @author Manuel Laggner, Wolfgang Janes
  */
 public class MovieJmteExplorerDialog extends TmmDialog {
+  private final MovieSettings              settings;
+  private final EventList<RenamerExample>  exampleEventList;
+  private final EventList<EntityExample>   entityExampleEventList;
+  private final EventList<RendererExample> rendererExampleList;
 
-  private final Engine                     engine;
   private final boolean                    renamerMode;
   private final ButtonGroup                buttonGroup;
 
+  private JComboBox<String>                cbProfile;
   private JComboBox<MoviePreviewContainer> cbMovieForPreview;
   private JComboBox<EntityContainer>       cbEntity;
 
@@ -130,15 +136,17 @@ public class MovieJmteExplorerDialog extends TmmDialog {
 
   private TmmTable                         tableExamples;
 
-  private final EventList<RenamerExample>  exampleEventList;
-  private final EventList<EntityExample>   entityExampleEventList;
-  private final EventList<RendererExample> rendererExampleList;
+  private MovieRenamerProfile              renamerProfile;
+  private Engine                           engine;
 
   public MovieJmteExplorerDialog(Window owner) {
     super(owner, TmmResourceBundle.getString("jmteexplorer.title"), "moviejmteexplorer");
     setMinimumSize(new Dimension(900, 600));
-    engine = MovieRenamer.createEngine();
-    buttonGroup = new ButtonGroup();
+
+    this.settings = MovieModuleManager.getInstance().getSettings();
+    this.renamerProfile = settings.getDefaultRenamerProfile();
+    this.engine = MovieRenamer.createEngine(renamerProfile);
+    this.buttonGroup = new ButtonGroup();
 
     if (owner instanceof SettingsDialog) {
       renamerMode = true;
@@ -158,6 +166,12 @@ public class MovieJmteExplorerDialog extends TmmDialog {
     setModal(false);
 
     initComponents();
+
+    // add profiles
+    for (String profileName : settings.getRenamerProfiles().keySet()) {
+      cbProfile.addItem(profileName);
+    }
+
     setListeners();
 
     buildAndInstallMovieArray();
@@ -197,26 +211,35 @@ public class MovieJmteExplorerDialog extends TmmDialog {
     {
       JPanel panelHeader = new JPanel(new MigLayout("insets 0", "[grow]", "[][shrink 0][2lp]"));
 
-      JPanel panelTop = new JPanel(new MigLayout("", "[][][grow]", "[]"));
-      // movie
-      panelTop.add(new TmmLabel(TmmResourceBundle.getString("tmm.movie")), "cell 0 0");
+      JPanel panelTop = new JPanel(new MigLayout("", "[][][grow]", "[][]"));
+      {
+        // movie
+        panelTop.add(new TmmLabel(TmmResourceBundle.getString("tmm.movie")), "cell 0 0");
 
-      cbMovieForPreview = new JComboBox<>();
-      panelTop.add(cbMovieForPreview, "cell 1 0, wmin 0");
+        cbMovieForPreview = new JComboBox<>();
+        panelTop.add(cbMovieForPreview, "cell 1 0, wmin 0");
 
-      JButton btnHelp = new JButton(TmmResourceBundle.getString("tmm.help"));
-      btnHelp.addActionListener(e -> {
-        String url = StringEscapeUtils.unescapeHtml4("https://www.tinymediamanager.org/docs/movies/renamer");
-        try {
-          TmmUIHelper.browseUrl(url);
-        }
-        catch (Exception ex) {
-          MessageManager.getInstance()
-              .pushMessage(new Message(Message.MessageLevel.ERROR, url, "message.erroropenurl", new String[] { ":", ex.getLocalizedMessage() }));
-        }
-      });
-      panelTop.add(btnHelp, "cell 2 0, trailing");
+        JButton btnHelp = new JButton(TmmResourceBundle.getString("tmm.help"));
+        btnHelp.addActionListener(e -> {
+          String url = StringEscapeUtils.unescapeHtml4("https://www.tinymediamanager.org/docs/movies/renamer");
+          try {
+            TmmUIHelper.browseUrl(url);
+          }
+          catch (Exception ex) {
+            MessageManager.getInstance()
+                .pushMessage(new Message(Message.MessageLevel.ERROR, url, "message.erroropenurl", new String[] { ":", ex.getLocalizedMessage() }));
+          }
+        });
+        panelTop.add(btnHelp, "cell 2 0, trailing");
+      }
+      {
+        // renamer profile
+        JLabel lblProfileT = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.profile"));
+        panelTop.add(lblProfileT, "cell 0 1,alignx right");
 
+        cbProfile = new JComboBox();
+        panelTop.add(cbProfile, "cell 1 1");
+      }
       panelHeader.add(panelTop, "cell 0 0, growx");
 
       panelHeader.add(new JSeparator(), "cell 0 1 3 1, grow");
@@ -264,7 +287,7 @@ public class MovieJmteExplorerDialog extends TmmDialog {
         contentPanel.setRightComponent(tabbedPane);
       }
     }
-    add(contentPanel);
+    getContentPane().add(contentPanel);
 
     {
       if (renamerMode) {
@@ -344,13 +367,13 @@ public class MovieJmteExplorerDialog extends TmmDialog {
       if (StringUtils.isNotBlank(taJmteTokens.getText())) {
         try {
           if (btnPureJmte.isSelected()) {
-            result = processPattern(movie, taJmteTokens.getText());
+            result = processPattern(movie, taJmteTokens.getText(), renamerProfile);
           }
           else if (btnRenamerFoldername.isSelected()) {
-            result = MovieRenamer.createDestinationForFoldername(taJmteTokens.getText(), movie);
+            result = MovieRenamer.createDestinationForFoldername(taJmteTokens.getText(), renamerProfile, movie);
           }
           else if (btnRenamerFilename.isSelected()) {
-            result = MovieRenamer.createDestinationForFilename(taJmteTokens.getText(), movie);
+            result = MovieRenamer.createDestinationForFilename(taJmteTokens.getText(), renamerProfile, movie);
           }
           taError.setText(null);
         }
@@ -371,13 +394,12 @@ public class MovieJmteExplorerDialog extends TmmDialog {
     }
   }
 
-  private String processPattern(Movie movie, String pattern) throws Exception {
+  private String processPattern(Movie movie, String pattern, MovieRenamerProfile renamerProfile) throws Exception {
     Map<String, Object> root = new HashMap<>();
     root.put("movie", movie);
 
     // only offer movie set for movies with more than 1 movie or if setting is set
-    if (movie.getMovieSet() != null
-        && (movie.getMovieSet().getMovies().size() > 1 || MovieModuleManager.getInstance().getSettings().isRenamerCreateMoviesetForSingleMovie())) {
+    if (movie.getMovieSet() != null && (movie.getMovieSet().getMovies().size() > 1 || renamerProfile.isRenamerCreateMoviesetForSingleMovie())) {
       root.put("movieSet", movie.getMovieSet());
     }
 
@@ -454,7 +476,7 @@ public class MovieJmteExplorerDialog extends TmmDialog {
     tableExamples.configureScrollPane(scrollPane);
     tableExamples.setRowHeight(35);
 
-    JPanel panel = new JPanel(new MigLayout("", "[grow]", "[grow]"));
+    JPanel panel = new JPanel(new MigLayout("", "[grow]", "[300lp:n,grow]"));
     panel.add(scrollPane, "cell 0 0, grow");
 
     return panel;
@@ -568,22 +590,22 @@ public class MovieJmteExplorerDialog extends TmmDialog {
     btnGetFolderPattern = new SquareIconButton(IconManager.FILE_IMPORT_INV);
     btnGetFolderPattern.setToolTipText(TmmResourceBundle.getString("jmteexplorer.foldername.import"));
     btnGetFolderPattern.addActionListener(e -> {
-      taJmteTokens.setText(MovieModuleManager.getInstance().getSettings().getRenamerPathname());
+      taJmteTokens.setText(renamerProfile.getRenamerPathname());
       createRenamerExample();
     });
     btnSetFolderPattern = new SquareIconButton(IconManager.FILE_EXPORT_INV);
     btnSetFolderPattern.setToolTipText(TmmResourceBundle.getString("jmteexplorer.foldername.export"));
-    btnSetFolderPattern.addActionListener(e -> MovieModuleManager.getInstance().getSettings().setRenamerPathname(taJmteTokens.getText()));
+    btnSetFolderPattern.addActionListener(e -> renamerProfile.setRenamerPathname(taJmteTokens.getText()));
 
     btnGetFilePattern = new SquareIconButton(IconManager.FILE_IMPORT_INV);
     btnGetFilePattern.setToolTipText(TmmResourceBundle.getString("jmteexplorer.filename.import"));
     btnGetFilePattern.addActionListener(e -> {
-      taJmteTokens.setText(MovieModuleManager.getInstance().getSettings().getRenamerFilename());
+      taJmteTokens.setText(renamerProfile.getRenamerFilename());
       createRenamerExample();
     });
     btnSetFilePattern = new SquareIconButton(IconManager.FILE_EXPORT_INV);
     btnSetFilePattern.setToolTipText(TmmResourceBundle.getString("jmteexplorer.filename.export"));
-    btnSetFilePattern.addActionListener(e -> MovieModuleManager.getInstance().getSettings().setRenamerFilename(taJmteTokens.getText()));
+    btnSetFilePattern.addActionListener(e -> renamerProfile.setRenamerFilename(taJmteTokens.getText()));
 
     if (renamerMode) {
       panelTop.add(new TmmLabel(TmmResourceBundle.getString("jmteexplorer.processmode")), "cell 0 2 2 1, gaptop 10lp");
@@ -669,6 +691,16 @@ public class MovieJmteExplorerDialog extends TmmDialog {
 
     taJmteTokens.getDocument().addDocumentListener(documentListener);
     cbMovieForPreview.addActionListener(e -> updateExamples());
+    cbProfile.addActionListener(e -> {
+      String profileName = MovieRenamerProfile.DEFAULT_RENAMER_PROFILE;
+      if (cbProfile.getSelectedItem() instanceof String name) {
+        profileName = name;
+      }
+      renamerProfile = settings.getRenamerProfile(profileName);
+      engine = MovieRenamer.createEngine(renamerProfile);
+
+      updateExamples();
+    });
     cbEntity.addActionListener(e -> {
       Movie movie = null;
 
@@ -711,7 +743,7 @@ public class MovieJmteExplorerDialog extends TmmDialog {
           try {
             String title = descriptor.getDisplayName();
             entityExampleEventList
-                .add(new EntityExample(title, processPattern(movie, entityContainer.getTemplate().replace("}", "." + title + "}"))));
+                .add(new EntityExample(title, processPattern(movie, entityContainer.getTemplate().replace("}", "." + title + "}"), renamerProfile)));
           }
           catch (Exception ignored) {
             // ignored
@@ -785,7 +817,7 @@ public class MovieJmteExplorerDialog extends TmmDialog {
       }
       else {
         try {
-          example = processPattern(movie, token);
+          example = processPattern(movie, token, renamerProfile);
         }
         catch (Exception ignored) {
           // ignored
@@ -912,7 +944,7 @@ public class MovieJmteExplorerDialog extends TmmDialog {
       }
       else {
         try {
-          result = processPattern(movie, token);
+          result = processPattern(movie, token, renamerProfile);
         }
         catch (Exception ignored) {
           // ignored

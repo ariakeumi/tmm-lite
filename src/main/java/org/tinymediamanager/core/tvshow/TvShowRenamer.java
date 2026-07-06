@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -242,37 +243,28 @@ public class TvShowRenamer {
   }
 
   /**
-   * add leadingZero if only 1 char
-   *
-   * @param num
-   *          the number
-   * @return the string with a leading 0
-   */
-  private static String lz(int num) {
-    return String.format("%02d", num);
-  }
-
-  /**
    * renames the TvShow root folder and updates all TvShow related mediaFiles
    *
    * @param tvShow
    *          the show
+   * @param renamerProfile
+   *          the {@link TvShowRenamerProfile} to use
    */
-  public static void renameTvShow(TvShow tvShow) {
+  public static void renameTvShow(TvShow tvShow, TvShowRenamerProfile renamerProfile) {
     MediaEntityFilenameHistory filenameHistory = new MediaEntityFilenameHistory();
     // rename the TV show folder
-    renameTvShowRoot(tvShow, filenameHistory);
+    renameTvShowRoot(tvShow, filenameHistory, renamerProfile);
 
     // rename TV show media files
-    renameTvShowMediaFiles(tvShow, filenameHistory);
+    renameTvShowMediaFiles(tvShow, filenameHistory, renamerProfile);
 
     tvShow.setRenameHistory(filenameHistory);
 
     // rename the season media files
-    renameSeasonMediaFiles(tvShow);
+    renameSeasonMediaFiles(tvShow, renamerProfile);
 
     // cleanup
-    cleanupUnwantedFiles(tvShow);
+    cleanupUnwantedFiles(tvShow, renamerProfile);
 
     tvShow.saveToDb();
   }
@@ -282,20 +274,27 @@ public class TvShowRenamer {
    *
    * @param show
    *          the show
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    */
-  private static void renameTvShowRoot(TvShow show, MediaEntityFilenameHistory filenameHistory) {
+  private static void renameTvShowRoot(TvShow show, MediaEntityFilenameHistory filenameHistory, TvShowRenamerProfile profile) {
     // skip renamer, if all templates are empty!
-    if (TvShowModuleManager.getInstance().getSettings().getRenamerFilename().isEmpty()
-        && TvShowModuleManager.getInstance().getSettings().getRenamerSeasonFoldername().isEmpty()
-        && TvShowModuleManager.getInstance().getSettings().getRenamerTvShowFoldername().isEmpty()) {
-      LOGGER.warn("NOT renaming TV show '{}' - renaming patterns are empty!", show.getTitle());
+    boolean tvShowOk = profile.isRenamerTvShowFoldernameEnabled() && StringUtils.isNotBlank(profile.getRenamerTvShowFoldername());
+    boolean seasonOk = profile.isRenamerSeasonFoldernameEnabled(); // empty folder name is okay here!
+    boolean fileOk = profile.isRenamerFilenameEnabled() && StringUtils.isNotBlank(profile.getRenamerFilename());
+    if (!tvShowOk && !seasonOk && !fileOk) {
+      LOGGER.warn("NOT renaming TV show '{}' - renaming is disabled/empty!", show.getTitle());
       return;
     }
 
     LOGGER.info("Renaming TV show '{}'", show.getTitle());
     LOGGER.debug("TV show year: {}", show.getYear());
     LOGGER.debug("TV show path: {}", show.getPathNIO());
-    String newPathname = getTvShowFoldername(TvShowModuleManager.getInstance().getSettings().getRenamerTvShowFoldername(), show);
+
+    String newPathname = "";
+    if (profile.isRenamerTvShowFoldernameEnabled()) {
+      newPathname = getTvShowFoldername(profile, show);
+    }
     String oldPathname = show.getPathNIO().toString();
 
     filenameHistory.setOldPath(oldPathname);
@@ -354,8 +353,12 @@ public class TvShowRenamer {
    *
    * @param tvShow
    *          the TV show to rename the artwork for
+   * @param filenameHistory
+   *          the {@link MediaEntityFilenameHistory} to store the history in
+   * @param renamerProfile
+   *          the {@link TvShowRenamerProfile} to use
    */
-  private static void renameTvShowMediaFiles(TvShow tvShow, MediaEntityFilenameHistory filenameHistory) {
+  private static void renameTvShowMediaFiles(TvShow tvShow, MediaEntityFilenameHistory filenameHistory, TvShowRenamerProfile renamerProfile) {
     // all the good & needed mediafiles
     List<MediaFile> needed = new ArrayList<>();
     List<MediaFile> cleanup = new ArrayList<>(tvShow.getMediaFiles());
@@ -375,7 +378,7 @@ public class TvShowRenamer {
     Path newTvShowPath = tvShow.getPathNIO();
 
     if (nfo != MediaFile.EMPTY_MEDIAFILE) { // one valid found? copy our NFO to all variants
-      List<MediaFile> newMFs = generateFilename(tvShow, nfo); // 1:N
+      List<MediaFile> newMFs = generateFilename(tvShow, nfo, renamerProfile); // 1:N
       for (MediaFile newMF : newMFs) {
         boolean ok = copyFile(nfo.getFileAsPath(), newMF.getFileAsPath());
         if (ok) {
@@ -402,7 +405,7 @@ public class TvShowRenamer {
       }
 
       LOGGER.trace("Rename 1:N {} {}", mf.getType(), mf.getFileAsPath());
-      List<MediaFile> newMFs = generateFilename(tvShow, mf); // 1:N
+      List<MediaFile> newMFs = generateFilename(tvShow, mf, renamerProfile); // 1:N
       for (MediaFile newMF : newMFs) {
         boolean ok = copyFile(mf.getFileAsPath(), newMF.getFileAsPath());
         if (ok) {
@@ -526,9 +529,11 @@ public class TvShowRenamer {
    *          the {@link TvShow}
    * @param original
    *          the original {@link MediaFile}
+   * @param renamerProfile
+   *          the {@link TvShowRenamerProfile} to use
    * @return a {@link List} of all {@link MediaFile}s which are needed according to the settings
    */
-  public static List<MediaFile> generateFilename(TvShow tvShow, MediaFile original) {
+  public static List<MediaFile> generateFilename(TvShow tvShow, MediaFile original, TvShowRenamerProfile renamerProfile) {
     List<MediaFile> neededMediaFiles = new ArrayList<>();
     List<? extends IFileNaming> filenamings = null;
 
@@ -663,8 +668,10 @@ public class TvShowRenamer {
    * 
    * @param tvShow
    *          the TV show to rename the season artwork for
+   * @param renamerProfile
+   *          the {@link TvShowRenamerProfile} to use
    */
-  private static void renameSeasonMediaFiles(TvShow tvShow) {
+  private static void renameSeasonMediaFiles(TvShow tvShow, TvShowRenamerProfile renamerProfile) {
     Map<TvShowSeason, MediaEntityFilenameHistory> filenameHistoryMap = new HashMap<>();
 
     // all the good & needed mediafiles
@@ -692,11 +699,10 @@ public class TvShowRenamer {
 
       // one valid found? copy our NFO to all variants
       // and do we want to write those files?
-      if (nfo != MediaFile.EMPTY_MEDIAFILE
-          && (!tvShowSeason.getEpisodes().isEmpty() || TvShowModuleManager.getInstance().getSettings().isCreateMissingSeasonItems())) {
+      if (nfo != MediaFile.EMPTY_MEDIAFILE && (!tvShowSeason.getEpisodes().isEmpty() || renamerProfile.isCreateMissingSeasonItems())) {
 
         for (TvShowSeasonNfoNaming naming : TvShowModuleManager.getInstance().getSettings().getSeasonNfoFilenames()) {
-          String filename = naming.getFilename(tvShowSeason, "nfo");
+          String filename = naming.getFilename(tvShowSeason, "nfo", renamerProfile);
           if (StringUtils.isNotBlank(filename)) {
             MediaFile newMf = new MediaFile(nfo);
             newMf.setFile(Paths.get(tvShow.getPath(), filename));
@@ -737,13 +743,12 @@ public class TvShowRenamer {
         }
 
         // do we ant to write the artwork file at all?
-        if (artworkFile != null
-            && (!tvShowSeason.getEpisodes().isEmpty() || TvShowModuleManager.getInstance().getSettings().isCreateMissingSeasonItems())) {
+        if (artworkFile != null && (!tvShowSeason.getEpisodes().isEmpty() || renamerProfile.isCreateMissingSeasonItems())) {
           String filename;
           switch (type) {
             case SEASON_POSTER -> {
               for (TvShowSeasonPosterNaming naming : TvShowModuleManager.getInstance().getSettings().getSeasonPosterFilenames()) {
-                filename = naming.getFilename(tvShowSeason, artworkFile.getExtension());
+                filename = naming.getFilename(tvShowSeason, artworkFile.getExtension(), renamerProfile);
                 if (StringUtils.isNotBlank(filename)) {
                   MediaFile newMf = new MediaFile(artworkFile);
                   newMf.setFile(Paths.get(tvShow.getPath(), filename));
@@ -757,7 +762,7 @@ public class TvShowRenamer {
             }
             case SEASON_FANART -> {
               for (TvShowSeasonFanartNaming naming : TvShowModuleManager.getInstance().getSettings().getSeasonFanartFilenames()) {
-                filename = naming.getFilename(tvShowSeason, artworkFile.getExtension());
+                filename = naming.getFilename(tvShowSeason, artworkFile.getExtension(), renamerProfile);
                 if (StringUtils.isNotBlank(filename)) {
                   MediaFile newMf = new MediaFile(artworkFile);
                   newMf.setFile(Paths.get(tvShow.getPath(), filename));
@@ -771,7 +776,7 @@ public class TvShowRenamer {
             }
             case SEASON_BANNER -> {
               for (TvShowSeasonBannerNaming naming : TvShowModuleManager.getInstance().getSettings().getSeasonBannerFilenames()) {
-                filename = naming.getFilename(tvShowSeason, artworkFile.getExtension());
+                filename = naming.getFilename(tvShowSeason, artworkFile.getExtension(), renamerProfile);
                 if (StringUtils.isNotBlank(filename)) {
                   MediaFile newMf = new MediaFile(artworkFile);
                   newMf.setFile(Paths.get(tvShow.getPath(), filename));
@@ -785,7 +790,7 @@ public class TvShowRenamer {
             }
             case SEASON_THUMB -> {
               for (TvShowSeasonThumbNaming naming : TvShowModuleManager.getInstance().getSettings().getSeasonThumbFilenames()) {
-                filename = naming.getFilename(tvShowSeason, artworkFile.getExtension());
+                filename = naming.getFilename(tvShowSeason, artworkFile.getExtension(), renamerProfile);
                 if (StringUtils.isNotBlank(filename)) {
                   MediaFile newMf = new MediaFile(artworkFile);
                   newMf.setFile(Paths.get(tvShow.getPath(), filename));
@@ -903,16 +908,18 @@ public class TvShowRenamer {
 
   /**
    * Rename Episode (PLUS all Episodes having the same MediaFile!!!).
-   * 
+   *
    * @param episode
    *          the Episode
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    */
-  public static void renameEpisode(TvShowEpisode episode) {
-    // skip renamer, if all episode related templates are empty!
-    if (TvShowModuleManager.getInstance().getSettings().getRenamerFilename().isEmpty()
-        && TvShowModuleManager.getInstance().getSettings().getRenamerSeasonFoldername().isEmpty()
-        && TvShowModuleManager.getInstance().getSettings().getRenamerTvShowFoldername().isEmpty()) {
-      LOGGER.warn("NOT renaming TV show '{}', episode S{} E{} - renaming patterns are empty!", episode.getTvShow().getTitle(), episode.getSeason(),
+  public static void renameEpisode(TvShowEpisode episode, TvShowRenamerProfile profile) {
+    // skip renamer, if all episode related renaming is disabled/empty
+    boolean seasonOk = profile.isRenamerSeasonFoldernameEnabled(); // an empty season folder name is OK here
+    boolean filenameOk = profile.isRenamerFilenameEnabled() && StringUtils.isNotBlank(profile.getRenamerFilename());
+    if (!seasonOk && !filenameOk) {
+      LOGGER.warn("NOT renaming TV show '{}', episode S{} E{} - renaming is disabled/empty!", episode.getTvShow().getTitle(), episode.getSeason(),
           episode.getEpisode());
       return;
     }
@@ -931,7 +938,7 @@ public class TvShowRenamer {
     LOGGER.info("Renaming/Cleanup TvShow '{}', episode S{} E{}", episode.getTvShow().getTitle(), episode.getSeason(), episode.getEpisode());
 
     if (episode.isDisc()) {
-      renameEpisodeAsDisc(episode);
+      renameEpisodeAsDisc(episode, profile);
       return;
     }
 
@@ -949,16 +956,16 @@ public class TvShowRenamer {
     Path tvShowRoot = episode.getTvShow().getPathNIO();
     MediaEntityFilenameHistory fileNameHistory = new MediaEntityFilenameHistory();
 
-    String seasonFoldername = getSeasonFoldername(episode.getTvShow(), episode);
-    Path seasonFolder = episode.getTvShow().getPathNIO();
-
-    if (StringUtils.isNotBlank(seasonFoldername)) {
-      seasonFolder = episode.getTvShow().getPathNIO().resolve(seasonFoldername);
-      if (!Files.exists(seasonFolder)) {
-        try {
-          Files.createDirectory(seasonFolder);
-        }
-        catch (IOException ignored) {
+    if (profile.isRenamerSeasonFoldernameEnabled()) {
+      String seasonFoldername = getSeasonFoldername(episode.getTvShow(), episode, profile);
+      if (StringUtils.isNotBlank(seasonFoldername)) {
+        Path seasonFolder = episode.getTvShow().getPathNIO().resolve(seasonFoldername);
+        if (!Files.exists(seasonFolder)) {
+          try {
+            Files.createDirectory(seasonFolder);
+          }
+          catch (IOException ignored) {
+          }
         }
       }
     }
@@ -972,7 +979,7 @@ public class TvShowRenamer {
     for (MediaFile vid : episode.getMediaFiles(MediaFileType.VIDEO)) {
       LOGGER.trace("Rename 1:1 {} {}", vid.getType(), vid.getFileAsPath());
 
-      List<MediaFile> newFilenames = generateEpisodeFilenames(episode.getTvShow(), vid, "");
+      List<MediaFile> newFilenames = generateEpisodeFilenames(episode.getTvShow(), vid, "", profile);
       if (ListUtils.isEmpty(newFilenames)) {
         LOGGER.warn("Could not rename '{}' - no new filename generated!", vid.getFileAsPath());
         return;
@@ -1012,7 +1019,7 @@ public class TvShowRenamer {
     mfs.removeAll(Collections.singleton((MediaFile) null)); // remove all NULL ones!
     for (MediaFile mf : mfs) {
       LOGGER.trace("Rename 1:N {} {}", mf.getType(), mf.getFileAsPath());
-      List<MediaFile> newMFs = generateEpisodeFilenames(episode.getTvShow(), mf, oldVideoBasename); // 1:N
+      List<MediaFile> newMFs = generateEpisodeFilenames(episode.getTvShow(), mf, oldVideoBasename, profile); // 1:N
       for (MediaFile newMF : newMFs) {
         boolean ok = copyFile(mf.getFileAsPath(), newMF.getFileAsPath());
         if (ok) {
@@ -1048,7 +1055,7 @@ public class TvShowRenamer {
     }
 
     if (nfo != MediaFile.EMPTY_MEDIAFILE) { // one valid found? copy our NFO to all variants
-      List<MediaFile> newNFOs = generateEpisodeFilenames(episode.getTvShow(), nfo, oldVideoBasename); // 1:N
+      List<MediaFile> newNFOs = generateEpisodeFilenames(episode.getTvShow(), nfo, oldVideoBasename, profile); // 1:N
       if (!newNFOs.isEmpty()) {
         // ok, at least one has been set up
         for (MediaFile newNFO : newNFOs) {
@@ -1073,7 +1080,7 @@ public class TvShowRenamer {
     // ######################################################################
     for (MediaFile subtitle : episode.getMediaFiles(MediaFileType.SUBTITLE)) {
       LOGGER.trace("Rename 1:1 {} {}", subtitle.getType(), subtitle.getFileAsPath());
-      MediaFile newMF = generateEpisodeFilenames(episode.getTvShow(), subtitle, oldVideoBasename).get(0); // there can be only one
+      MediaFile newMF = generateEpisodeFilenames(episode.getTvShow(), subtitle, oldVideoBasename, profile).get(0); // there can be only one
       boolean ok = moveFile(subtitle.getFileAsPath(), newMF.getFileAsPath());
       if (ok) {
         if (newMF.getFilename().endsWith(".sub")) {
@@ -1115,7 +1122,7 @@ public class TvShowRenamer {
         continue;
       }
 
-      List<MediaFile> newMFs = generateEpisodeFilenames(episode.getTvShow(), other, oldVideoBasename); // 1:N
+      List<MediaFile> newMFs = generateEpisodeFilenames(episode.getTvShow(), other, oldVideoBasename, profile); // 1:N
       newMFs.removeAll(Collections.singleton((MediaFile) null)); // remove all NULL ones!
 
       for (MediaFile newMF : newMFs) {
@@ -1206,11 +1213,13 @@ public class TvShowRenamer {
 
   /**
    * renames the episode as disc
-   * 
+   *
    * @param episode
    *          the episode to be renamed
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    */
-  private static void renameEpisodeAsDisc(TvShowEpisode episode) {
+  private static void renameEpisodeAsDisc(TvShowEpisode episode, TvShowRenamerProfile profile) {
     MediaEntityFilenameHistory fileNameHistory = new MediaEntityFilenameHistory();
 
     // get the first MF of this episode
@@ -1251,21 +1260,27 @@ public class TvShowRenamer {
     }
 
     // create SeasonDir
-    String seasonFoldername = getSeasonFoldername(episode.getTvShow(), episode);
-    Path seasonFolder = episode.getTvShow().getPathNIO();
-    if (StringUtils.isNotBlank(seasonFoldername)) {
-      seasonFolder = episode.getTvShow().getPathNIO().resolve(seasonFoldername);
-      if (!Files.exists(seasonFolder)) {
-        try {
-          Files.createDirectory(seasonFolder);
+    Path seasonFolder = episode.getPathNIO();
+    if (profile.isRenamerSeasonFoldernameEnabled()) {
+      String seasonFoldername = getSeasonFoldername(episode.getTvShow(), episode, profile);
+      if (StringUtils.isNotBlank(seasonFoldername)) {
+        seasonFolder = episode.getTvShow().getPathNIO().resolve(seasonFoldername);
+        if (!Files.exists(seasonFolder)) {
+          try {
+            Files.createDirectory(seasonFolder);
+          }
+          catch (IOException ignored) {
+          }
         }
-        catch (IOException ignored) {
-        }
+      }
+      else {
+        // rename to TV show root
+        seasonFolder = episode.getTvShow().getPathNIO();
       }
     }
 
     // rename epFolder accordingly
-    String newFoldername = FilenameUtils.getBaseName(generateFoldername(episode.getTvShow(), mf)); // w/o extension
+    String newFoldername = FilenameUtils.getBaseName(generateFoldername(episode.getTvShow(), mf, profile)); // w/o extension
     if (StringUtils.isBlank(newFoldername)) {
       LOGGER.warn("Empty disc folder name for TV show '{}', Episode S{} E{} - exiting", episode.getTvShow().getTitle(), episode.getSeason(),
           episode.getEpisode());
@@ -1633,20 +1648,22 @@ public class TvShowRenamer {
   /**
    * generates the foldername of a TvShow MediaFile according to settings <b>(without path)</b><br>
    * Mainly for DISC files
-   * 
+   *
    * @param tvShow
    *          the tvShow
    * @param mf
    *          the MF for multiepisode
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the file name for media file
    */
-  public static String generateFoldername(TvShow tvShow, MediaFile mf) {
+  public static String generateFoldername(TvShow tvShow, MediaFile mf, TvShowRenamerProfile profile) {
     List<TvShowEpisode> eps = TvShowList.getTvEpisodesByFile(tvShow, mf.getFile());
     if (ListUtils.isEmpty(eps)) {
       return "";
     }
 
-    return createDestination(TvShowModuleManager.getInstance().getSettings().getRenamerFilename(), eps);
+    return createDestination(profile.getRenamerFilename(), eps, profile);
   }
 
   /**
@@ -1658,10 +1675,12 @@ public class TvShowRenamer {
    *          the MF for multiepisode
    * @param videoBasename
    *          the original video file name
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the file name for the media file
    */
-  public static List<MediaFile> generateEpisodeFilenames(TvShow tvShow, MediaFile mf, String videoBasename) {
-    return generateEpisodeFilenames("", tvShow, mf, videoBasename);
+  public static List<MediaFile> generateEpisodeFilenames(TvShow tvShow, MediaFile mf, String videoBasename, TvShowRenamerProfile profile) {
+    return generateEpisodeFilenames("", tvShow, mf, videoBasename, profile);
   }
 
   /**
@@ -1675,9 +1694,12 @@ public class TvShowRenamer {
    *          the MF for multiepisode
    * @param oldVideoBasename
    *          the original video file name
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the file name for the media file
    */
-  public static List<MediaFile> generateEpisodeFilenames(String template, TvShow tvShow, MediaFile mf, String oldVideoBasename) {
+  public static List<MediaFile> generateEpisodeFilenames(String template, TvShow tvShow, MediaFile mf, String oldVideoBasename,
+      TvShowRenamerProfile profile) {
     // return list of all generated MFs
     List<MediaFile> newFiles = new ArrayList<>();
 
@@ -1715,13 +1737,27 @@ public class TvShowRenamer {
       eps.add(firstEp);
     }
 
-    String newFilename = "";
-    // FIXME: check, where/when the stacking marker gets added, and WHICH (from which stacked video)
-    if (StringUtils.isBlank(template)) {
-      newFilename = createDestination(TvShowModuleManager.getInstance().getSettings().getRenamerFilename(), eps);
+    Path seasonFolder = firstEp.getPathNIO();
+    if (profile.isRenamerSeasonFoldernameEnabled()) {
+      String seasonFoldername = getSeasonFoldername(tvShow, eps.get(0), profile);
+      if (StringUtils.isNotBlank(seasonFoldername)) {
+        seasonFolder = tvShow.getPathNIO().resolve(seasonFoldername);
+      }
+      else {
+        // rename to TV show root
+        seasonFolder = tvShow.getPathNIO();
+      }
     }
-    else {
-      newFilename = createDestination(template, eps);
+
+    String newFilename = firstEp.getMainVideoFile().getBasename();
+    if (profile.isRenamerFilenameEnabled()) {
+      // FIXME: check, where/when the stacking marker gets added, and WHICH (from which stacked video)
+      if (StringUtils.isBlank(template)) {
+        newFilename = createDestination(profile.getRenamerFilename(), eps, profile);
+      }
+      else {
+        newFilename = createDestination(template, eps, profile);
+      }
     }
 
     if (mf.getStacking() > 0) {
@@ -1729,10 +1765,23 @@ public class TvShowRenamer {
       newFilename = Utils.cleanFolderStackingMarkers(newFilename); // i know, but this needs no extension ;)
     }
 
-    String seasonFoldername = getSeasonFoldername(tvShow, eps.get(0));
-    Path seasonFolder = tvShow.getPathNIO();
-    if (StringUtils.isNotBlank(seasonFoldername)) {
-      seasonFolder = tvShow.getPathNIO().resolve(seasonFoldername);
+    // global for all types - if we have a disc file, just exchange the name
+    // cannot use that solely in VIDEO enum, as BUP DVD files are UNKNOWN.
+    // just replace new path and return file (do not change names!)
+    if (eps.get(0).isDisc() || mf.isDiscFile()) {
+      MediaFile video = new MediaFile(mf);
+      // TODO: season folder might change - ok?
+      if (mf.getFileAsPath().getParent().equals(tvShow.getPathNIO())) {
+        // DVD files in show root - aargh; do nothing, just add
+      }
+      else {
+        // if there IS some folder, get the name.
+        // we cannot distinguish if it is a season folder, or a dedicated DVD folder... don't care
+        String epFolder = eps.get(0).getPathNIO().getFileName().toString();
+        video.replacePathForRenamedFolder(eps.get(0).getPathNIO(), seasonFolder.resolve(epFolder));
+      }
+      newFiles.add(video);
+      return newFiles;
     }
 
     // no new filename? just move the file
@@ -1749,7 +1798,7 @@ public class TvShowRenamer {
       ////////////////////////////////////////////////////////////////////////
       case VIDEO:
         MediaFile video = new MediaFile(mf);
-        newFilename += getStackingString(mf); // ToDo
+        newFilename += getStackingString(mf, profile); // ToDo
         newFilename += "." + mf.getExtension();
         video.setFile(seasonFolder.resolve(newFilename));
         newFiles.add(video);
@@ -1785,7 +1834,7 @@ public class TvShowRenamer {
 
       case SUBTITLE:
         List<MediaFileSubtitle> subtitles = mf.getSubtitles();
-        newFilename += getStackingString(mf);
+        newFilename += getStackingString(mf, profile);
         String subtitleFilename = newFilename;
         if (subtitles != null && !subtitles.isEmpty()) {
           MediaFileSubtitle sub = mf.getSubtitles().get(0);
@@ -1849,7 +1898,7 @@ public class TvShowRenamer {
 
       case MEDIAINFO:
         MediaFile mediainfo = new MediaFile(mf);
-        newFilename += getStackingString(mf); // ToDo
+        newFilename += getStackingString(mf, profile); // ToDo
         mediainfo.setFile(seasonFolder.resolve(newFilename + "-mediainfo." + mf.getExtension()));
         newFiles.add(mediainfo);
         break;
@@ -1908,10 +1957,10 @@ public class TvShowRenamer {
         // this is something extra for an episode -> try to replace the episode tokens and preserve the extra in the filename
         // try to detect the title of the extra file
         MediaFile other = new MediaFile(mf);
-        boolean spaceSubstitution = TvShowModuleManager.getInstance().getSettings().isRenamerFilenameSpaceSubstitution();
-        String spaceReplacement = TvShowModuleManager.getInstance().getSettings().getRenamerFilenameSpaceReplacement();
+        boolean spaceSubstitution = profile.isRenamerFilenameSpaceSubstitution();
+        String spaceReplacement = profile.getRenamerFilenameSpaceReplacement();
         String destination = cleanupDestination(newFilename + StringUtils.difference(oldVideoBasename, FilenameUtils.getBaseName(mf.getFilename())),
-            spaceSubstitution, spaceReplacement);
+            spaceSubstitution, spaceReplacement, profile);
         other.setFile(seasonFolder.resolve(destination + "." + mf.getExtension()));
         newFiles.add(other);
         break;
@@ -1944,17 +1993,21 @@ public class TvShowRenamer {
    * @param show
    *          the TvShow (clone) to use (mainly for new/old path)
    * @param season
+   *          the {@link TvShowSeason} to use
    * @param mf
+   *          the {@link MediaFile} to create the season filename for
+   * @param renamerProfile
+   *          the {@link TvShowRenamerProfile} to use
    * @return
    */
-  public static List<MediaFile> generateSeasonFilenames(TvShow show, TvShowSeason season, MediaFile mf) {
+  public static List<MediaFile> generateSeasonFilenames(TvShow show, TvShowSeason season, MediaFile mf, TvShowRenamerProfile renamerProfile) {
     List<MediaFile> newFiles = new ArrayList<>();
 
     switch (mf.getType()) {
       case NFO:
-        if (!season.getEpisodes().isEmpty() || TvShowModuleManager.getInstance().getSettings().isCreateMissingSeasonItems()) {
+        if (!season.getEpisodes().isEmpty() || renamerProfile.isCreateMissingSeasonItems()) {
           for (TvShowSeasonNfoNaming naming : TvShowModuleManager.getInstance().getSettings().getSeasonNfoFilenames()) {
-            String filename = naming.getFilename(season, mf.getExtension());
+            String filename = naming.getFilename(season, mf.getExtension(), renamerProfile);
             if (StringUtils.isNotBlank(filename)) {
               MediaFile newMf = new MediaFile(mf);
               newMf.setFile(show.getPathNIO().resolve(filename));
@@ -1965,9 +2018,9 @@ public class TvShowRenamer {
         break;
 
       case SEASON_POSTER:
-        if (!season.getEpisodes().isEmpty() || TvShowModuleManager.getInstance().getSettings().isCreateMissingSeasonItems()) {
+        if (!season.getEpisodes().isEmpty() || renamerProfile.isCreateMissingSeasonItems()) {
           for (TvShowSeasonPosterNaming naming : TvShowModuleManager.getInstance().getSettings().getSeasonPosterFilenames()) {
-            String filename = naming.getFilename(season, mf.getExtension());
+            String filename = naming.getFilename(season, mf.getExtension(), renamerProfile);
             if (StringUtils.isNotBlank(filename)) {
               MediaFile newMF = new MediaFile(mf);
               newMF.setFile(show.getPathNIO().resolve(filename));
@@ -1978,9 +2031,9 @@ public class TvShowRenamer {
         break;
 
       case SEASON_FANART:
-        if (!season.getEpisodes().isEmpty() || TvShowModuleManager.getInstance().getSettings().isCreateMissingSeasonItems()) {
+        if (!season.getEpisodes().isEmpty() || renamerProfile.isCreateMissingSeasonItems()) {
           for (TvShowSeasonFanartNaming naming : TvShowModuleManager.getInstance().getSettings().getSeasonFanartFilenames()) {
-            String filename = naming.getFilename(season, mf.getExtension());
+            String filename = naming.getFilename(season, mf.getExtension(), renamerProfile);
             if (StringUtils.isNotBlank(filename)) {
               MediaFile newMF = new MediaFile(mf);
               newMF.setFile(show.getPathNIO().resolve(filename));
@@ -1991,9 +2044,9 @@ public class TvShowRenamer {
         break;
 
       case SEASON_BANNER:
-        if (!season.getEpisodes().isEmpty() || TvShowModuleManager.getInstance().getSettings().isCreateMissingSeasonItems()) {
+        if (!season.getEpisodes().isEmpty() || renamerProfile.isCreateMissingSeasonItems()) {
           for (TvShowSeasonBannerNaming naming : TvShowModuleManager.getInstance().getSettings().getSeasonBannerFilenames()) {
-            String filename = naming.getFilename(season, mf.getExtension());
+            String filename = naming.getFilename(season, mf.getExtension(), renamerProfile);
             if (StringUtils.isNotBlank(filename)) {
               MediaFile newMF = new MediaFile(mf);
               newMF.setFile(show.getPathNIO().resolve(filename));
@@ -2004,9 +2057,9 @@ public class TvShowRenamer {
         break;
 
       case SEASON_THUMB:
-        if (!season.getEpisodes().isEmpty() || TvShowModuleManager.getInstance().getSettings().isCreateMissingSeasonItems()) {
+        if (!season.getEpisodes().isEmpty() || renamerProfile.isCreateMissingSeasonItems()) {
           for (TvShowSeasonThumbNaming naming : TvShowModuleManager.getInstance().getSettings().getSeasonThumbFilenames()) {
-            String filename = naming.getFilename(season, mf.getExtension());
+            String filename = naming.getFilename(season, mf.getExtension(), renamerProfile);
             if (StringUtils.isNotBlank(filename)) {
               MediaFile newMF = new MediaFile(mf);
               newMF.setFile(show.getPathNIO().resolve(filename));
@@ -2029,14 +2082,19 @@ public class TvShowRenamer {
    *          the TV show to generate the season folder for
    * @param season
    *          the season to generate the season folder name for
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the folder name of that season
    */
-  public static String getSeasonFoldername(TvShow show, TvShowSeason season) {
+  public static String getSeasonFoldername(TvShow show, TvShowSeason season, TvShowRenamerProfile profile) {
+    if (!profile.isRenamerSeasonFoldernameEnabled()) {
+      return "";
+    }
     TvShowEpisode firstEpisode = ListUtils.getFirst(season.getEpisodes());
     if (firstEpisode == null) {
       return "";
     }
-    return getSeasonFoldername(TvShowModuleManager.getInstance().getSettings().getRenamerSeasonFoldername(), show, firstEpisode);
+    return getSeasonFoldername(profile.getRenamerSeasonFoldername(), show, firstEpisode, profile);
   }
 
   /**
@@ -2046,10 +2104,12 @@ public class TvShowRenamer {
    *          the TV show to generate the season folder for
    * @param episode
    *          the episode to generate the season folder name for
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the folder name of that season
    */
-  public static String getSeasonFoldername(TvShow show, TvShowEpisode episode) {
-    return getSeasonFoldername(TvShowModuleManager.getInstance().getSettings().getRenamerSeasonFoldername(), show, episode);
+  public static String getSeasonFoldername(TvShow show, TvShowEpisode episode, TvShowRenamerProfile profile) {
+    return getSeasonFoldername(profile.getRenamerSeasonFoldername(), show, episode, profile);
   }
 
   /**
@@ -2061,9 +2121,11 @@ public class TvShowRenamer {
    *          the TV show to generate the season folder for
    * @param episode
    *          the episode to generate the season folder name for
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the folder name of that season
    */
-  public static String getSeasonFoldername(String template, TvShow show, TvShowEpisode episode) {
+  public static String getSeasonFoldername(String template, TvShow show, TvShowEpisode episode, TvShowRenamerProfile profile) {
     String seasonFolderName = template;
     TvShowSeason tvShowSeason = show.getSeason(episode.getSeason());
 
@@ -2074,18 +2136,16 @@ public class TvShowRenamer {
     }
 
     // season 0 = Specials
-    if (tvShowSeason.getSeason() == 0 && TvShowModuleManager.getInstance().getSettings().isSpecialSeason()
-        && StringUtils.isNotBlank(TvShowModuleManager.getInstance().getSettings().getRenamerSeasonFoldername())) {
+    if (tvShowSeason.getSeason() == 0 && profile.isSpecialSeason() && StringUtils.isNotBlank(profile.getRenamerSeasonFoldername())) {
       seasonFolderName = "Specials";
     }
     else {
       // replace all other tokens
-      seasonFolderName = createDestination(seasonFolderName, tvShowSeason, episode);
+      seasonFolderName = createDestination(seasonFolderName, tvShowSeason, episode, profile);
     }
 
     // only allow empty season dir if the season is in the filename (aka recommended)
-    if (StringUtils.isBlank(seasonFolderName)
-        && !TvShowRenamer.isRecommended(template, TvShowModuleManager.getInstance().getSettings().getRenamerFilename())) {
+    if (StringUtils.isBlank(seasonFolderName) && !TvShowRenamer.isRecommended(template, profile.getRenamerFilename())) {
       seasonFolderName = "Season " + tvShowSeason.getSeason();
     }
 
@@ -2094,13 +2154,15 @@ public class TvShowRenamer {
 
   /**
    * generate the TV show folder name according to the settings
-   * 
+   *
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @param tvShow
    *          the TV show to generate the folder name for
    * @return the folder name
    */
-  public static String getTvShowFoldername(TvShow tvShow) {
-    return getTvShowFoldername(TvShowModuleManager.getInstance().getSettings().getRenamerTvShowFoldername(), tvShow);
+  public static String getTvShowFoldername(TvShowRenamerProfile profile, TvShow tvShow) {
+    return getTvShowFoldername(profile.getRenamerTvShowFoldername(), tvShow, profile);
   }
 
   /**
@@ -2110,14 +2172,16 @@ public class TvShowRenamer {
    *          the template to generate the folder name for
    * @param tvShow
    *          the TV show to generate the folder name for
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the folder name
    */
-  public static String getTvShowFoldername(String template, TvShow tvShow) {
+  public static String getTvShowFoldername(String template, TvShow tvShow, TvShowRenamerProfile profile) {
     String newPathname;
 
     try {
       if (StringUtils.isNotBlank(template)) {
-        newPathname = Paths.get(tvShow.getDataSource(), createDestination(template, tvShow)).toString();
+        newPathname = Paths.get(tvShow.getDataSource(), createDestination(template, tvShow, profile)).toString();
       }
       else {
         newPathname = tvShow.getPathNIO().toString();
@@ -2133,18 +2197,20 @@ public class TvShowRenamer {
 
   /**
    * gets the token value ($x) from specified object
-   * 
+   *
    * @param show
    *          our show
    * @param episode
    *          our episode
    * @param token
    *          the $x token
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @return value or empty string
    */
-  public static String getTokenValue(TvShow show, TvShowEpisode episode, String token) {
+  public static String getTokenValue(TvShow show, TvShowEpisode episode, String token, TvShowRenamerProfile profile) {
     try {
-      Engine engine = createEngine();
+      Engine engine = createEngine(profile);
       engine.setModelAdaptor(new TmmModelAdaptor());
 
       engine.setOutputAppender(new TmmOutputAppender() {
@@ -2155,12 +2221,12 @@ public class TvShowRenamer {
             text = StrgUtils.replaceForbiddenFilesystemCharacters(text);
           }
 
-          return TvShowRenamer.replaceInvalidCharacters(text);
+          return TvShowRenamer.replaceInvalidCharacters(text, profile);
         }
 
         @Override
         protected boolean isUnicodeReplacementEnabled() {
-          return TvShowModuleManager.getInstance().getSettings().isUnicodeReplacement();
+          return profile.isUnicodeReplacement();
         }
       });
 
@@ -2181,9 +2247,11 @@ public class TvShowRenamer {
   /**
    * create the {@link Engine} to be used with JMTE
    *
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to get the renaming related settings
    * @return the pre-created Engine
    */
-  public static Engine createEngine() {
+  public static Engine createEngine(TvShowRenamerProfile profile) {
     Engine engine = Engine.createEngine();
     engine.registerRenderer(Number.class, new ZeroNumberRenderer());
     engine.registerRenderer(Path.class, new PathRenderer());
@@ -2199,7 +2267,7 @@ public class TvShowRenamer {
     engine.registerNamedRenderer(new NamedSplitRenderer());
     engine.registerNamedRenderer(new NamedTitleCaseRenderer());
     engine.registerNamedRenderer(new NamedUpperCaseRenderer());
-    engine.registerNamedRenderer(new TvShowNamedFirstCharacterRenderer());
+    engine.registerNamedRenderer(new TvShowNamedFirstCharacterRenderer(profile));
     engine.registerNamedRenderer(new ChainedNamedRenderer(engine.getAllNamedRenderers()));
 
     engine.registerAnnotationProcessor(new RegexpProcessor());
@@ -2220,17 +2288,19 @@ public class TvShowRenamer {
    *          the template string
    * @param show
    *          the TV show to generate the folder name for
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the TV show folder name
    */
-  public static String createDestination(String template, TvShow show) {
+  public static String createDestination(String template, TvShow show, TvShowRenamerProfile profile) {
     if (StringUtils.isBlank(template)) {
       return "";
     }
 
-    boolean spaceSubstitution = TvShowModuleManager.getInstance().getSettings().isRenamerShowPathnameSpaceSubstitution();
-    String spaceReplacement = TvShowModuleManager.getInstance().getSettings().getRenamerShowPathnameSpaceReplacement();
+    boolean spaceSubstitution = profile.isRenamerShowPathnameSpaceSubstitution();
+    String spaceReplacement = profile.getRenamerShowPathnameSpaceReplacement();
 
-    return cleanupDestination(getTokenValue(show, null, template), spaceSubstitution, spaceReplacement);
+    return cleanupDestination(getTokenValue(show, null, template, profile), spaceSubstitution, spaceReplacement, profile);
   }
 
   /**
@@ -2240,31 +2310,37 @@ public class TvShowRenamer {
    *          the template string
    * @param season
    *          the season to generate the folder name for
+   * @param episode
+   *          the episode to generate the folder name for
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the season folder name
    */
-  public static String createDestination(String template, TvShowSeason season, TvShowEpisode episode) {
+  public static String createDestination(String template, TvShowSeason season, TvShowEpisode episode, TvShowRenamerProfile profile) {
     if (StringUtils.isBlank(template)) {
       return "";
     }
 
-    String newDestination = getTokenValue(season.getTvShow(), episode, template);
-    boolean spaceSubstitution = TvShowModuleManager.getInstance().getSettings().isRenamerSeasonPathnameSpaceSubstitution();
-    String spaceReplacement = TvShowModuleManager.getInstance().getSettings().getRenamerSeasonPathnameSpaceReplacement();
+    String newDestination = getTokenValue(season.getTvShow(), episode, template, profile);
+    boolean spaceSubstitution = profile.isRenamerSeasonPathnameSpaceSubstitution();
+    String spaceReplacement = profile.getRenamerSeasonPathnameSpaceReplacement();
 
-    newDestination = cleanupDestination(newDestination, spaceSubstitution, spaceReplacement);
+    newDestination = cleanupDestination(newDestination, spaceSubstitution, spaceReplacement, profile);
     return newDestination;
   }
 
   /**
    * Creates the new file/folder name according to template string
-   * 
+   *
    * @param template
    *          the template
    * @param episodes
    *          the TV show episodes; nullable for TV show root foldername
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the string
    */
-  public static String createDestination(String template, List<TvShowEpisode> episodes) {
+  public static String createDestination(String template, List<TvShowEpisode> episodes, TvShowRenamerProfile profile) {
     if (StringUtils.isBlank(template) || episodes.isEmpty()) {
       return "";
     }
@@ -2274,7 +2350,7 @@ public class TvShowRenamer {
 
     if (episodes.size() == 1) {
       // single episode
-      newDestination = getTokenValue(firstEp.getTvShow(), firstEp, template);
+      newDestination = getTokenValue(firstEp.getTvShow(), firstEp, template, profile);
     }
     else {
       // multi episodes
@@ -2285,7 +2361,8 @@ public class TvShowRenamer {
 
       // replace original pattern, with our combined
       if (StringUtils.isNotBlank(loopNumbers)) {
-        newDestination = newDestination.replace(loopNumbers, renderMultiEpisodeNumbers(loopNumbers, seasonPart, episodeNumberPart, episodes));
+        newDestination = newDestination.replace(loopNumbers,
+            renderMultiEpisodeNumbers(loopNumbers, seasonPart, episodeNumberPart, episodes, profile));
       }
 
       // *******************
@@ -2308,7 +2385,7 @@ public class TvShowRenamer {
         StringBuilder episodeParts = new StringBuilder();
         String previous = "";
         for (TvShowEpisode episode : episodes) {
-          String episodePart = getTokenValue(episode.getTvShow(), episode, loopTitles);
+          String episodePart = getTokenValue(episode.getTvShow(), episode, loopTitles, profile);
 
           // do not add the same title twice!
           if (!episodePart.equals(previous)) {
@@ -2343,7 +2420,7 @@ public class TvShowRenamer {
       if (StringUtils.isNotBlank(loopAired)) {
         StringBuilder episodeParts = new StringBuilder();
         for (TvShowEpisode episode : episodes) {
-          String episodePart = getTokenValue(episode.getTvShow(), episode, loopAired);
+          String episodePart = getTokenValue(episode.getTvShow(), episode, loopAired, profile);
 
           // separate multiple titles via -
           if (StringUtils.isNotBlank(episodeParts.toString())) {
@@ -2355,7 +2432,7 @@ public class TvShowRenamer {
         newDestination = newDestination.replace(loopAired, episodeParts.toString().strip());
       }
 
-      newDestination = getTokenValue(firstEp.getTvShow(), firstEp, newDestination);
+      newDestination = getTokenValue(firstEp.getTvShow(), firstEp, newDestination, profile);
     } // end multi episodes
 
     // when renaming with $originalFilename, we get already the extension added!
@@ -2363,10 +2440,10 @@ public class TvShowRenamer {
       newDestination = FilenameUtils.getBaseName(newDestination);
     }
 
-    boolean spaceSubstitution = TvShowModuleManager.getInstance().getSettings().isRenamerFilenameSpaceSubstitution();
-    String spaceReplacement = TvShowModuleManager.getInstance().getSettings().getRenamerFilenameSpaceReplacement();
+    boolean spaceSubstitution = profile.isRenamerFilenameSpaceSubstitution();
+    String spaceReplacement = profile.getRenamerFilenameSpaceReplacement();
 
-    newDestination = cleanupDestination(newDestination, spaceSubstitution, spaceReplacement);
+    newDestination = cleanupDestination(newDestination, spaceSubstitution, spaceReplacement, profile);
 
     return newDestination;
   }
@@ -2442,18 +2519,21 @@ public class TvShowRenamer {
    *          the extracted episode fragment
    * @param episodes
    *          the episodes to render
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the rendered season/episode fragment
    */
-  private static String renderMultiEpisodeNumbers(String loopNumbers, String seasonPart, String episodePart, List<TvShowEpisode> episodes) {
-    TvShowMultiEpisodeStyle multiEpisodeStyle = TvShowModuleManager.getInstance().getSettings().getRenamerMultiEpisodeStyle();
+  private static String renderMultiEpisodeNumbers(String loopNumbers, String seasonPart, String episodePart, List<TvShowEpisode> episodes,
+      TvShowRenamerProfile profile) {
+    TvShowMultiEpisodeStyle multiEpisodeStyle = profile.getRenamerMultiEpisodeStyle();
     if (multiEpisodeStyle == TvShowMultiEpisodeStyle.RANGE && isRangeStyleApplicable(episodePart, episodes)) {
-      String rangeEpisodeNumbers = renderRangeEpisodeNumbers(loopNumbers, seasonPart, episodePart, episodes);
+      String rangeEpisodeNumbers = renderRangeEpisodeNumbers(loopNumbers, seasonPart, episodePart, episodes, profile);
       if (StringUtils.isNotBlank(rangeEpisodeNumbers)) {
         return rangeEpisodeNumbers;
       }
     }
 
-    return renderRepeatedEpisodeNumbers(loopNumbers, episodes);
+    return renderRepeatedEpisodeNumbers(loopNumbers, episodes, profile);
   }
 
   /**
@@ -2463,12 +2543,14 @@ public class TvShowRenamer {
    *          the complete season/episode token fragment
    * @param episodes
    *          the episodes to render
+   * @param renamerProfile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the rendered season/episode fragment
    */
-  private static String renderRepeatedEpisodeNumbers(String loopNumbers, List<TvShowEpisode> episodes) {
+  private static String renderRepeatedEpisodeNumbers(String loopNumbers, List<TvShowEpisode> episodes, TvShowRenamerProfile renamerProfile) {
     StringBuilder episodeParts = new StringBuilder();
     for (TvShowEpisode episode : episodes) {
-      String episodePart = getTokenValue(episode.getTvShow(), episode, loopNumbers);
+      String episodePart = getTokenValue(episode.getTvShow(), episode, loopNumbers, renamerProfile);
       episodeParts.append(" ").append(episodePart);
     }
     return episodeParts.toString().strip();
@@ -2522,18 +2604,21 @@ public class TvShowRenamer {
    *          the extracted episode fragment
    * @param episodes
    *          the episodes to render
+   * @param renamerProfile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the rendered range fragment or an empty string if the range could not be created safely
    */
-  private static String renderRangeEpisodeNumbers(String loopNumbers, String seasonPart, String episodePart, List<TvShowEpisode> episodes) {
+  private static String renderRangeEpisodeNumbers(String loopNumbers, String seasonPart, String episodePart, List<TvShowEpisode> episodes,
+      TvShowRenamerProfile renamerProfile) {
     TvShowEpisode firstEpisode = episodes.get(0);
     TvShowEpisode lastEpisode = episodes.get(episodes.size() - 1);
 
-    String firstPart = getTokenValue(firstEpisode.getTvShow(), firstEpisode, loopNumbers).strip();
+    String firstPart = getTokenValue(firstEpisode.getTvShow(), firstEpisode, loopNumbers, renamerProfile).strip();
     if (StringUtils.isBlank(firstPart)) {
       return "";
     }
 
-    String lastPart = getRangeEpisodeSuffix(seasonPart, episodePart, lastEpisode);
+    String lastPart = getRangeEpisodeSuffix(seasonPart, episodePart, lastEpisode, renamerProfile);
     if (StringUtils.isBlank(lastPart)) {
       return "";
     }
@@ -2550,23 +2635,25 @@ public class TvShowRenamer {
    *          the extracted episode fragment
    * @param lastEpisode
    *          the last episode in the range
+   * @param renamerProfile
+   *          the {@link TvShowRenamerProfile} to use
    * @return the trailing suffix or an empty string if it could not be determined
    */
-  private static String getRangeEpisodeSuffix(String seasonPart, String episodePart, TvShowEpisode lastEpisode) {
+  private static String getRangeEpisodeSuffix(String seasonPart, String episodePart, TvShowEpisode lastEpisode, TvShowRenamerProfile renamerProfile) {
     String token = extractTokenPattern(episodePart);
     if (StringUtils.isBlank(token)) {
-      return getTokenValue(lastEpisode.getTvShow(), lastEpisode, episodePart).strip();
+      return getTokenValue(lastEpisode.getTvShow(), lastEpisode, episodePart, renamerProfile).strip();
     }
 
     String prefix = StringUtils.substringBefore(episodePart, token);
     String suffixPattern = episodePart;
 
     // The x-delimiter links season and episode values (1x01), so only the episode number should be repeated in ranges.
-    if (StringUtils.isNotBlank(seasonPart) && StringUtils.equalsIgnoreCase(prefix.strip(), "x")) {
+    if (StringUtils.isNotBlank(seasonPart) && Strings.CI.equals(prefix.strip(), "x")) {
       suffixPattern = token;
     }
 
-    return getTokenValue(lastEpisode.getTvShow(), lastEpisode, suffixPattern).strip();
+    return getTokenValue(lastEpisode.getTvShow(), lastEpisode, suffixPattern, renamerProfile).strip();
   }
 
   /**
@@ -2586,16 +2673,18 @@ public class TvShowRenamer {
 
   /**
    * cleanup the destination (remove empty brackets, space substitution, ..)
-   * 
+   *
    * @param destination
    *          the string to be cleaned up
    * @param spaceSubstitution
    *          replace spaces (=true)? or not (=false)
    * @param spaceReplacement
    *          the replacement string for spaces
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to get the settings from
    * @return the cleaned up string
    */
-  private static String cleanupDestination(String destination, Boolean spaceSubstitution, String spaceReplacement) {
+  private static String cleanupDestination(String destination, Boolean spaceSubstitution, String spaceReplacement, TvShowRenamerProfile profile) {
     // replace empty brackets
     destination = destination.replaceAll("\\([ ]?\\)", "");
     destination = destination.replaceAll("\\[[ ]?\\]", "");
@@ -2633,12 +2722,12 @@ public class TvShowRenamer {
     }
 
     // ASCII replacement
-    if (TvShowModuleManager.getInstance().getSettings().isAsciiReplacement()) {
+    if (profile.isAsciiReplacement()) {
       destination = StrgUtils.convertToAscii(destination, false);
     }
 
     // replace three subsequent dots with the Unicode ellipsis character
-    if (TvShowModuleManager.getInstance().getSettings().isUnicodeReplacement()) {
+    if (profile.isUnicodeReplacement()) {
       destination = destination.replace("...", "…");
     }
 
@@ -2647,7 +2736,7 @@ public class TvShowRenamer {
     destination = destination.replaceAll("[ \\.\\-_]+$", "");
 
     // the illegal filesystem characters are handled by JMTE, but it looks like some users are stupid enough to add this to the pattern itself...
-    destination = replaceInvalidCharacters(destination);
+    destination = replaceInvalidCharacters(destination, profile);
 
     // replace new lines
     destination = destination.replaceAll("\r?\n", " ");
@@ -2784,12 +2873,14 @@ public class TvShowRenamer {
 
   /**
    * Deletes "unwanted files" according to settings. Same as the action, but w/o GUI.
-   * 
+   *
    * @param show
    *          the {@link TvShow} to clean up
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    */
-  private static void cleanupUnwantedFiles(TvShow show) {
-    if (TvShowModuleManager.getInstance().getSettings().renamerCleanupUnwanted) {
+  private static void cleanupUnwantedFiles(TvShow show, TvShowRenamerProfile profile) {
+    if (profile.isRenamerCleanupUnwanted()) {
       Utils.deleteUnwantedFilesAndFoldersFor(show);
     }
   }
@@ -2865,12 +2956,14 @@ public class TvShowRenamer {
    *
    * @param mf
    *          a mediaFile
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to use
    * @return eg ".CD1" dependent of settings
    */
-  private static String getStackingString(MediaFile mf) {
+  private static String getStackingString(MediaFile mf, TvShowRenamerProfile profile) {
     String delimiter = ".";
-    if (TvShowModuleManager.getInstance().getSettings().isRenamerFilenameSpaceSubstitution()) {
-      delimiter = TvShowModuleManager.getInstance().getSettings().getRenamerFilenameSpaceReplacement();
+    if (profile.isRenamerFilenameSpaceSubstitution()) {
+      delimiter = profile.getRenamerFilenameSpaceReplacement();
     }
     if (!mf.getStackingMarker().isEmpty()) {
       return delimiter + mf.getStackingMarker();
@@ -2881,15 +2974,25 @@ public class TvShowRenamer {
     return "";
   }
 
-  public static String replaceInvalidCharacters(String source) {
+  /**
+   * replaces all invalid/illegal characters for filenames/foldernames with ""<br>
+   * except the colon, which will be changed to a dash
+   *
+   * @param source
+   *          string to clean
+   * @param profile
+   *          the {@link TvShowRenamerProfile} to get the settings from
+   * @return cleaned string
+   */
+  public static String replaceInvalidCharacters(String source, TvShowRenamerProfile profile) {
     String result = source;
 
-    if ("-".equals(TvShowModuleManager.getInstance().getSettings().getRenamerColonReplacement())) {
+    if ("-".equals(profile.getRenamerColonReplacement())) {
       result = result.replace(": ", " - "); // nicer
       result = result.replace(":", "-"); // nicer
     }
     else {
-      result = result.replace(":", TvShowModuleManager.getInstance().getSettings().getRenamerColonReplacement());
+      result = result.replace(":", profile.getRenamerColonReplacement());
     }
 
     return result.replaceAll("([\":<>|?*])", "");
@@ -2937,7 +3040,12 @@ public class TvShowRenamer {
   }
 
   public static class TvShowNamedFirstCharacterRenderer implements NamedRenderer {
-    private static final Pattern FIRST_ALPHANUM_PATTERN = Pattern.compile("[\\p{L}\\d]");
+    private static final Pattern       FIRST_ALPHANUM_PATTERN = Pattern.compile("[\\p{L}\\d]");
+    private final TvShowRenamerProfile profile;
+
+    public TvShowNamedFirstCharacterRenderer(TvShowRenamerProfile profile) {
+      this.profile = profile;
+    }
 
     @Override
     public String render(Object o, String s, Locale locale, Map<String, Object> map) {
@@ -2951,15 +3059,15 @@ public class TvShowRenamer {
             return first.toUpperCase(Locale.ROOT);
           }
           else {
-            return TvShowModuleManager.getInstance().getSettings().getRenamerFirstCharacterNumberReplacement();
+            return profile.getRenamerFirstCharacterNumberReplacement();
           }
         }
       }
       if (o instanceof Number) {
-        return TvShowModuleManager.getInstance().getSettings().getRenamerFirstCharacterNumberReplacement();
+        return profile.getRenamerFirstCharacterNumberReplacement();
       }
       if (o instanceof Date) {
-        return TvShowModuleManager.getInstance().getSettings().getRenamerFirstCharacterNumberReplacement();
+        return profile.getRenamerFirstCharacterNumberReplacement();
       }
       return "";
     }

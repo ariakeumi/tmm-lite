@@ -48,9 +48,11 @@ public class MovieRenamerTest extends BasicMovieTest {
 
       MovieModuleManager.getInstance()
           .getSettings()
+          .getDefaultRenamerProfile()
           .setRenamerPathname("${titleSortable;first}/${titleSortable} ${- ,edition,} (${year}) [${videoFormat}]");
       MovieModuleManager.getInstance()
           .getSettings()
+          .getDefaultRenamerProfile()
           .setRenamerFilename("${title} ${- ,edition,} (${year}) [${videoFormat}] [${videoCodec}] [${audioCodec}]");
 
       UdsMiRenamerExample example = new UdsMiRenamerExample("Single", "Aladdin", 1992, "singlefile.avi", "1080p", "h264", "A/Aladdin (1992) [1080p]");
@@ -71,8 +73,8 @@ public class MovieRenamerTest extends BasicMovieTest {
     try {
       initTest();
 
-      MovieModuleManager.getInstance().getSettings().setRenamerPathname("");
-      MovieModuleManager.getInstance().getSettings().setRenamerFilename("");
+      MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile().setRenamerPathname("");
+      MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile().setRenamerFilename("");
 
       UdsMiRenamerExample example = new UdsMiRenamerExample("Single", "Aladdin", 1992, "singlefile.avi", "1080p", "h264", "Single");
       example.oldFiles = new String[] { "singlefile.avi", "fanart.png", "movie.nfo", "singlefile-poster.png", "trailer.mp4", "extras/cut-scenes.mkv",
@@ -94,9 +96,11 @@ public class MovieRenamerTest extends BasicMovieTest {
 
       MovieModuleManager.getInstance()
           .getSettings()
+          .getDefaultRenamerProfile()
           .setRenamerPathname("${titleSortable;first}/${titleSortable} ${- ,edition,} (${year}) [${videoFormat}]");
       MovieModuleManager.getInstance()
           .getSettings()
+          .getDefaultRenamerProfile()
           .setRenamerFilename("${title} ${- ,edition,} (${year}) [${videoFormat}] [${videoCodec}] [${audioCodec}]");
 
       MovieModuleManager.getInstance().getSettings().addPosterFilename(MoviePosterNaming.FOLDER);
@@ -119,9 +123,13 @@ public class MovieRenamerTest extends BasicMovieTest {
     try {
       initTest();
 
-      MovieModuleManager.getInstance().getSettings().setRenamerPathname("${titleSortable} ${- ,edition,} (${year}) [${videoFormat}]");
       MovieModuleManager.getInstance()
           .getSettings()
+          .getDefaultRenamerProfile()
+          .setRenamerPathname("${titleSortable} ${- ,edition,} (${year}) [${videoFormat}]");
+      MovieModuleManager.getInstance()
+          .getSettings()
+          .getDefaultRenamerProfile()
           .setRenamerFilename("${title} ${- ,edition,} (${year}) [${videoFormat}] [${videoCodec}] [${audioCodec}]");
 
       UdsMiRenamerExample example = new UdsMiRenamerExample("MultipleVideosMMD", "Aladdin", 1992, "multiv-movie1.avi", "1080p", "h264",
@@ -143,9 +151,11 @@ public class MovieRenamerTest extends BasicMovieTest {
 
       MovieModuleManager.getInstance()
           .getSettings()
+          .getDefaultRenamerProfile()
           .setRenamerPathname("${titleSortable;first}/${titleSortable} ${- ,edition,} (${year}) [${videoFormat}]");
       MovieModuleManager.getInstance()
           .getSettings()
+          .getDefaultRenamerProfile()
           .setRenamerFilename("${title} ${- ,edition,} (${year}) [${videoFormat}] [${videoCodec}] [${audioCodec}]");
 
       UdsMiRenamerExample example = new UdsMiRenamerExample("BluRay", "Brave", 2012, "BDMV", "2160p", "h265", "B/Brave (2012) [2160p]");
@@ -167,9 +177,11 @@ public class MovieRenamerTest extends BasicMovieTest {
 
       MovieModuleManager.getInstance()
           .getSettings()
+          .getDefaultRenamerProfile()
           .setRenamerPathname("${titleSortable;first}/${titleSortable} ${- ,edition,} (${year}) [${videoFormat}]");
       MovieModuleManager.getInstance()
           .getSettings()
+          .getDefaultRenamerProfile()
           .setRenamerFilename("${title} ${- ,edition,} (${year}) [${videoFormat}] [${videoCodec}] [${audioCodec}]");
 
       UdsMiRenamerExample example = new UdsMiRenamerExample("DVDfolder", "Cars", 2006, "VIDEO_TS", "576p", "MPEG-2", "C/Cars (2006) [576p]");
@@ -185,6 +197,8 @@ public class MovieRenamerTest extends BasicMovieTest {
   }
 
   private void checkExample(UdsMiRenamerExample example) {
+    MovieRenamerProfile defaultRenamerProfile = MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+
     MovieList movieList = MovieList.getInstance();
     Path datasource = Paths.get(MovieModuleManager.getInstance().getSettings().getMovieDataSource().get(0));
 
@@ -211,7 +225,7 @@ public class MovieRenamerTest extends BasicMovieTest {
     assertThat(mainVideoFile.getVideoCodec()).isEqualTo(example.videoCodec);
 
     // rename the movie
-    MovieRenamer.renameMovie(movie);
+    MovieRenamer.renameMovie(movie, defaultRenamerProfile);
     moviePath = datasource.resolve(example.newFolder);
     assertThat(movie.getPathNIO()).isEqualTo(moviePath);
     checkFiles(moviePath, example.newFiles);
@@ -237,17 +251,21 @@ public class MovieRenamerTest extends BasicMovieTest {
 
   @Test
   public void testSpecialCases() {
-    assertEqual("jb - the bla", MovieRenamer.replaceInvalidCharacters("jb: the bla"));
-    assertEqual("jb  - the bla", MovieRenamer.replaceInvalidCharacters("jb : the bla"));
-    assertEqual("2-22", MovieRenamer.replaceInvalidCharacters("2:22"));
-    assertEqual("2 -22", MovieRenamer.replaceInvalidCharacters("2 :22"));
+    MovieRenamerProfile defaultRenamerProfile = MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+
+    assertEqual("jb - the bla", MovieRenamer.replaceInvalidCharacters("jb: the bla", defaultRenamerProfile));
+    assertEqual("jb  - the bla", MovieRenamer.replaceInvalidCharacters("jb : the bla", defaultRenamerProfile));
+    assertEqual("2-22", MovieRenamer.replaceInvalidCharacters("2:22", defaultRenamerProfile));
+    assertEqual("2 -22", MovieRenamer.replaceInvalidCharacters("2 :22", defaultRenamerProfile));
 
     // we do not strip path separators here
-    assertEqual("weird \\\\-/ movie", MovieRenamer.replaceInvalidCharacters("weird \"\\\\:<>|/?* movie"));
+    assertEqual("weird \\\\-/ movie", MovieRenamer.replaceInvalidCharacters("weird \"\\\\:<>|/?* movie", defaultRenamerProfile));
   }
 
   @Test
   public void testRenamerToken() throws Exception {
+    MovieRenamerProfile defaultRenamerProfile = MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+
     // MediaInfoUtils.loadMediaInfo(); // no MI on buildserver
     copyResourceFolderToWorkFolder("samples");
 
@@ -279,21 +297,21 @@ public class MovieRenamerTest extends BasicMovieTest {
 
     m.addToMediaFiles(mf);
 
-    assertEqual("The Dish (2000) MPEG-480p AC3-6ch",
-        MovieRenamer.createDestinationForFilename("${title} (${year}) ${videoCodec}-${videoFormat} ${audioCodec}-${audioChannels}", m));
-    assertEqual("The Dish (2000)", MovieRenamer.createDestinationForFoldername("${title} (${year})", m));
-    assertEqual("_The Dish (2000)", MovieRenamer.createDestinationForFoldername("${_,title,} (${year})", m));
-    assertEqual("The Dish (2000)", MovieRenamer.createDestinationForFoldername(".${title} (${year})", m));
-    assertEqual("The Dish (2000)", MovieRenamer.createDestinationForFoldername("-${title} (${year})-", m));
-    assertEqual("2000-2009", MovieRenamer.createDestinationForFoldername("${decadeLong}", m));
-    assertEqual("2000s", MovieRenamer.createDestinationForFoldername("${decadeShort}", m));
+    assertEqual("The Dish (2000) MPEG-480p AC3-6ch", MovieRenamer
+        .createDestinationForFilename("${title} (${year}) ${videoCodec}-${videoFormat} ${audioCodec}-${audioChannels}", defaultRenamerProfile, m));
+    assertEqual("The Dish (2000)", MovieRenamer.createDestinationForFoldername("${title} (${year})", defaultRenamerProfile, m));
+    assertEqual("_The Dish (2000)", MovieRenamer.createDestinationForFoldername("${_,title,} (${year})", defaultRenamerProfile, m));
+    assertEqual("The Dish (2000)", MovieRenamer.createDestinationForFoldername(".${title} (${year})", defaultRenamerProfile, m));
+    assertEqual("The Dish (2000)", MovieRenamer.createDestinationForFoldername("-${title} (${year})-", defaultRenamerProfile, m));
+    assertEqual("2000-2009", MovieRenamer.createDestinationForFoldername("${decadeLong}", defaultRenamerProfile, m));
+    assertEqual("2000s", MovieRenamer.createDestinationForFoldername("${decadeShort}", defaultRenamerProfile, m));
 
     // IF with 2 variables
     assertEqual("The Original Dish - The English Dish", MovieRenamer.createDestinationForFoldername(
-        "${originalTitle}${if englishTitle}${if englishTitle = originalTitle}${else} - ${englishTitle}${end}${end}", m));
+        "${originalTitle}${if englishTitle}${if englishTitle = originalTitle}${else} - ${englishTitle}${end}${end}", defaultRenamerProfile, m));
     m.setEnglishTitle(m.getOriginalTitle());
     assertEqual("The Original Dish", MovieRenamer.createDestinationForFoldername(
-        "${originalTitle}${if englishTitle}${if englishTitle = originalTitle}${else} - ${englishTitle}${end}${end}", m));
+        "${originalTitle}${if englishTitle}${if englishTitle = originalTitle}${else} - ${englishTitle}${end}${end}", defaultRenamerProfile, m));
   }
 
   private static class UdsMiRenamerExample {

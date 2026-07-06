@@ -1832,7 +1832,7 @@ public final class MovieList extends AbstractModelObject {
     Movie movie = new Movie();
     movie.setTitle(title);
 
-    String cleanedTitle = MovieRenamer.createDestinationForFoldername(MovieModuleManager.getInstance().getSettings().getRenamerPathname(), movie);
+    String cleanedTitle = MovieRenamer.createDestinationForFoldername(movie);
 
     // check if there is already an identical stub folder
     int i = 1;
@@ -1841,7 +1841,7 @@ public final class MovieList extends AbstractModelObject {
       stubFolder = Paths.get(datasource, cleanedTitle + "(" + i++ + ")");
     }
 
-    cleanedTitle = MovieRenamer.createDestinationForFilename(MovieModuleManager.getInstance().getSettings().getRenamerPathname(), movie);
+    cleanedTitle = MovieRenamer.createDestinationForFilename(movie);
 
     Path stubFile = stubFolder.resolve(cleanedTitle + ".disc");
 

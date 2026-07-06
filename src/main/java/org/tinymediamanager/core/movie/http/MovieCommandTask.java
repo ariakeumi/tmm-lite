@@ -39,6 +39,7 @@ import org.tinymediamanager.core.http.AbstractCommandHandler.CommandScope;
 import org.tinymediamanager.core.movie.MovieExporter;
 import org.tinymediamanager.core.movie.MovieList;
 import org.tinymediamanager.core.movie.MovieModuleManager;
+import org.tinymediamanager.core.movie.MovieRenamerProfile;
 import org.tinymediamanager.core.movie.MovieScraperMetadataConfig;
 import org.tinymediamanager.core.movie.MovieSearchAndScrapeOptions;
 import org.tinymediamanager.core.movie.MovieSettings;
@@ -68,12 +69,12 @@ import org.tinymediamanager.scraper.util.ParserUtils;
  * @author Manuel Laggner
  */
 class MovieCommandTask extends TmmThreadPool {
-  private static final Logger                        LOGGER        = LoggerFactory.getLogger(MovieCommandTask.class);
+  private static final Logger                        LOGGER    = LoggerFactory.getLogger(MovieCommandTask.class);
 
   private final List<AbstractCommandHandler.Command> commands;
-  private final MovieList                            movieList     = MovieModuleManager.getInstance().getMovieList();
-  private final MovieSettings                        movieSettings = MovieModuleManager.getInstance().getSettings();
-  private final List<Movie>                          newMovies     = new ArrayList<>();
+  private final MovieList                            movieList = MovieModuleManager.getInstance().getMovieList();
+  private final MovieSettings                        settings  = MovieModuleManager.getInstance().getSettings();
+  private final List<Movie>                          newMovies = new ArrayList<>();
 
   private TmmTask                                    activeTask;
 
@@ -146,7 +147,7 @@ class MovieCommandTask extends TmmThreadPool {
 
     switch (scope.name) {
       case "all":
-        for (String datasource : movieSettings.getMovieDataSource()) {
+        for (String datasource : settings.getMovieDataSource()) {
           if (StringUtils.isNotBlank(datasource)) {
             dataSources.add(Paths.get(datasource).toAbsolutePath());
           }
@@ -157,8 +158,8 @@ class MovieCommandTask extends TmmThreadPool {
         for (String index : ListUtils.nullSafe(Arrays.asList(scope.args))) {
           try {
             int i = Integer.parseInt(index);
-            if (movieSettings.getMovieDataSource().size() >= i - 1) {
-              dataSources.add(Paths.get(movieSettings.getMovieDataSource().get(i - 1)).toAbsolutePath());
+            if (settings.getMovieDataSource().size() >= i - 1) {
+              dataSources.add(Paths.get(settings.getMovieDataSource().get(i - 1)).toAbsolutePath());
             }
 
           }
@@ -230,7 +231,7 @@ class MovieCommandTask extends TmmThreadPool {
           publishState(TmmResourceBundle.getString("movie.scraping"), getProgressDone());
 
           MovieSearchAndScrapeOptions options = new MovieSearchAndScrapeOptions();
-          List<MovieScraperMetadataConfig> config = movieSettings.getScraperMetadataConfig();
+          List<MovieScraperMetadataConfig> config = settings.getScraperMetadataConfig();
 
           // override default scraper?
           if (StringUtils.isNotBlank(command.args.get("scraper"))) {
@@ -243,7 +244,7 @@ class MovieCommandTask extends TmmThreadPool {
 
           MovieScrapeTask.MovieScrapeParams movieScrapeParams = new MovieScrapeTask.MovieScrapeParams(new ArrayList<>(moviesToScrape), options,
               config);
-          movieScrapeParams.setOverwriteExistingItems(!movieSettings.isDoNotOverwriteExistingData());
+          movieScrapeParams.setOverwriteExistingItems(!settings.isDoNotOverwriteExistingData());
           MovieScrapeTask task = new MovieScrapeTask(movieScrapeParams);
           task.setRunInBackground(true); // to avoid smart scrape dialog
 
@@ -271,7 +272,7 @@ class MovieCommandTask extends TmmThreadPool {
           setTaskName(TmmResourceBundle.getString("movie.fetchratings"));
           publishState(TmmResourceBundle.getString("movie.fetchratings"), getProgressDone());
 
-          MovieFetchRatingsTask task = new MovieFetchRatingsTask(moviesToScrape, movieSettings.getFetchRatingSources());
+          MovieFetchRatingsTask task = new MovieFetchRatingsTask(moviesToScrape, settings.getFetchRatingSources());
 
           activeTask = task;
           activeTask.run(); // blocking
@@ -346,7 +347,7 @@ class MovieCommandTask extends TmmThreadPool {
 
         // no language yet? take the setting
         if (mediaLanguages == null) {
-          mediaLanguages = movieSettings.getScraperLanguage();
+          mediaLanguages = settings.getScraperLanguage();
         }
 
         List<Movie> moviesToProcess = new ArrayList<>();
@@ -408,13 +409,13 @@ class MovieCommandTask extends TmmThreadPool {
         publishState(TmmResourceBundle.getString("movie.downloadmissingartwork"), getProgressDone());
 
         MovieSearchAndScrapeOptions movieSearchAndScrapeConfig = new MovieSearchAndScrapeOptions();
-        movieSearchAndScrapeConfig.setCertificationCountry(MovieModuleManager.getInstance().getSettings().getCertificationCountry());
-        movieSearchAndScrapeConfig.setReleaseDateCountry(MovieModuleManager.getInstance().getSettings().getReleaseDateCountry());
+        movieSearchAndScrapeConfig.setCertificationCountry(settings.getCertificationCountry());
+        movieSearchAndScrapeConfig.setReleaseDateCountry(settings.getReleaseDateCountry());
 
         // artwork scrapers
         List<MediaScraper> selectedArtworkScrapers = new ArrayList<>();
         for (MediaScraper artworkScraper : MovieModuleManager.getInstance().getMovieList().getAvailableArtworkScrapers()) {
-          if (MovieModuleManager.getInstance().getSettings().getArtworkScrapers().contains(artworkScraper.getId())) {
+          if (settings.getArtworkScrapers().contains(artworkScraper.getId())) {
             selectedArtworkScrapers.add(artworkScraper);
           }
         }
@@ -435,7 +436,7 @@ class MovieCommandTask extends TmmThreadPool {
         movieSearchAndScrapeConfig.setArtworkScraper(selectedArtworkScrapers);
 
         activeTask = new MovieMissingArtworkDownloadTask(getMoviesForScope(command.scope), movieSearchAndScrapeConfig,
-            MovieModuleManager.getInstance().getSettings().getScraperMetadataConfig());
+            settings.getScraperMetadataConfig());
         activeTask.run();
 
         // done
@@ -455,22 +456,41 @@ class MovieCommandTask extends TmmThreadPool {
   }
 
   private void rename() {
-    Set<Movie> moviesToRename = new LinkedHashSet<>();
+    // process all renaming tasks in the order the user wants to
+    // we need that to let the user call a rename task with different profile per call
     for (AbstractCommandHandler.Command command : commands) {
       if ("rename".equals(command.action)) {
-        moviesToRename.addAll(getMoviesForScope(command.scope));
+        // get the profile
+        String profileName = MovieRenamerProfile.DEFAULT_RENAMER_PROFILE;
+
+        String arg = command.args.get("profile");
+        if (StringUtils.isNotBlank(arg)) {
+          profileName = arg;
+        }
+
+        // add all movies from the scope
+        List<Movie> moviesToRename = getMoviesForScope(command.scope);
+        if (!moviesToRename.isEmpty()) {
+          setTaskName(TmmResourceBundle.getString("movie.rename"));
+          publishState(TmmResourceBundle.getString("movie.rename"), getProgressDone());
+
+          MovieRenamerProfile renamerProfile;
+          if (settings.getRenamerProfiles().containsKey(profileName)) {
+            renamerProfile = settings.getRenamerProfiles().get(profileName);
+          }
+          else {
+            // we need to fall back here, since the user can send unavailable renamer profile names in the API!
+            LOGGER.warn("given profile '{}' not found, using default profile", profileName);
+            renamerProfile = settings.getDefaultRenamerProfile();
+          }
+
+          activeTask = new MovieRenameTask(moviesToRename, renamerProfile);
+          activeTask.run(); // blocking
+
+          // done
+          activeTask = null;
+        }
       }
-    }
-
-    if (!moviesToRename.isEmpty()) {
-      setTaskName(TmmResourceBundle.getString("movie.rename"));
-      publishState(TmmResourceBundle.getString("movie.rename"), getProgressDone());
-
-      activeTask = new MovieRenameTask(new ArrayList<>(moviesToRename));
-      activeTask.run(); // blocking
-
-      // done
-      activeTask = null;
     }
   }
 
@@ -543,7 +563,7 @@ class MovieCommandTask extends TmmThreadPool {
           for (String arg : scope.args) {
             // check if this could be an index
             try {
-              dataSources.add(movieSettings.getMovieDataSource().get(Integer.parseInt(arg)));
+              dataSources.add(settings.getMovieDataSource().get(Integer.parseInt(arg)));
             }
             catch (Exception e) {
               // just add it as a path

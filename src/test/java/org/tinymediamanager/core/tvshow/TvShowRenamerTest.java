@@ -176,38 +176,42 @@ public class TvShowRenamerTest extends BasicTvShowTest {
 
   @Test
   public void tvRenamerPatterns() {
+    TvShowRenamerProfile renamerProfile = TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+
     // SINGLE - RECOMMENDED
     TvShow single = createSingleTvShow();
-    assertEqual(p("singleshow (2009)/Season 1/singleshow - S01E02 - singleEP.avi"),
-        gen(single, "${showTitle} (${showYear})", "Season ${seasonNr}", "${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", true));
+    assertEqual(p("singleshow (2009)/Season 1/singleshow - S01E02 - singleEP.avi"), gen(single, "${showTitle} (${showYear})", "Season ${seasonNr}",
+        "${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", true, renamerProfile));
     assertEqual(p("singleshow (2009)/Season 1/E02 - singleEP.avi"),
-        gen(single, "${showTitle} (${showYear})", "Season ${seasonNr}", "E${episodeNr2} - ${title}", true));
+        gen(single, "${showTitle} (${showYear})", "Season ${seasonNr}", "E${episodeNr2} - ${title}", true, renamerProfile));
     assertEqual(p("singleshow (2009)/Season 1/S01E02 - singleEP.avi"),
-        gen(single, "${showTitle} (${showYear})", "Season ${seasonNr}", "S${seasonNr2}E${episodeNr2} - ${title}", true));
+        gen(single, "${showTitle} (${showYear})", "Season ${seasonNr}", "S${seasonNr2}E${episodeNr2} - ${title}", true, renamerProfile));
     assertEqual(p("singleshow (2009)/Season 1/1x04 - singleEP.avi"),
-        gen(single, "${showTitle} (${showYear})", "Season ${seasonNr}", "${seasonNr}x${episodeNrDvd2} - ${title}", true));
+        gen(single, "${showTitle} (${showYear})", "Season ${seasonNr}", "${seasonNr}x${episodeNrDvd2} - ${title}", true, renamerProfile));
     assertEqual(p("singleshow (2009)/102 - singleEP.avi"),
-        gen(single, "${showTitle} (${showYear})", "", "${seasonNr}${episodeNr2} - ${title}", true));
+        gen(single, "${showTitle} (${showYear})", "", "${seasonNr}${episodeNr2} - ${title}", true, renamerProfile));
     assertEqual(p("singleshow (2009)/1x04 - singleEP.avi"),
-        gen(single, "${showTitle} (${showYear})", "", "${seasonNr}x${episodeNrDvd2} - ${title}", true));
+        gen(single, "${showTitle} (${showYear})", "", "${seasonNr}x${episodeNrDvd2} - ${title}", true, renamerProfile));
     assertEqual(p("singleshow (2009)/Season 1/E02 - singleEP.avi"),
-        gen(single, "${showTitle} (${showYear})", "Season ${seasonNr}", "E${episodeNr2} - ${title} () [] {} ( ) [ ] { } ", true));
+        gen(single, "${showTitle} (${showYear})", "Season ${seasonNr}", "E${episodeNr2} - ${title} () [] {} ( ) [ ] { } ", true, renamerProfile));
 
     // SINGLE - not recommended, but working
     assertEqual(p("singleshow (2009)/Season 1/S01 - singleEP.avi"),
-        gen(single, "${showTitle} (${showYear})", "Season ${seasonNr}", "S${seasonNr2} - ${title}", false));
-    assertEqual(p("singleshow (2009)/E02 - singleEP.avi"), gen(single, "${showTitle} (${showYear})", "", "E${episodeNr2} - ${title}", false));
-    assertEqual(p("singleshow (2009)/E02.avi"), gen(single, "${showTitle} (${showYear})", "", "E${episodeNr2}", false));
-    assertEqual(p("singleshow (2009)/Season 01/102 303- singleEP.avi"),
-        gen(single, "${showTitle} (${showYear})", "Season ${seasonNr2}", "${seasonNr}${episodeNr2} ${seasonNrDvd}${seasonNrDvd2}- ${title}", false));
+        gen(single, "${showTitle} (${showYear})", "Season ${seasonNr}", "S${seasonNr2} - ${title}", false, renamerProfile));
+    assertEqual(p("singleshow (2009)/E02 - singleEP.avi"),
+        gen(single, "${showTitle} (${showYear})", "", "E${episodeNr2} - ${title}", false, renamerProfile));
+    assertEqual(p("singleshow (2009)/E02.avi"), gen(single, "${showTitle} (${showYear})", "", "E${episodeNr2}", false, renamerProfile));
+    assertEqual(p("singleshow (2009)/Season 01/102 303- singleEP.avi"), gen(single, "${showTitle} (${showYear})", "Season ${seasonNr2}",
+        "${seasonNr}${episodeNr2} ${seasonNrDvd}${seasonNrDvd2}- ${title}", false, renamerProfile));
     assertEqual(p("singleshow (2009)/Season 01/102 3x04- singleEP.avi"), gen(single, "${showTitle} (${showYear})", "Season ${seasonNr2}",
-        "${seasonNr}${episodeNr2} ${seasonNrDvd}x${episodeNrDvd2}- ${title}", false));
-    assertEqual(p("singleshow (2009)/singleEP.avi"), gen(single, "${showTitle} (${showYear})", "", "${title}", false));
-    assertEqual(p("singleshow (2009)/singleEPsingleEP.avi"), gen(single, "${showTitle} (${showYear})", "", "${title}${title}", false));
+        "${seasonNr}${episodeNr2} ${seasonNrDvd}x${episodeNrDvd2}- ${title}", false, renamerProfile));
+    assertEqual(p("singleshow (2009)/singleEP.avi"), gen(single, "${showTitle} (${showYear})", "", "${title}", false, renamerProfile));
+    assertEqual(p("singleshow (2009)/singleEPsingleEP.avi"),
+        gen(single, "${showTitle} (${showYear})", "", "${title}${title}", false, renamerProfile));
     assertEqual(p("singleshow (2009)/singleshow - S101E02 - singleEP.avi"),
-        gen(single, "${showTitle} (${showYear})", "", "${showTitle} - S${seasonNr}${seasonNr2}E${episodeNr2} - ${title}", false)); // double
+        gen(single, "${showTitle} (${showYear})", "", "${showTitle} - S${seasonNr}${seasonNr2}E${episodeNr2} - ${title}", false, renamerProfile)); // double
     assertEqual(p("singleshow (2009)/singleshow - S1E0204 - singleEP.avi"),
-        gen(single, "${showTitle} (${showYear})", "", "${showTitle} - S${seasonNr}E${episodeNr2}${episodeNrDvd2} - ${title}", false)); // double
+        gen(single, "${showTitle} (${showYear})", "", "${showTitle} - S${seasonNr}E${episodeNr2}${episodeNrDvd2} - ${title}", false, renamerProfile)); // double
 
     // *******************
     // COPY 1:1 FROM ABOVE
@@ -215,90 +219,98 @@ public class TvShowRenamerTest extends BasicTvShowTest {
 
     // MULTI - RECOMMENDED
     TvShow multi = createMultiTvShow();
-    assertEqual(p("multishow (2009)/Season 1/multishow - S01E02 S01E03 - multiEP2 - multiEP3.avi"),
-        gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr}", "${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", true));
+    assertEqual(p("multishow (2009)/Season 1/multishow - S01E02 S01E03 - multiEP2 - multiEP3.avi"), gen(multi, "${showTitle} (${showYear})",
+        "Season ${seasonNr}", "${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", true, renamerProfile));
     assertEqual(p("multishow (2009)/Season 1/E02 E03 - multiEP2 - multiEP3.avi"),
-        gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr}", "E${episodeNr2} - ${title}", true));
+        gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr}", "E${episodeNr2} - ${title}", true, renamerProfile));
     assertEqual(p("multishow (2009)/Season 1/S01E02 S01E03 - multiEP2 - multiEP3.avi"),
-        gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr}", "S${seasonNr2}E${episodeNr2} - ${title}", true));
+        gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr}", "S${seasonNr2}E${episodeNr2} - ${title}", true, renamerProfile));
     assertEqual(p("multishow (2009)/Season 1/1x04 1x05 - multiEP2 - multiEP3.avi"),
-        gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr}", "${seasonNr}x${episodeNrDvd2} - ${title}", true));
+        gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr}", "${seasonNr}x${episodeNrDvd2} - ${title}", true, renamerProfile));
     assertEqual(p("multishow (2009)/102 103 - multiEP2 - multiEP3.avi"),
-        gen(multi, "${showTitle} (${showYear})", "", "${seasonNr}${episodeNr2} - ${title}", true));
+        gen(multi, "${showTitle} (${showYear})", "", "${seasonNr}${episodeNr2} - ${title}", true, renamerProfile));
     assertEqual(p("multishow (2009)/1x04 1x05 - multiEP2 - multiEP3.avi"),
-        gen(multi, "${showTitle} (${showYear})", "", "${seasonNr}x${episodeNrDvd2} - ${title}", true));
+        gen(multi, "${showTitle} (${showYear})", "", "${seasonNr}x${episodeNrDvd2} - ${title}", true, renamerProfile));
     assertEqual(p("multishow (2009)/Season 1/E02 E03 - multiEP2 - multiEP3.avi"),
-        gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr}", "E${episodeNr2} - ${title} () [] {} ( ) [ ] { } ", true));
+        gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr}", "E${episodeNr2} - ${title} () [] {} ( ) [ ] { } ", true, renamerProfile));
 
     // MULTI - not recommended, but working
     assertEqual(p("multishow (2009)/Season 1/S01 S01 - multiEP2 - multiEP3.avi"),
-        gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr}", "S${seasonNr2} - ${title}", false));
+        gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr}", "S${seasonNr2} - ${title}", false, renamerProfile));
     assertEqual(p("multishow (2009)/E02 E03 - multiEP2 - multiEP3.avi"),
-        gen(multi, "${showTitle} (${showYear})", "", "E${episodeNr2} - ${title}", false));
-    assertEqual(p("multishow (2009)/E02 E03.avi"), gen(multi, "${showTitle} (${showYear})", "", "E${episodeNr2}", false));
-    assertEqual(p("multishow (2009)/Season 01/102 103 303 - multiEP2 - multiEP3.avi"),
-        gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr2}", "${seasonNr}${episodeNr2} ${seasonNrDvd}${seasonNrDvd2} - ${title}", false));
+        gen(multi, "${showTitle} (${showYear})", "", "E${episodeNr2} - ${title}", false, renamerProfile));
+    assertEqual(p("multishow (2009)/E02 E03.avi"), gen(multi, "${showTitle} (${showYear})", "", "E${episodeNr2}", false, renamerProfile));
+    assertEqual(p("multishow (2009)/Season 01/102 103 303 - multiEP2 - multiEP3.avi"), gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr2}",
+        "${seasonNr}${episodeNr2} ${seasonNrDvd}${seasonNrDvd2} - ${title}", false, renamerProfile));
     // assertEqual(p("multishow (2009)/Season 01/102 103 3x04 - multiEP2 - multiEP3.avi"),
     // gen(multi, "${showTitle} (${showYear})", "Season ${seasonNr2}", "${seasonNr}${episodeNr2} ${seasonNrDvd}x${episodeNrDvd2} - ${title}", false));
-    assertEqual(p("multishow (2009)/multiEP2 - multiEP3.avi"), gen(multi, "${showTitle} (${showYear})", "", "${title}", false));
+    assertEqual(p("multishow (2009)/multiEP2 - multiEP3.avi"), gen(multi, "${showTitle} (${showYear})", "", "${title}", false, renamerProfile));
     assertEqual(p("multishow (2009)/multiEP2 - multiEP3multiEP2 - multiEP3.avi"),
-        gen(multi, "${showTitle} (${showYear})", "", "${title}${title}", false));
+        gen(multi, "${showTitle} (${showYear})", "", "${title}${title}", false, renamerProfile));
     assertEqual(p("multishow (2009)/multishow - S101E02 - multiEP2 - multiEP3.avi"),
-        gen(multi, "${showTitle} (${showYear})", "", "${showTitle} - S${seasonNr}${seasonNr2}E${episodeNr2} - ${title}", false)); // double
+        gen(multi, "${showTitle} (${showYear})", "", "${showTitle} - S${seasonNr}${seasonNr2}E${episodeNr2} - ${title}", false, renamerProfile)); // double
     assertEqual(p("multishow (2009)/multishow - S1E02 S1E0304 - multiEP2 - multiEP3.avi"),
-        gen(multi, "${showTitle} (${showYear})", "", "${showTitle} - S${seasonNr}E${episodeNr2}${episodeNrDvd2} - ${title}", false)); // double
+        gen(multi, "${showTitle} (${showYear})", "", "${showTitle} - S${seasonNr}E${episodeNr2}${episodeNrDvd2} - ${title}", false, renamerProfile)); // double
   }
 
   @Test
   public void testDiscEpisode() throws Exception {
     copyResourceFolderToWorkFolder("testtvshows");
+    TvShowRenamerProfile renamerProfile = new TvShowRenamerProfile();
 
     TvShow disc = createDiscTvShow("testtvshows/Janosik DVD");
-    TvShowRenamer.renameEpisode(disc.getEpisode(1, 2).get(0));
+    TvShowRenamer.renameEpisode(disc.getEpisode(1, 2).get(0), renamerProfile);
 
     TvShow discEp = createDiscEpTvShow("testtvshows/DVDEpisodeInRoot");
-    TvShowRenamer.renameEpisode(discEp.getEpisode(1, 1).get(0));
+    TvShowRenamer.renameEpisode(discEp.getEpisode(1, 1).get(0), renamerProfile);
   }
 
   @Test
   public void testMultiEpisodeRangeStyle() {
-    TvShowModuleManager.getInstance().getSettings().setRenamerMultiEpisodeStyle(TvShowMultiEpisodeStyle.RANGE);
+    TvShowRenamerProfile renamerProfile = new TvShowRenamerProfile();
+    renamerProfile.setRenamerMultiEpisodeStyle(TvShowMultiEpisodeStyle.RANGE);
 
     TvShow multi = createMultiTvShow();
     assertEqual("multishow - S01E02-E03 - multiEP2 - multiEP3",
-        TvShowRenamer.createDestination("${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", multi.getEpisodes()));
-    assertEqual("E02-E03 - multiEP2 - multiEP3", TvShowRenamer.createDestination("E${episodeNr2} - ${title}", multi.getEpisodes()));
-    assertEqual("1x04-05 - multiEP2 - multiEP3", TvShowRenamer.createDestination("${seasonNr}x${episodeNrDvd2} - ${title}", multi.getEpisodes()));
+        TvShowRenamer.createDestination("${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", multi.getEpisodes(), renamerProfile));
+    assertEqual("E02-E03 - multiEP2 - multiEP3", TvShowRenamer.createDestination("E${episodeNr2} - ${title}", multi.getEpisodes(), renamerProfile));
+    assertEqual("1x04-05 - multiEP2 - multiEP3",
+        TvShowRenamer.createDestination("${seasonNr}x${episodeNrDvd2} - ${title}", multi.getEpisodes(), renamerProfile));
 
     TvShow single = createSingleTvShow();
     assertEqual("singleshow - S01E02 - singleEP",
-        TvShowRenamer.createDestination("${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", single.getEpisodes()));
+        TvShowRenamer.createDestination("${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", single.getEpisodes(), renamerProfile));
   }
 
   @Test
   public void testMultiEpisodeRangeFallbackForNonContiguousEpisodes() {
-    TvShowModuleManager.getInstance().getSettings().setRenamerMultiEpisodeStyle(TvShowMultiEpisodeStyle.RANGE);
+    TvShowRenamerProfile renamerProfile = TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+    renamerProfile.setRenamerMultiEpisodeStyle(TvShowMultiEpisodeStyle.RANGE);
 
     TvShow multi = createNonContiguousMultiTvShow();
     assertEqual("multishow - S01E02 S01E04 - multiEP2 - multiEP4",
-        TvShowRenamer.createDestination("${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", multi.getEpisodes()));
+        TvShowRenamer.createDestination("${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", multi.getEpisodes(), renamerProfile));
   }
 
   @Test
   public void testMultiEpisodeRangeFallbackForCrossSeasonEpisodes() {
-    TvShowModuleManager.getInstance().getSettings().setRenamerMultiEpisodeStyle(TvShowMultiEpisodeStyle.RANGE);
+    TvShowRenamerProfile renamerProfile = TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile();
+    TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile().setRenamerMultiEpisodeStyle(TvShowMultiEpisodeStyle.RANGE);
 
     TvShow multi = createCrossSeasonMultiTvShow();
     assertEqual("multishow - S01E10 S02E01 - multiEP10 - multiEP201",
-        TvShowRenamer.createDestination("${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", multi.getEpisodes()));
+        TvShowRenamer.createDestination("${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", multi.getEpisodes(), renamerProfile));
   }
 
-  private Path gen(TvShow show, String showPattern, String seasonPattern, String filePattern, boolean recommended) {
+  private Path gen(TvShow show, String showPattern, String seasonPattern, String filePattern, boolean recommended,
+      TvShowRenamerProfile renamerProfile) {
     Assert.assertEquals(recommended, TvShowRenamer.isRecommended(seasonPattern, filePattern));
-    String sh = TvShowRenamer.getTvShowFoldername(showPattern, show);
-    String se = TvShowRenamer.getSeasonFoldername(seasonPattern, show, show.getEpisodes().get(0));
-    String ep = TvShowRenamer.generateEpisodeFilenames(filePattern, show, show.getEpisodesMediaFiles().get(0), "").get(0).getFilename();
-    System.out.println(new File(sh, se + File.separator + ep).toString());
+    String sh = TvShowRenamer.getTvShowFoldername(showPattern, show, renamerProfile);
+    String se = TvShowRenamer.getSeasonFoldername(seasonPattern, show, show.getEpisodes().get(0), renamerProfile);
+    String ep = TvShowRenamer.generateEpisodeFilenames(filePattern, show, show.getEpisodesMediaFiles().get(0), "", renamerProfile)
+        .get(0)
+        .getFilename();
+    System.out.println(new File(sh, se + File.separator + ep));
     // return new File(sh, se + File.separator + ep).toString();
     return Paths.get(sh, se, ep);
   }
@@ -848,7 +860,8 @@ public class TvShowRenamerTest extends BasicTvShowTest {
   }
 
   private void renameTvShow(TvShow tvShow) {
-    TvShowRenameTask task = new TvShowRenameTask(Collections.singletonList(tvShow), tvShow.getEpisodes());
+    TvShowRenameTask task = new TvShowRenameTask(Collections.singletonList(tvShow), tvShow.getEpisodes(),
+        TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
     task.run(); // blocking
   }
 
@@ -924,7 +937,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonPosterFilenames();
     settings.addSeasonPosterFilename(TvShowSeasonPosterNaming.SEASON_POSTER);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("poster_season_poster", MediaFileType.SEASON_POSTER, "jpg");
     renameTvShow(show);
@@ -938,7 +951,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonPosterFilenames();
     settings.addSeasonPosterFilename(TvShowSeasonPosterNaming.SEASON_FOLDER);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("poster_season_folder", MediaFileType.SEASON_POSTER, "jpg");
     renameTvShow(show);
@@ -952,7 +965,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonPosterFilenames();
     settings.addSeasonPosterFilename(TvShowSeasonPosterNaming.SEASON_FOLDER2);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("poster_season_folder2", MediaFileType.SEASON_POSTER, "jpg");
     renameTvShow(show);
@@ -966,7 +979,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonPosterFilenames();
     settings.addSeasonPosterFilename(TvShowSeasonPosterNaming.FOLDER);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("poster_folder", MediaFileType.SEASON_POSTER, "jpg");
     renameTvShow(show);
@@ -980,7 +993,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonPosterFilenames();
     settings.addSeasonPosterFilename(TvShowSeasonPosterNaming.POSTER);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("poster_poster", MediaFileType.SEASON_POSTER, "jpg");
     renameTvShow(show);
@@ -994,7 +1007,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonPosterFilenames();
     settings.addSeasonPosterFilename(TvShowSeasonPosterNaming.COVER);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("poster_cover", MediaFileType.SEASON_POSTER, "jpg");
     renameTvShow(show);
@@ -1012,7 +1025,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonFanartFilenames();
     settings.addSeasonFanartFilename(TvShowSeasonFanartNaming.SEASON_FANART);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("fanart_season_fanart", MediaFileType.SEASON_FANART, "jpg");
     renameTvShow(show);
@@ -1026,7 +1039,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonFanartFilenames();
     settings.addSeasonFanartFilename(TvShowSeasonFanartNaming.SEASON_FOLDER);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("fanart_season_folder", MediaFileType.SEASON_FANART, "jpg");
     renameTvShow(show);
@@ -1044,7 +1057,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonBannerFilenames();
     settings.addSeasonBannerFilename(TvShowSeasonBannerNaming.SEASON_BANNER);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("banner_season_banner", MediaFileType.SEASON_BANNER, "jpg");
     renameTvShow(show);
@@ -1058,7 +1071,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonBannerFilenames();
     settings.addSeasonBannerFilename(TvShowSeasonBannerNaming.SEASON_FOLDER);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("banner_season_folder", MediaFileType.SEASON_BANNER, "jpg");
     renameTvShow(show);
@@ -1076,7 +1089,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonThumbFilenames();
     settings.addSeasonThumbFilename(TvShowSeasonThumbNaming.SEASON_THUMB);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("thumb_season_thumb", MediaFileType.SEASON_THUMB, "jpg");
     renameTvShow(show);
@@ -1090,7 +1103,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonThumbFilenames();
     settings.addSeasonThumbFilename(TvShowSeasonThumbNaming.SEASON_FOLDER);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("thumb_season_folder", MediaFileType.SEASON_THUMB, "jpg");
     renameTvShow(show);
@@ -1104,7 +1117,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonThumbFilenames();
     settings.addSeasonThumbFilename(TvShowSeasonThumbNaming.SEASON_LANDSCAPE);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("thumb_season_landscape", MediaFileType.SEASON_THUMB, "jpg");
     renameTvShow(show);
@@ -1118,7 +1131,7 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     TvShowSettings settings = TvShowSettings.getInstance();
     settings.clearSeasonThumbFilenames();
     settings.addSeasonThumbFilename(TvShowSeasonThumbNaming.SEASON_FOLDER_LANDSCAPE);
-    settings.setSpecialSeason(true);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
 
     TvShow show = createShowWithSeasonArtwork("thumb_season_folder_landscape", MediaFileType.SEASON_THUMB, "jpg");
     renameTvShow(show);
@@ -1155,5 +1168,151 @@ public class TvShowRenamerTest extends BasicTvShowTest {
 
     assertSeasonArtworkExists(show, 0, "Specials/season.nfo");
     assertSeasonArtworkExists(show, 1, "Season 1/season.nfo");
+  }
+
+  // =====================================================================================
+  // Renamer Profile Tests
+  // =====================================================================================
+
+  @Test
+  public void testRenamerProfileDefaultValues() {
+    TvShowRenamerProfile profile = new TvShowRenamerProfile();
+
+    assertThat(profile.getRenamerTvShowFoldername()).isEqualTo(TvShowSettings.DEFAULT_RENAMER_FOLDER_PATTERN);
+    assertThat(profile.getRenamerSeasonFoldername()).isEqualTo(TvShowSettings.DEFAULT_RENAMER_SEASON_PATTERN);
+    assertThat(profile.getRenamerFilename()).isEqualTo(TvShowSettings.DEFAULT_RENAMER_FILE_PATTERN);
+    assertThat(profile.getRenamerMultiEpisodeStyle()).isEqualTo(TvShowMultiEpisodeStyle.REPEAT);
+    assertThat(profile.isRenamerShowPathnameSpaceSubstitution()).isFalse();
+    assertThat(profile.getRenamerShowPathnameSpaceReplacement()).isEqualTo("_");
+    assertThat(profile.isRenamerFilenameSpaceSubstitution()).isFalse();
+    assertThat(profile.getRenamerFilenameSpaceReplacement()).isEqualTo("_");
+    assertThat(profile.getRenamerColonReplacement()).isEqualTo("");
+    assertThat(profile.isRenamerCleanupUnwanted()).isFalse();
+    assertThat(profile.getRenamerFirstCharacterNumberReplacement()).isEqualTo("#");
+    assertThat(profile.isAsciiReplacement()).isFalse();
+    assertThat(profile.isUnicodeReplacement()).isFalse();
+    assertThat(profile.isSpecialSeason()).isTrue();
+    assertThat(profile.isCreateMissingSeasonItems()).isFalse();
+  }
+
+  @Test
+  public void testRenamerProfileCustomPatterns() {
+    // create a named profile with custom patterns
+    TvShowRenamerProfile custom = new TvShowRenamerProfile("CustomPatterns");
+    custom.setRenamerTvShowFoldername("TV/${showTitle}");
+    custom.setRenamerSeasonFoldername("Staffel ${seasonNr}");
+    custom.setRenamerFilename("${showTitle}_S${seasonNr2}E${episodeNr2}_${title}");
+
+    TvShow single = createSingleTvShow();
+    Path result = gen(single, custom.getRenamerTvShowFoldername(), custom.getRenamerSeasonFoldername(), custom.getRenamerFilename(), true, custom);
+
+    assertEqual(p("TV/singleshow/Staffel 1/singleshow_S01E02_singleEP.avi"), result);
+  }
+
+  @Test
+  public void testRenamerProfileMultiEpisodeStyleRepeat() {
+    // REPEAT is the default: "S01E02 S01E03"
+    TvShowRenamerProfile profile = new TvShowRenamerProfile();
+    assertThat(profile.getRenamerMultiEpisodeStyle()).isEqualTo(TvShowMultiEpisodeStyle.REPEAT);
+
+    TvShow multi = createMultiTvShow();
+    assertEqual("multishow - S01E02 S01E03 - multiEP2 - multiEP3",
+        TvShowRenamer.createDestination("${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", multi.getEpisodes(), profile));
+  }
+
+  @Test
+  public void testRenamerProfileMultiEpisodeStyleRange() {
+    // RANGE style: "S01E02-E03"
+    TvShowRenamerProfile profile = new TvShowRenamerProfile();
+    profile.setRenamerMultiEpisodeStyle(TvShowMultiEpisodeStyle.RANGE);
+
+    TvShow multi = createMultiTvShow();
+    assertEqual("multishow - S01E02-E03 - multiEP2 - multiEP3",
+        TvShowRenamer.createDestination("${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}", multi.getEpisodes(), profile));
+  }
+
+  @Test
+  public void testRenamerProfileTwoProfilesDifferentOutputs() {
+    // two profiles with different show folder patterns should produce different paths
+    TvShow single = createSingleTvShow();
+
+    TvShowRenamerProfile profileA = new TvShowRenamerProfile("A");
+    profileA.setRenamerTvShowFoldername("${showTitle}");
+
+    TvShowRenamerProfile profileB = new TvShowRenamerProfile("B");
+    profileB.setRenamerTvShowFoldername("SHOW ${showYear} ${showTitle}");
+    profileB.setRenamerShowPathnameSpaceSubstitution(true);
+    profileB.setRenamerShowPathnameSpaceReplacement("_");
+
+    String pathA = TvShowRenamer.getTvShowFoldername(profileA, single);
+    String pathB = TvShowRenamer.getTvShowFoldername(profileB, single);
+
+    assertThat(pathA).isEqualTo("singleshow");
+    assertThat(pathB).isEqualTo("SHOW_2009_singleshow");
+    assertThat(pathA).isNotEqualTo(pathB);
+  }
+
+  @Test
+  public void testRenamerProfileFromSettingsUsedInRenameTask() throws Exception {
+    // add a custom profile to settings and verify it's used by the rename task
+    copyResourceFolderToWorkFolder("testtvshows/renamer_test/simple");
+
+    Path source = getWorkFolder().resolve("testtvshows/renamer_test/simple");
+    Path destination = getWorkFolder().resolve("tv_show_renamer_profile/ShowForRenamer");
+    FileUtils.copyDirectory(source.toFile(), destination.toFile());
+
+    TvShow show = new TvShow();
+    show.setTitle("Breaking Bad");
+    show.setYear(2008);
+    show.setDataSource(destination.getParent().toAbsolutePath().toString());
+    show.setPath(destination.toAbsolutePath().toString());
+
+    TvShowList.getInstance().addTvShow(show);
+
+    TvShowEpisode ep = new TvShowEpisode();
+    ep.setTitle("Pilot");
+    ep.setEpisode(new MediaEpisodeNumber(MediaEpisodeGroup.DEFAULT_AIRED, 1, 1));
+    ep.setEpisode(new MediaEpisodeNumber(MediaEpisodeGroup.DEFAULT_DVD, 1, 1));
+    ep.setPath(destination.toAbsolutePath().toString());
+    MediaFile mf = new MediaFile(destination.resolve("S01E01.jpg").toAbsolutePath(), MediaFileType.THUMB);
+    ep.addToMediaFiles(mf);
+    mf = new MediaFile(destination.resolve("S01E01.mkv").toAbsolutePath(), MediaFileType.VIDEO);
+    ep.addToMediaFiles(mf);
+    mf = new MediaFile(destination.resolve("S01E01.srt").toAbsolutePath(), MediaFileType.SUBTITLE);
+    ep.addToMediaFiles(mf);
+    mf = new MediaFile(destination.resolve("S01E01.nfo").toAbsolutePath(), MediaFileType.NFO);
+    ep.addToMediaFiles(mf);
+    ep.setTvShow(show);
+    show.addEpisode(ep);
+
+    // add a custom profile with known patterns
+    TvShowSettings settings = TvShowSettings.getInstance();
+    TvShowRenamerProfile customProfile = new TvShowRenamerProfile("RenameTestProfile");
+    customProfile.setRenamerTvShowFoldername("${showTitle} (${showYear})");
+    customProfile.setRenamerSeasonFoldername("Season ${seasonNr}");
+    customProfile.setRenamerFilename("${showTitle} - S${seasonNr2}E${episodeNr2} - ${title}");
+    settings.addRenamerProfile(customProfile);
+
+    // run rename with the custom profile
+    TvShowRenameTask task = new TvShowRenameTask(Collections.singletonList(show), show.getEpisodes(), customProfile);
+    task.run();
+
+    // verify files were renamed using the custom profile's patterns
+    Path expectedShowDir = destination.getParent().resolve("Breaking Bad (2008)");
+    Path expectedFile = expectedShowDir.resolve("Season 1/Breaking Bad - S01E01 - Pilot.mkv");
+    assertThat(expectedFile).exists();
+
+    // now use another setting and rename again
+    customProfile.setRenamerShowPathnameSpaceSubstitution(true);
+    customProfile.setRenamerShowPathnameSpaceReplacement("_");
+    customProfile.setRenamerSeasonFoldername("S${seasonNr2}");
+
+    task = new TvShowRenameTask(Collections.singletonList(show), show.getEpisodes(), customProfile);
+    task.run();
+
+    // verify files were renamed using the custom profile's patterns
+    expectedShowDir = destination.getParent().resolve("Breaking_Bad_(2008)");
+    expectedFile = expectedShowDir.resolve("S01/Breaking Bad - S01E01 - Pilot.mkv");
+    assertThat(expectedFile).exists();
   }
 }
