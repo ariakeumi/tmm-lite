@@ -162,7 +162,7 @@ class TraktTvMovie {
       // Extended.MAX adds certs, runtime, and other stuff (useful for scraper!)
       // Fetch all pages using pagination with limit of 250
       int page = 1;
-      int limit = 250;
+      int limit = TraktTv.MAX_PAGE_SIZE;
       int maxPages = 500; // hard stop after this amount of pages
 
       while (true) {
@@ -285,11 +285,29 @@ class TraktTvMovie {
     // *****************************************************************************
     // 1) get all Trakt watched movies and update our "watched" status
     // *****************************************************************************
-    List<BaseMovie> traktMovies;
+    List<BaseMovie> traktMovies = new ArrayList<>();
     try {
       // Extended.DEFAULT adds url, poster, fanart, banner, genres
       // Extended.MAX adds certs, runtime, and other stuff (useful for scraper!)
-      traktMovies = executeCall(api.sync().watchedMovies(null));
+      // Fetch all pages using pagination with limit of 250
+      int page = 1;
+      int limit = TraktTv.MAX_PAGE_SIZE;
+      int maxPages = 500; // hard stop after this amount of pages
+
+      while (true) {
+        List<BaseMovie> pageResults = executeCall(api.sync().watchedMovies(page, limit, null));
+        if (pageResults.isEmpty()) {
+          break;
+        }
+        traktMovies.addAll(pageResults);
+        // If we got fewer results than the limit, this was the last page
+        // If we get more results than the limit - the API is broken - stop too
+        // hard stop after max pages
+        if (pageResults.size() < limit || pageResults.size() > limit || page > maxPages) {
+          break;
+        }
+        page++;
+      }
     }
     catch (Exception e) {
       LOGGER.error("Failed syncing Trakt.tv - '{}'", e.getMessage());
@@ -406,7 +424,7 @@ class TraktTvMovie {
       // Extended.MAX adds certs, runtime, and other stuff (useful for scraper!)
       // Fetch all pages using pagination with limit of 250 (maximum according to Trakt API)
       int page = 1;
-      int limit = 250;
+      int limit = TraktTv.MAX_PAGE_SIZE;
       int maxPages = 500;
       while (true) {
         List<RatedMovie> pageResults = executeCall(api.sync().ratingsMovies(RatingsFilter.ALL, null, page, limit));
@@ -590,7 +608,7 @@ class TraktTvMovie {
     try {
       // Fetch all pages using pagination with limit of 250
       int page = 1;
-      int limit = 250;
+      int limit = TraktTv.MAX_PAGE_SIZE;
       int maxPages = 500; // hard stop after this amount of pages
 
       while (true) {
@@ -608,8 +626,22 @@ class TraktTvMovie {
         page++;
       }
 
-      // Note: watchedMovies does not support pagination in trakt-java, so we retrieve all at once
-      traktWatched = executeCall(api.sync().watchedMovies(null));
+      // Fetch all pages using pagination with limit of 250
+      page = 1;
+      while (true) {
+        List<BaseMovie> pageResults = executeCall(api.sync().watchedMovies(page, limit, null));
+        if (pageResults.isEmpty()) {
+          break;
+        }
+        traktWatched.addAll(pageResults);
+        // If we got fewer results than the limit, this was the last page
+        // If we get more results than the limit - the API is broken - stop too
+        // hard stop after max pages
+        if (pageResults.size() < limit || pageResults.size() > limit || page > maxPages) {
+          break;
+        }
+        page++;
+      }
     }
     catch (Exception e) {
       LOGGER.error("Failed syncing Trakt.tv - '{}'", e.getMessage());

@@ -69,7 +69,10 @@ import retrofit2.Response;
  */
 
 public class TraktTv implements TmmFeature {
-  private static final Logger LOGGER = LoggerFactory.getLogger(TraktTv.class);
+  private static final Logger LOGGER        = LoggerFactory.getLogger(TraktTv.class);
+
+  public static int           MAX_PAGE_SIZE = 250;
+
   private static TraktTv      instance;
 
   private TraktV2             api;

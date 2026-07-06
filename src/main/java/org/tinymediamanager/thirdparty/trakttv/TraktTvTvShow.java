@@ -174,7 +174,7 @@ class TraktTvTvShow {
       // Extended.MAX adds certs, runtime, and other stuff (useful for scraper!)
       // Fetch all pages using pagination with limit of 250
       int page = 1;
-      int limit = 250;
+      int limit = TraktTv.MAX_PAGE_SIZE;
       int maxPages = 50; // hard stop after this amount of pages
 
       while (true) {
@@ -275,11 +275,29 @@ class TraktTvTvShow {
     // create a local copy of the list
     List<TvShow> tvShows = new ArrayList<>(tvShowsInTmm);
 
-    List<BaseShow> traktShows;
+    List<BaseShow> traktShows = new ArrayList<>();
     try {
       // Extended.DEFAULT adds url, poster, fanart, banner, genres
       // Extended.MAX adds certs, runtime, and other stuff (useful for scraper!)
-      traktShows = executeCall(api.sync().watchedShows(null));
+      // Fetch all pages using pagination with limit of 250
+      int page = 1;
+      int limit = TraktTv.MAX_PAGE_SIZE;
+      int maxPages = 50; // hard stop after this amount of pages
+
+      while (true) {
+        List<BaseShow> pageResults = executeCall(api.sync().watchedShows(page, limit, null, null));
+        if (pageResults.isEmpty()) {
+          break;
+        }
+        traktShows.addAll(pageResults);
+        // If we got fewer results than the limit, this was the last page
+        // If we get more results than the limit - the API is broken - stop too
+        // hard stop after max pages
+        if (pageResults.size() < limit || pageResults.size() > limit || page > maxPages) {
+          break;
+        }
+        page++;
+      }
     }
     catch (Exception e) {
       LOGGER.error("Failed syncing Trakt.tv - '{}'", e.getMessage());
@@ -415,7 +433,7 @@ class TraktTvTvShow {
       // Extended.MAX adds certs, runtime, and other stuff (useful for scraper!)
       // Fetch all pages using pagination with limit of 250 (maximum according to Trakt API)
       int page = 1;
-      int limit = 250;
+      int limit = TraktTv.MAX_PAGE_SIZE;
       int maxPages = 50;
       while (true) {
         List<RatedShow> pageResults = executeCall(api.sync().ratingsShows(RatingsFilter.ALL, null, page, limit));
@@ -443,7 +461,7 @@ class TraktTvTvShow {
       // Extended.MAX adds certs, runtime, and other stuff (useful for scraper!)
       // Fetch all pages using pagination with limit of 250 (maximum according to Trakt API)
       int page = 1;
-      int limit = 250;
+      int limit = TraktTv.MAX_PAGE_SIZE;
       int maxPages = 50;
       while (true) {
         List<RatedEpisode> pageResults = executeCall(api.sync().ratingsEpisodes(RatingsFilter.ALL, null, page, limit));
@@ -610,11 +628,11 @@ class TraktTvTvShow {
     // 1) get ALL Trakt shows in collection / watched
     // *****************************************************************************
     List<BaseShow> traktCollection = new ArrayList<>();
-    List<BaseShow> traktWatched;
+    List<BaseShow> traktWatched = new ArrayList<>();
     try {
       // Fetch all pages using pagination with limit of 250
       int page = 1;
-      int limit = 250;
+      int limit = TraktTv.MAX_PAGE_SIZE;
       int maxPages = 50; // hard stop after this amount of pages
 
       while (true) {
@@ -632,8 +650,22 @@ class TraktTvTvShow {
         page++;
       }
 
-      // Note: watchedShows does not support pagination in trakt-java, so we retrieve all at once
-      traktWatched = executeCall(api.sync().watchedShows(null));
+      // Fetch all pages using pagination with limit of 250
+      page = 1;
+      while (true) {
+        List<BaseShow> pageResults = executeCall(api.sync().watchedShows(page, limit, null, null));
+        if (pageResults.isEmpty()) {
+          break;
+        }
+        traktWatched.addAll(pageResults);
+        // If we got fewer results than the limit, this was the last page
+        // If we get more results than the limit - the API is broken - stop too
+        // hard stop after max pages
+        if (pageResults.size() < limit || pageResults.size() > limit || page > maxPages) {
+          break;
+        }
+        page++;
+      }
     }
     catch (Exception e) {
       LOGGER.error("Failed syncing Trakt.tv - '{}'", e.getMessage());
