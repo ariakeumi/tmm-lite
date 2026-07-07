@@ -57,7 +57,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.madgag.gif.fmsware.GifDecoder;
 
 /**
- * The Class MediaFile.
+ * The Class {@link MediaFile} represents a media file entity that encapsulates all metadata and technical information about a media file, including
+ * video properties (codec, dimensions, frame rate), audio streams, subtitles, and file system information.
+ * <p>
+ * This class provides comprehensive support for storing and managing media file metadata such as video codec, bitrate, duration, aspect ratio, HDR
+ * format, and supports multiple audio streams and subtitle tracks.
+ * </p>
  *
  * @author Manuel Laggner
  */
