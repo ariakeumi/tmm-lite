@@ -7,6 +7,7 @@ classpath:
   - CONTENT_DIR/addons/*
 jvmOpts:
   - '-add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED'
+  - '--enable-native-access=ALL-UNNAMED'
   - '-Xms64m'
   - '-Xmx512m'
   - '-Xss512k'
