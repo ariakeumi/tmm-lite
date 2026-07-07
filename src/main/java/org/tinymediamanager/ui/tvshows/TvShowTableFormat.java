@@ -217,6 +217,18 @@ public class TvShowTableFormat extends TmmTreeTableFormat<TmmTreeNode> {
     addColumn(col);
 
     /*
+     * tmdb rating (hidden per default)
+     */
+    col = new Column("TMDB", "tmdb", this::getTmdbRating, Float.class);
+    col.setColumnComparator(floatComparator);
+    col.setHeaderTooltip(TmmResourceBundle.getString("metatag.rating") + " - TMDB");
+    col.setCellRenderer(new RightAlignTableCellRenderer());
+    col.setColumnResizeable(false);
+    col.setMinWidth(fontMetrics.stringWidth("TMDB") + getCellPadding());
+    col.setDefaultHidden(true);
+    addColumn(col);
+
+    /*
      * aired (hidden per default)
      */
     col = new Column(TmmResourceBundle.getString("metatag.aired"), "aired", this::getAiredDate, Date.class);
@@ -703,6 +715,17 @@ public class TvShowTableFormat extends TmmTreeTableFormat<TmmTreeNode> {
     Object userObject = node.getUserObject();
     if (userObject instanceof TvShow || userObject instanceof TvShowEpisode) {
       MediaRating mediaRating = ((MediaEntity) userObject).getRating(MediaMetadata.IMDB);
+      if (mediaRating != null && mediaRating.getRating() > 0) {
+        return mediaRating.getRating();
+      }
+    }
+    return null;
+  }
+
+  private Float getTmdbRating(TmmTreeNode node) {
+    Object userObject = node.getUserObject();
+    if (userObject instanceof TvShow || userObject instanceof TvShowEpisode) {
+      MediaRating mediaRating = ((MediaEntity) userObject).getRating(MediaMetadata.TMDB);
       if (mediaRating != null && mediaRating.getRating() > 0) {
         return mediaRating.getRating();
       }
