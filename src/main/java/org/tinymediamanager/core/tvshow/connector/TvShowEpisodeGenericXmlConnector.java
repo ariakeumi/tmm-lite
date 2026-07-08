@@ -170,6 +170,7 @@ public abstract class TvShowEpisodeGenericXmlConnector implements ITvShowEpisode
           addUserrating(episode, parserEpisode);
           addVotes(episode, parserEpisode);
           addPlot(episode, parserEpisode);
+          addOutline(episode, parserEpisode);
           addRuntime(episode, parserEpisode);
           addThumb(episode, parserEpisode);
           addMpaa(episode, parserEpisode);
@@ -458,6 +459,52 @@ public abstract class TvShowEpisodeGenericXmlConnector implements ITvShowEpisode
     Element plot = document.createElement("plot");
     plot.setTextContent(episode.getPlot());
     root.appendChild(plot);
+  }
+
+  /**
+   * add the outline in the form <outline>xxx</outline>
+   */
+  protected void addOutline(TvShowEpisode episode, TvShowEpisodeNfoParser.Episode parser) {
+    String outlineText = "";
+    if (StringUtils.isNotBlank(episode.getOutline())) {
+      // use the outline from the entity
+      outlineText = episode.getOutline();
+    }
+    else if (settings.isCreateOutline()) {
+      // create the outline from the plot
+      if (settings.isOutlineFirstSentence()) {
+        // use the first sentence of the plot (at least 20 chars)
+        StringBuilder text = new StringBuilder();
+        String[] sentences = episode.getPlot().split("\\.");
+
+        for (String sentence : sentences) {
+          if (text.length() > 0) {
+            // there's already a text in it, append a dot
+            text.append(".");
+          }
+
+          text.append(sentence);
+          if (text.length() >= 20) {
+            break;
+          }
+        }
+        outlineText = text.toString();
+      }
+      else {
+        // use the whole plot
+        outlineText = episode.getPlot();
+      }
+    }
+    else if (parser != null && StringUtils.isNotBlank(parser.outline)) {
+      // fallback to pre-existing outline from the parsed NFO
+      outlineText = parser.outline;
+    }
+
+    if (StringUtils.isNotBlank(outlineText)) {
+      Element outline = document.createElement("outline");
+      outline.setTextContent(outlineText);
+      root.appendChild(outline);
+    }
   }
 
   /**

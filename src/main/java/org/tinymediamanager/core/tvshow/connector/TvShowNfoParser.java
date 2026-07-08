@@ -1771,6 +1771,7 @@ public class TvShowNfoParser {
       show.setDateAdded(dateadded);
     }
     show.setPlot(plot);
+    show.setOutline(outline);
     show.setTagline(tagline);
     show.setRuntime(runtime);
 

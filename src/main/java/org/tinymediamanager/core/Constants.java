@@ -73,6 +73,7 @@ public final class Constants {
   public static final String NEWLY_ADDED            = "newlyAdded";
   public static final String ORIGINAL_TITLE         = "originalTitle";
   public static final String ORIGINAL_FILENAME      = "originalFilename";
+  public static final String OUTLINE                = "outline";
   public static final String PATH                   = "path";
   public static final String PLOT                   = "plot";
   public static final String POSTER                 = "poster";

@@ -34,6 +34,7 @@ import static org.tinymediamanager.core.Constants.MEDIA_INFORMATION;
 import static org.tinymediamanager.core.Constants.NEWLY_ADDED;
 import static org.tinymediamanager.core.Constants.ORIGINAL_FILENAME;
 import static org.tinymediamanager.core.Constants.ORIGINAL_TITLE;
+import static org.tinymediamanager.core.Constants.OUTLINE;
 import static org.tinymediamanager.core.Constants.PATH;
 import static org.tinymediamanager.core.Constants.PLOT;
 import static org.tinymediamanager.core.Constants.POSTER;
@@ -123,6 +124,8 @@ public abstract class MediaEntity extends AbstractModelObject implements IPrinta
   protected int                        year               = 0;
   @JsonProperty
   protected String                     plot               = "";
+  @JsonProperty
+  protected String                     outline            = "";
   @JsonProperty
   protected String                     path               = "";
   @JsonProperty
@@ -219,6 +222,7 @@ public abstract class MediaEntity extends AbstractModelObject implements IPrinta
     setOriginalTitle(StringUtils.isBlank(originalTitle) || force ? other.originalTitle : originalTitle);
     setYear(year == 0 || force ? other.year : year);
     setPlot(StringUtils.isBlank(plot) || force ? other.plot : plot);
+    setOutline(StringUtils.isBlank(outline) || force ? other.outline : outline);
     setProductionCompany(StringUtils.isBlank(productionCompany) || force ? other.productionCompany : productionCompany);
     setOriginalFilename(StringUtils.isBlank(originalFilename) || force ? other.originalFilename : originalFilename);
     setLastScraperId(StringUtils.isBlank(lastScraperId) || force ? other.lastScraperId : lastScraperId);
@@ -349,6 +353,15 @@ public abstract class MediaEntity extends AbstractModelObject implements IPrinta
    */
   public String getPlot() {
     return plot;
+  }
+
+  /**
+   * get the outline of this entity
+   *
+   * @return the outline or an empty string
+   */
+  public String getOutline() {
+    return outline;
   }
 
   /**
@@ -521,6 +534,18 @@ public abstract class MediaEntity extends AbstractModelObject implements IPrinta
     String oldValue = plot;
     plot = newValue == null ? "" : newValue.strip();
     firePropertyChange(PLOT, oldValue, newValue);
+  }
+
+  /**
+   * Sets the outline and fires a property change event.
+   *
+   * @param newValue
+   *          the new outline
+   */
+  public void setOutline(String newValue) {
+    String oldValue = outline;
+    outline = newValue == null ? "" : newValue.strip();
+    firePropertyChange(OUTLINE, oldValue, newValue);
   }
 
   public void setPath(String newValue) {

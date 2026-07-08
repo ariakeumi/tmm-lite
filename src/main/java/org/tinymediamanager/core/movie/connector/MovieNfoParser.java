@@ -1866,6 +1866,7 @@ public class MovieNfoParser {
       movie.setDateAdded(dateadded);
     }
     movie.setPlot(plot);
+    movie.setOutline(outline);
     movie.setTagline(tagline);
     movie.setRuntime(runtime);
 

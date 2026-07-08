@@ -115,6 +115,7 @@ public class MediaMetadata {
   private int                                              yearEnd             = 0;
   private Date                                             releaseDate         = null;
   private String                                           plot                = "";
+  private String                                           outline             = "";
   private String                                           tagline             = "";
   private int                                              runtime             = 0;
 
@@ -169,6 +170,7 @@ public class MediaMetadata {
     yearEnd = merge(yearEnd, md.getYearEnd());
     releaseDate = merge(releaseDate, md.getReleaseDate());
     plot = merge(plot, md.getPlot());
+    outline = merge(outline, md.getOutline());
     tagline = merge(tagline, md.getTagline());
     runtime = merge(runtime, md.getRuntime());
     collectionName = merge(collectionName, md.getCollectionName());
@@ -933,7 +935,7 @@ public class MediaMetadata {
   /**
    * Set the end year - nullsafe
    *
-   * @param year
+   * @param yearEnd
    *          the year to be set
    */
   public void setYearEnd(Integer yearEnd) {
@@ -980,6 +982,25 @@ public class MediaMetadata {
    */
   public void setPlot(String plot) {
     this.plot = StrgUtils.getNonNullString(plot);
+  }
+
+  /**
+   * Get the outline
+   * 
+   * @return the outline
+   */
+  public String getOutline() {
+    return outline;
+  }
+
+  /**
+   * Set the outline
+   * 
+   * @param outline
+   *          the outline to be set
+   */
+  public void setOutline(String outline) {
+    this.outline = StrgUtils.getNonNullString(outline);
   }
 
   /**

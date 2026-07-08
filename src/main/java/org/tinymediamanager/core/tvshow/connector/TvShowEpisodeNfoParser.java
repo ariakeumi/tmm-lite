@@ -1715,6 +1715,7 @@ public class TvShowEpisodeNfoParser {
         episode.setDateAdded(dateadded);
       }
       episode.setPlot(plot);
+      episode.setOutline(outline);
 
       if (!thumbs.isEmpty()) {
         episode.setArtworkUrl(thumbs.get(0), MediaFileType.THUMB);

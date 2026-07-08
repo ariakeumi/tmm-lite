@@ -376,10 +376,46 @@ public abstract class TvShowGenericXmlConnector implements ITvShowConnector {
    * add the outline in the form <outline>xxx</outline>
    */
   protected void addOutline() {
-    Element outline = document.createElement("outline");
-    // FIXME tbc how we should fill that field
-    // outline.setTextContent();
-    root.appendChild(outline);
+    String outlineText = "";
+    if (StringUtils.isNotBlank(tvShow.getOutline())) {
+      // use the outline from the entity
+      outlineText = tvShow.getOutline();
+    }
+    else if (settings.isCreateOutline()) {
+      // create the outline from the plot
+      if (settings.isOutlineFirstSentence()) {
+        // use the first sentence of the plot (at least 20 chars)
+        StringBuilder text = new StringBuilder();
+        String[] sentences = tvShow.getPlot().split("\\.");
+
+        for (String sentence : sentences) {
+          if (text.length() > 0) {
+            // there's already a text in it, append a dot
+            text.append(".");
+          }
+
+          text.append(sentence);
+          if (text.length() >= 20) {
+            break;
+          }
+        }
+        outlineText = text.toString();
+      }
+      else {
+        // use the whole plot
+        outlineText = tvShow.getPlot();
+      }
+    }
+    else if (parser != null && StringUtils.isNotBlank(parser.outline)) {
+      // fallback to pre-existing outline from the parsed NFO
+      outlineText = parser.outline;
+    }
+
+    if (StringUtils.isNotBlank(outlineText)) {
+      Element outline = document.createElement("outline");
+      outline.setTextContent(outlineText);
+      root.appendChild(outline);
+    }
   }
 
   /**

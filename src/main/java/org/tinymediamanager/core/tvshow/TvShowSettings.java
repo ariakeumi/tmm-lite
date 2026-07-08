@@ -163,6 +163,8 @@ public final class TvShowSettings extends AbstractSettings {
   boolean                                        nfoWriteDateAdded;
   DateField                                      nfoDateAddedField;
   Locale                                         nfoLanguage;
+  boolean                                        createOutline;
+  boolean                                        outlineFirstSentence;
   boolean                                        nfoWriteEpisodeguide;
   boolean                                        nfoWriteNewEpisodeguideStyle;
   boolean                                        nfoWriteDateEnded;
@@ -1781,6 +1783,26 @@ public final class TvShowSettings extends AbstractSettings {
     Locale oldValue = nfoLanguage;
     this.nfoLanguage = newValue;
     firePropertyChange("nfoLanguage", oldValue, newValue);
+  }
+
+  public boolean isCreateOutline() {
+    return createOutline;
+  }
+
+  public void setCreateOutline(boolean newValue) {
+    boolean oldValue = this.createOutline;
+    this.createOutline = newValue;
+    firePropertyChange("createOutline", oldValue, newValue);
+  }
+
+  public boolean isOutlineFirstSentence() {
+    return outlineFirstSentence;
+  }
+
+  public void setOutlineFirstSentence(boolean newValue) {
+    boolean oldValue = this.outlineFirstSentence;
+    this.outlineFirstSentence = newValue;
+    firePropertyChange("outlineFirstSentence", oldValue, newValue);
   }
 
   public boolean isNfoWriteEpisodeguide() {

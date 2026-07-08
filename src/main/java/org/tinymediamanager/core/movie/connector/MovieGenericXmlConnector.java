@@ -378,8 +378,12 @@ public abstract class MovieGenericXmlConnector implements IMovieConnector {
    */
   protected void addOutline() {
     String outlineText = "";
-    if (settings.isCreateOutline()) {
-      // lets create the outline since we do not have any outline field
+    if (StringUtils.isNotBlank(movie.getOutline())) {
+      // use the outline from the entity
+      outlineText = movie.getOutline();
+    }
+    else if (settings.isCreateOutline()) {
+      // create the outline from the plot
       if (settings.isOutlineFirstSentence()) {
         // use the first sentence of the plot (at least 20 chars)
         StringBuilder text = new StringBuilder();
@@ -404,7 +408,7 @@ public abstract class MovieGenericXmlConnector implements IMovieConnector {
       }
     }
     else if (parser != null && StringUtils.isNotBlank(parser.outline)) {
-      // only pass pre-existing outlines since we do not have the outline
+      // fallback to pre-existing outline from the parsed NFO
       outlineText = parser.outline;
     }
 
