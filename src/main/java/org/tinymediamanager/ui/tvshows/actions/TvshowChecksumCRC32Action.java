@@ -53,11 +53,12 @@ public class TvshowChecksumCRC32Action extends TmmAction {
           }
 
           MediaFile main = ep.getMainVideoFile();
-          String crc = Utils.getCRC32(main.getFileAsPath());
-
-          if (!crc.isEmpty()) {
-            main.setCRC32(crc);
-            ep.saveToDb();
+          if (main.getCRC32().isEmpty()) {
+            String crc = Utils.getCRC32(main.getFileAsPath());
+            if (!crc.isEmpty()) {
+              main.setCRC32(crc);
+              ep.saveToDb();
+            }
           }
 
           publishState(++i);

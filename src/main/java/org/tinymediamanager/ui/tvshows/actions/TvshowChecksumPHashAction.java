@@ -68,15 +68,17 @@ public class TvshowChecksumPHashAction extends TmmAction {
           }
 
           MediaFile main = ep.getMainVideoFile();
-          try {
-            String phash = VideoPHash.generate(main.getFileAsPath());
-            if (!phash.isEmpty()) {
-              main.setPHash(phash);
-              ep.saveToDb();
+          if (main.getPHash().isEmpty()) {
+            try {
+              String phash = VideoPHash.generate(main.getFileAsPath());
+              if (!phash.isEmpty()) {
+                main.setPHash(phash);
+                ep.saveToDb();
+              }
             }
-          }
-          catch (IOException | InterruptedException e) {
-            LOGGER.debug("Error generating PHASH for episode {}: {}", ep.getTitle(), e.getMessage());
+            catch (IOException | InterruptedException e) {
+              LOGGER.debug("Error generating PHASH for episode {}: {}", ep.getTitle(), e.getMessage());
+            }
           }
 
           publishState(++i);

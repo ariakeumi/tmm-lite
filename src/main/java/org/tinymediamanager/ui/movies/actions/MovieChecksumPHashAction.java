@@ -74,15 +74,17 @@ public class MovieChecksumPHashAction extends TmmAction {
           }
 
           MediaFile main = movie.getMainVideoFile();
-          try {
-            String phash = VideoPHash.generate(main.getFileAsPath());
-            if (!phash.isEmpty()) {
-              main.setPHash(phash);
-              movie.saveToDb();
+          if (main.getPHash().isEmpty()) {
+            try {
+              String phash = VideoPHash.generate(main.getFileAsPath());
+              if (!phash.isEmpty()) {
+                main.setPHash(phash);
+                movie.saveToDb();
+              }
             }
-          }
-          catch (IOException | InterruptedException e) {
-            LOGGER.debug("Error generating PHASH for movie {}: {}", movie.getTitle(), e.getMessage());
+            catch (IOException | InterruptedException e) {
+              LOGGER.debug("Error generating PHASH for movie {}: {}", movie.getTitle(), e.getMessage());
+            }
           }
           publishState(++i);
         }

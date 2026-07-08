@@ -60,11 +60,12 @@ public class MovieChecksumCRC32Action extends TmmAction {
           }
 
           MediaFile main = movie.getMainVideoFile();
-          String crc = Utils.getCRC32(main.getFileAsPath());
-
-          if (!crc.isEmpty()) {
-            main.setCRC32(crc);
-            movie.saveToDb();
+          if (main.getCRC32().isEmpty()) {
+            String crc = Utils.getCRC32(main.getFileAsPath());
+            if (!crc.isEmpty()) {
+              main.setCRC32(crc);
+              movie.saveToDb();
+            }
           }
 
           publishState(++i);
