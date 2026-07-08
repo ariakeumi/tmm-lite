@@ -49,20 +49,20 @@ public class TvShowEpisodeNumberEditorPanel extends AbstractModalInputPanel {
     List<MediaEpisodeGroup> episodeGroups = new ArrayList<>(episodeGroupsInTvShow);
 
     // make sure aired/absolute/DVD/display order is always available
-    if (isEpisodeGroupMissing(MediaEpisodeGroup.EpisodeGroupType.AIRED, episodeGroupsInTvShow)) {
-      episodeGroups.add(0, MediaEpisodeGroup.DEFAULT_AIRED);
-    }
-
-    if (isEpisodeGroupMissing(MediaEpisodeGroup.EpisodeGroupType.ABSOLUTE, episodeGroupsInTvShow)) {
-      episodeGroups.add(0, MediaEpisodeGroup.DEFAULT_ABSOLUTE);
+    if (isEpisodeGroupMissing(MediaEpisodeGroup.EpisodeGroupType.DISPLAY, episodeGroupsInTvShow)) {
+      episodeGroups.add(0, MediaEpisodeGroup.DEFAULT_DISPLAY);
     }
 
     if (isEpisodeGroupMissing(MediaEpisodeGroup.EpisodeGroupType.DVD, episodeGroupsInTvShow)) {
       episodeGroups.add(0, MediaEpisodeGroup.DEFAULT_DVD);
     }
 
-    if (isEpisodeGroupMissing(MediaEpisodeGroup.EpisodeGroupType.DISPLAY, episodeGroupsInTvShow)) {
-      episodeGroups.add(0, MediaEpisodeGroup.DEFAULT_DISPLAY);
+    if (isEpisodeGroupMissing(MediaEpisodeGroup.EpisodeGroupType.ABSOLUTE, episodeGroupsInTvShow)) {
+      episodeGroups.add(0, MediaEpisodeGroup.DEFAULT_ABSOLUTE);
+    }
+
+    if (isEpisodeGroupMissing(MediaEpisodeGroup.EpisodeGroupType.AIRED, episodeGroupsInTvShow)) {
+      episodeGroups.add(0, MediaEpisodeGroup.DEFAULT_AIRED);
     }
 
     {
