@@ -41,8 +41,8 @@ public class TvshowChecksumPHashAction extends TmmAction {
   private static final long   serialVersionUID = 1L;
 
   public TvshowChecksumPHashAction() {
-    putValue(NAME, TmmResourceBundle.getString("checksum.crc32.calculate"));
-    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("checksum.crc32.calculate"));
+    putValue(NAME, TmmResourceBundle.getString("checksum.phash.calculate"));
+    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("checksum.phash.calculate"));
   }
 
   @Override
