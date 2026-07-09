@@ -557,26 +557,39 @@ public class TmmToast extends JComponent {
     ERROR;
 
     /**
+     * Detect whether the current FlatLaf theme is dark based on panel background brightness.
+     *
+     * @return true if the theme is dark
+     */
+    private static boolean isDarkTheme() {
+      Color bg = UIManager.getColor("Panel.background");
+      if (bg == null) {
+        return false;
+      }
+      return (bg.getRed() + bg.getGreen() + bg.getBlue()) / 3 < 128;
+    }
+
+    /**
      * Get the background color for this toast type.
      *
      * @return the background color
      */
     Color getBackgroundColor() {
+      boolean dark = isDarkTheme();
       switch (this) {
         case SUCCESS:
-          return new Color(34, 197, 94);
+          return dark ? new Color(46, 125, 50) : new Color(200, 230, 201);
 
         case WARNING:
-          return new Color(234, 179, 0);
+          return dark ? new Color(120, 56, 0) : new Color(255, 248, 225);
 
         case ERROR:
-          return new Color(239, 68, 68);
+          return dark ? new Color(109, 26, 26) : new Color(255, 205, 210);
 
         case INFO:
         default:
           Color panelBg = UIManager.getColor("Panel.background");
           if (panelBg != null) {
-            // darken or lighten based on brightness
             int brightness = (panelBg.getRed() + panelBg.getGreen() + panelBg.getBlue()) / 3;
             if (brightness > 128) {
               // light theme - darken
@@ -597,12 +610,20 @@ public class TmmToast extends JComponent {
      * @return the border color
      */
     Color getBorderColor() {
-      return switch (this) {
-        case SUCCESS -> new Color(46, 125, 50);
-        case WARNING -> new Color(230, 120, 0);
-        case ERROR -> new Color(198, 40, 40);
-        default -> new Color(0, 0, 0, 100);
-      };
+      boolean dark = isDarkTheme();
+      switch (this) {
+        case SUCCESS:
+          return dark ? new Color(56, 142, 60) : new Color(165, 214, 167);
+
+        case WARNING:
+          return dark ? new Color(160, 80, 0) : new Color(255, 224, 130);
+
+        case ERROR:
+          return dark ? new Color(142, 36, 36) : new Color(239, 154, 154);
+
+        default:
+          return new Color(0, 0, 0, 100);
+      }
     }
 
     /**
@@ -611,7 +632,26 @@ public class TmmToast extends JComponent {
      * @return the text color
      */
     Color getTextColor() {
-      return Color.BLACK;
+      boolean dark = isDarkTheme();
+      switch (this) {
+        case SUCCESS:
+          return dark ? new Color(200, 230, 201) : new Color(46, 125, 50);
+
+        case WARNING:
+          return dark ? new Color(255, 204, 128) : new Color(230, 81, 0);
+
+        case ERROR:
+          return dark ? new Color(239, 154, 154) : new Color(183, 28, 28);
+
+        case INFO:
+        default:
+          Color panelBg = UIManager.getColor("Panel.background");
+          if (panelBg != null) {
+            int brightness = (panelBg.getRed() + panelBg.getGreen() + panelBg.getBlue()) / 3;
+            return brightness > 128 ? Color.BLACK : Color.WHITE;
+          }
+          return Color.BLACK;
+      }
     }
   }
 }
