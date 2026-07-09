@@ -242,6 +242,9 @@ public final class TmdbTvShowMetadataProvider extends TmdbMetadataProvider imple
           }
 
           maxPage = httpResponse.body().total_pages;
+          if (maxPage > 5) {
+            maxPage = 5; // 5 http calls á 20 results (it could be up to 500 pages!!!)
+          }
           page++;
         } while (page <= maxPage);
 

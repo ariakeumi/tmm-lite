@@ -27,6 +27,7 @@ x [UI] re-aligned media file editor dialog #3288
 x [UI] fixed arrow key navigation on Safari/Docker #3292 - thx @shadypayload
 x [IMDB] refresh rating data once per day
 x [TMDB] fetch more ID types for movies/TV shows and cast/crew members
+x [TMDB] performance: only fetch a maximum of 5 result pages
 x [TMDB] added second fallback language to TV show/episode plot too
 x [TVDB] increased performance on trailer scrape
 x [TVDB] fixed lookup by IMDB id
