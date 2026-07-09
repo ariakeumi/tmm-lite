@@ -204,6 +204,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             }
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.genre"));
         });
 
         JButton btnRemoveGenre = new SquareIconButton(IconManager.REMOVE_INV);
@@ -216,6 +217,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             tvShow.removeGenre(genre);
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.genre"));
         });
 
         JButton btnRemoveAllGenres = new SquareIconButton(IconManager.DELETE);
@@ -228,6 +230,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
               tvShow.removeAllGenres();
             }
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            showSuccessToast(getToastMessage("metatag.genre"));
           }
         });
         panelContent.add(btnRemoveAllGenres, "cell 3 0");
@@ -262,6 +265,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             tvShow.addToTags(Collections.singletonList(tag));
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.tags"));
         });
 
         JButton btnRemoveTag = new SquareIconButton(IconManager.REMOVE_INV);
@@ -274,6 +278,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             tvShow.removeFromTags(tag);
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.tags"));
         });
 
         JButton btnRemoveAllTags = new SquareIconButton(IconManager.DELETE);
@@ -286,6 +291,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
               tvShow.removeAllTags();
             }
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            showSuccessToast(getToastMessage("metatag.tags"));
           }
         });
         panelContent.add(btnRemoveAllTags, "cell 3 1");
@@ -307,6 +313,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             tvShow.setCountry(tfCountry.getText());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.country"));
         });
       }
 
@@ -326,6 +333,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             tvShow.setProductionCompany(tfStudio.getText());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.studio"));
         });
       }
 
@@ -344,6 +352,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             tvShow.setNote(tfTvShowNote.getText());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.note"));
         });
         panelContent.add(btnTvShowNote, "cell 2 4");
       }
@@ -366,6 +375,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             tvshow.setCertification(cert);
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.certification"));
         });
         panelContent.add(btnCertification, "cell 2 5");
       }
@@ -389,6 +399,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             tvShow.setStatus(status);
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.status"));
         });
       }
       {
@@ -406,6 +417,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             tvShow.setDateAdded(dpDateAdded.getDate());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.dateadded"));
         });
         panelContent.add(btnDateAdded, "cell 2 7");
       }
@@ -437,6 +449,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
                 tvShow.setRating(mr);
               }
               setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+              showSuccessToast(getToastMessage("metatag.ratings"));
             }
           });
 
@@ -453,6 +466,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             tvShow.setRatings(Collections.emptyMap());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.ratings"));
         });
         panelContent.add(btnRemoveExternalRatings, "cell 1 8");
 
@@ -464,6 +478,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             tvShow.removeRating(MediaRating.USER);
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.ratings"));
         });
         panelContent.add(btnRemovePersonalRating, "cell 1 8");
 
@@ -552,6 +567,8 @@ public class TvShowBulkEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
           tvShowValuesEventList.forEach(TvShowValues::applyValue);
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          BulkEditorProperty prop = (BulkEditorProperty) cbTvShowProperty.getSelectedItem();
+          showSuccessToast(TmmResourceBundle.getString("bulkedit.changed").replace("{}", prop.description));
         });
         panelContent.add(btnApply, "cell 1 4,alignx right");
       }
@@ -611,6 +628,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             }
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.watched"));
         });
       }
 
@@ -642,6 +660,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             }
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.season"));
         });
       }
 
@@ -675,6 +694,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
               episodesChanged = true;
             }
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            showSuccessToast(getToastMessage("metatag.edition"));
           }
         });
       }
@@ -707,6 +727,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             episode.addToTags(Collections.singletonList(tag));
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.tags"));
         });
 
         JButton btnRemoveTagEpisode = new SquareIconButton(IconManager.REMOVE_INV);
@@ -719,6 +740,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             episode.removeFromTags(tag);
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.tags"));
         });
 
         JButton btnRemoveAllTagsEpisode = new SquareIconButton(IconManager.DELETE);
@@ -731,6 +753,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
               episode.removeAllTags();
             }
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            showSuccessToast(getToastMessage("metatag.tags"));
           }
         });
         panelContent.add(btnRemoveAllTagsEpisode, "cell 3 5");
@@ -754,6 +777,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
               episode.setMediaSource(mediaSource);
             }
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            showSuccessToast(getToastMessage("metatag.source"));
           }
         });
       }
@@ -773,6 +797,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             episode.setNote(tfEpisodeNote.getText());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.note"));
         });
         panelContent.add(btnEpisodeNote, "cell 2 7");
       }
@@ -791,6 +816,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             episode.setPlot(tfEpisodePlot.getText());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.plot"));
         });
         panelContent.add(btnEpisodePlot, "cell 2 8");
       }
@@ -809,6 +835,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             episode.setDateAdded(dpDateAdded.getDate());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.dateadded"));
         });
         panelContent.add(btnDateAdded, "cell 2 9");
 
@@ -826,6 +853,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             episode.setOriginalFilename("");
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.originalfile"));
         });
         panelContent.add(btnDeleteOriginalFilename, "cell 1 10");
       }
@@ -855,6 +883,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
                 episode.addToActors(actors);
               }
               setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+              showSuccessToast(TmmResourceBundle.getString("cast.actor.add"));
             }
           });
 
@@ -883,6 +912,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
                 episode.addToCrew(Collections.singletonList(new Person(person)));
               }
               setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+              showSuccessToast(TmmResourceBundle.getString("cast.crew.add"));
             }
           });
 
@@ -921,6 +951,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
                 episode.setRating(mr);
               }
               setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+              showSuccessToast(getToastMessage("metatag.ratings"));
             }
           });
 
@@ -937,6 +968,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             episode.setRatings(Collections.emptyMap());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.ratings"));
         });
         panelContent.add(btnRemoveExternalRatings, "cell 1 12");
 
@@ -948,6 +980,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
             episode.removeRating(MediaRating.USER);
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.ratings"));
         });
         panelContent.add(btnRemovePersonalRating, "cell 1 12");
       }
@@ -969,6 +1002,7 @@ public class TvShowBulkEditorDialog extends TmmDialog {
               episode.getMainFile().addSubtitle(subtitle);
             }
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            showSuccessToast(TmmResourceBundle.getString("subtitle.add"));
           });
 
           MediaFileSubtitleEditorPanel subtitleEditorPanel = new MediaFileSubtitleEditorPanel(subtitle);
@@ -1131,6 +1165,8 @@ public class TvShowBulkEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
           episodeValuesEventList.forEach(EpisodeValues::applyValue);
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          BulkEditorProperty prop = (BulkEditorProperty) cbEpisodeProperty.getSelectedItem();
+          showSuccessToast(TmmResourceBundle.getString("bulkedit.changed").replace("{}", prop.description));
         });
         panelContent.add(btnApply, "cell 1 4,alignx right");
       }
@@ -1146,6 +1182,10 @@ public class TvShowBulkEditorDialog extends TmmDialog {
       }
     }
     initDataBindings();
+  }
+
+  private String getToastMessage(String field) {
+    return TmmResourceBundle.getString("bulkedit.changed").replace("{}", TmmResourceBundle.getString(field));
   }
 
   private boolean isDeleteConfirmed(String attribute) {

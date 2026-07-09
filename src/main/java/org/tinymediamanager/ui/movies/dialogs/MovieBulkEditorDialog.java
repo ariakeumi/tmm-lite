@@ -144,6 +144,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.setYear((Integer) spYear.getValue());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.year"));
         });
         panelContent.add(btnYear, "cell 2 0");
       }
@@ -179,6 +180,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             }
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.genre"));
         });
         panelContent.add(btnAddGenre, "cell 2 1");
 
@@ -204,6 +206,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             }
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.genre"));
         });
         panelContent.add(btnRemoveGenre, "cell 3 1");
 
@@ -217,6 +220,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
               movie.removeAllGenres();
             }
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            showSuccessToast(getToastMessage("metatag.genre"));
           }
         });
         panelContent.add(btnRemoveAllGenres, "cell 4 1,growy");
@@ -249,6 +253,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.addToTags(Collections.singletonList(tag));
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.tags"));
         });
         panelContent.add(btnAddTag, "cell 2 2");
 
@@ -261,6 +266,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.removeFromTags(tag);
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.tags"));
         });
         panelContent.add(btnRemoveTag, "cell 3 2");
 
@@ -274,6 +280,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
               movie.removeAllTags();
             }
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            showSuccessToast(getToastMessage("metatag.tags"));
           }
         });
         panelContent.add(btnRemoveAllTags, "cell 4 2,growy");
@@ -307,6 +314,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             }
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.edition"));
         });
         panelContent.add(btnMovieEdition, "cell 2 3");
       }
@@ -330,6 +338,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
 
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.certification"));
         });
         panelContent.add(btnCertification, "cell 2 4");
       }
@@ -364,6 +373,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
           }
 
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.movieset"));
         });
         panelContent.add(btnSetMovieSet, "cell 2 5");
 
@@ -401,6 +411,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             }
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.watched"));
         });
         panelContent.add(btnWatched, "cell 2 6");
       }
@@ -419,6 +430,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.setVideoIn3D(chckbxVideo3D.isSelected());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.3d"));
         });
         panelContent.add(btnVideo3D, "cell 2 7");
       }
@@ -440,6 +452,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
               movie.setMediaSource(mediaSource);
             }
             setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+            showSuccessToast(getToastMessage("metatag.source"));
           }
         });
         panelContent.add(btnMediaSource, "cell 2 8");
@@ -459,6 +472,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.setSpokenLanguages(tfLanguage.getText());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.language"));
         });
         panelContent.add(btnLanguage, "cell 2 9");
       }
@@ -477,6 +491,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.setCountry(tfCountry.getText());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.country"));
         });
         panelContent.add(btnCountry, "cell 2 10");
       }
@@ -495,6 +510,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.setNote(tfNote.getText());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.note"));
         });
         panelContent.add(btnNote, "cell 2 11");
       }
@@ -513,6 +529,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.setDateAdded(dpDateAdded.getDate());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.dateadded"));
         });
         panelContent.add(btnDateAdded, "cell 2 12");
 
@@ -533,6 +550,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.setSortTitle(movie.getTitleSortable());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.sorttitle"));
         });
         panelContent.add(btnSetSorttitle, "flowx,cell 1 13 4 1");
       }
@@ -548,6 +566,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.setRatings(Collections.emptyMap());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.ratings"));
         });
         panelContent.add(btnRemoveExternalRatings, "flowx,cell 1 14");
 
@@ -559,6 +578,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.removeRating(MediaRating.USER);
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.ratings"));
         });
         panelContent.add(btnRemovePersonalRating, "cell 1 14");
       }
@@ -575,6 +595,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.setSpokenLanguages(movie.getMediaInfoAudioLanguageList().stream().findFirst().orElse(""));
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.spokenlanguages"));
         });
         panelContent.add(btnFirstAudioStream, "flowx,cell 1 15 4 1");
 
@@ -587,6 +608,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.setSpokenLanguages(movie.getMediaInfoAudioLanguage());
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.spokenlanguages"));
         });
         panelContent.add(btnBestAudioStream, "cell 1 15 4 1");
 
@@ -599,6 +621,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.setSpokenLanguages(String.join(", ", movie.getMediaInfoAudioLanguageList()));
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.spokenlanguages"));
         });
         panelContent.add(btnAllAudioStreams, "cell 1 15 4 1");
       }
@@ -612,6 +635,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.setSortTitle("");
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.sorttitle"));
         });
         panelContent.add(btnClearSorttitle, "cell 1 13 4 1");
       }
@@ -628,6 +652,7 @@ public class MovieBulkEditorDialog extends TmmDialog {
             movie.setOriginalFilename("");
           }
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          showSuccessToast(getToastMessage("metatag.originalfile"));
         });
         panelContent.add(btnDeleteOriginalFilename, "cell 1 16");
       }
@@ -717,6 +742,8 @@ public class MovieBulkEditorDialog extends TmmDialog {
           setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
           movieValuesEventList.forEach(MovieValues::applyValue);
           setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+          MovieProperty prop = (MovieProperty) cbProperty.getSelectedItem();
+          showSuccessToast(TmmResourceBundle.getString("bulkedit.changed").replace("{}", prop.description));
         });
         panelContent.add(btnApply, "cell 1 4,alignx right");
       }
@@ -790,6 +817,11 @@ public class MovieBulkEditorDialog extends TmmDialog {
       movieList.addPropertyChangeListener(listener);
     }
     initDataBindings();
+  }
+
+  private String getToastMessage(String field) {
+    return TmmResourceBundle.getString("bulkedit.changed").replace("{}", TmmResourceBundle.getString(field));
+
   }
 
   private void setMovieSets() {
