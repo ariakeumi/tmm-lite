@@ -713,7 +713,10 @@ public class Utils {
 
       // detect case-only rename for case-insensitive filesystems
       // !srcStr.equals(dstStr) has been checked above already
-      boolean caseOnlyRename = srcDir.equals(destDir) && srcStr.equalsIgnoreCase(dstStr);
+      // we check ONLY the casing of the folder (and NOT the whole path)
+      // if only the folder changes, a move-via-temp could succeed,
+      // but if the path changes, it _could_ be another filesystem, and we NEED to copy/delete...
+      boolean caseOnlyRename = !srcDir.getFileName().equals(destDir.getFileName());
 
       // rename folder; try 5 times and wait a sec
       boolean rename = false;
@@ -725,25 +728,35 @@ public class Utils {
             Files.move(srcDir, destDir, StandardCopyOption.ATOMIC_MOVE);
           }
           else {
-            if (caseOnlyRename) {
-              // On case-insensitive filesystems a direct move may not change the
-              // case, so we do a two-step rename via a temporary name to force it
-              Path tempDir = destDir.resolveSibling(destDir.getFileName().toString() + ".tmm_" + Long.toHexString(System.nanoTime()));
-              LOGGER.debug("case-only rename on case-insensitive filesystem, using two-step rename via '{}'", tempDir);
+            try {
+              // try with regular move first - could work on same filesystem
+              // if we get an exception, we use copy&delete as fallback...
+              if (caseOnlyRename) {
+                // On case-insensitive filesystems a direct move may not change the
+                // case, so we do a two-step rename via a temporary name to force it
+                Path tempDir = destDir.resolveSibling(destDir.getFileName().toString() + ".tmm_" + Long.toHexString(System.nanoTime()));
+                LOGGER.debug("case-only rename on case-insensitive filesystem, using two-step rename via '{}'", tempDir);
 
-              // Move temp file to the target partition (so it's on the same file store)
-              Files.move(srcDir, tempDir, StandardCopyOption.REPLACE_EXISTING);
-              try {
-                // Attempt atomic move first (guaranteed instant rename if on the same drive)
-                Files.move(tempDir, destDir, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+                // Move temp file to the target partition (so it's on the same file store)
+                Files.move(srcDir, tempDir, StandardCopyOption.REPLACE_EXISTING);
+                try {
+                  // Attempt atomic move first (guaranteed instant rename if on the same drive)
+                  Files.move(tempDir, destDir, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+                }
+                catch (AtomicMoveNotSupportedException ee) {
+                  // Fallback for SMB shares, cross-device, or unsupported network filesystems
+                  Files.move(tempDir, destDir, StandardCopyOption.REPLACE_EXISTING);
+                }
               }
-              catch (AtomicMoveNotSupportedException ee) {
-                // Fallback for SMB shares, cross-device, or unsupported network filesystems
-                Files.move(tempDir, destDir, StandardCopyOption.REPLACE_EXISTING);
+              else {
+                // might also not work, if the path had just a case change, but is actually another filesystem
+                Files.move(srcDir, destDir);
               }
             }
-            else {
-              Files.move(srcDir, destDir);
+            catch (Exception e) {
+              // but if another filesystem is involved, we NEED to copy+delete
+              copyDirectoryRecursive(srcDir, destDir);
+              deleteDirectoryRecursive(srcDir);
             }
           }
           rename = true;// no exception
