@@ -17,8 +17,9 @@ Version 5.3.0
 + [HTTP API] added the new scope parameter "path" to provide more control over the scope of the API calls #3269
 + [Checksums] add PHASH video fingerprinting
 ---
-x [Movies, TV shows] make checksum calculation abortable
-x [Movies, TV shows] enhanced parsing of media information (subtitle types and additional data)
+x [Movies/TV shows] make checksum calculation abortable
+x [Movies/TV shows] enhanced parsing of media information (subtitle types and additional data)
+x [Movies/TV shows] fixed detection of unwanted files #3318
 x [UI] darken the foreground of inactive dialogs/windows
 x [UI] fixed layouting of the task list dialog
 x [UI] added a reasonable minimum size for every dialog

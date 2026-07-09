@@ -167,7 +167,7 @@ public class CleanUpUnwantedFilesDialog extends TmmDialog {
     private final List<? extends MediaEntity> selectedEntities;
 
     private CleanUpWorker(List<? extends MediaEntity> entities) {
-      this.selectedEntities = entities;
+      this.selectedEntities = new ArrayList<>(entities);
     }
 
     @Override
