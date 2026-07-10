@@ -346,7 +346,7 @@ public class ExternalTools {
     private String              updateUrl = "";
 
     public ExternalToolsUpgradeTask(String toolName) {
-      super(TmmResourceBundle.getString("task.externaltoolupgrade") + " - " + toolName, 100, TaskType.BACKGROUND_TASK);
+      super(TmmResourceBundle.getString("task.externaltoolupgrade") + " - " + toolName, 0, TaskType.BACKGROUND_TASK);
       this.toolName = toolName;
 
       if (ReleaseInfo.isGitBuild()) {
@@ -365,6 +365,7 @@ public class ExternalTools {
       ExternalTools externalTools = new ExternalTools(updateUrl);
       try {
         if (!isToolInstalled(toolName) || externalTools.isUpdateAvailable(toolName)) {
+          publishState(TmmResourceBundle.getString("task.externaltoolupgrade") + " - " + toolName);
           externalTools.downloadTool(toolName);
         }
       }
