@@ -877,7 +877,7 @@ public class Utils {
 
       // rename folder; try 5 times and wait a sec
       boolean rename = false;
-      boolean atomicMoveSupported = true;
+      boolean atomicMoveSupported = srcFile.getFileSystem().provider() == destFile.getFileSystem().provider();
       for (int i = 0; i < 5; i++) {
         try {
           if (atomicMoveSupported) {
@@ -920,8 +920,8 @@ public class Utils {
           LOGGER.error("ACCESS DENIED (move file) for '{}' to '{}' - '{}' [{}]", srcFile, destFile, e.getMessage(), e.getClass().getSimpleName());
         }
         catch (AtomicMoveNotSupportedException e) {
-          LOGGER.debug("Atomic move not supported - '{}'", e.getMessage());
           atomicMoveSupported = false; // no need to try it 5 times, just remember this
+          continue;
         }
         catch (IOException e) {
           LOGGER.warn("Rename problem for '{}' - '{}' [{}]", srcFile, e.getMessage(), e.getClass().getSimpleName());
