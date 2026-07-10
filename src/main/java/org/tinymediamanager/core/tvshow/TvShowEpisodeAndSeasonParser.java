@@ -725,6 +725,11 @@ public class TvShowEpisodeAndSeasonParser {
         int endEp = Integer.parseInt(m.group(3));
         // only treat as interval when end > start (strictly higher)
         if (endEp > startEp) {
+          // ignore more than 5 EPs in a range - this is mostly invalid!
+          if (endEp - startEp > 5) {
+            LOGGER.trace("not adding range of found EPs - way too much '{}'(range)", endEp - startEp);
+            continue; // or break; completely?
+          }
           if (result.season < 0) {
             result.season = s;
             LOGGER.trace("add found season '{}'(range)", s);
