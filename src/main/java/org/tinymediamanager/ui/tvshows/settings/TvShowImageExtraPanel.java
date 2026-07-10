@@ -164,16 +164,16 @@ class TvShowImageExtraPanel extends JPanel {
         panelOptions.add(panel, "cell 2 1,growx");
         panel.setLayout(new MigLayout("insets 0", "[][20lp!][]", "[][]"));
 
-        rbExtraFanart1 = new JRadioButton("fanartX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtraFanart1 = new JRadioButton("fanartX.*");
         panel.add(rbExtraFanart1, "cell 0 0");
 
-        rbExtraFanart2 = new JRadioButton("extrafanart/fanartX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtraFanart2 = new JRadioButton("extrafanart/fanartX.*");
         panel.add(rbExtraFanart2, "cell 2 0");
 
-        rbExtraFanart3 = new JRadioButton("backdropX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtraFanart3 = new JRadioButton("backdropX.*");
         panel.add(rbExtraFanart3, "cell 0 1");
 
-        rbExtraFanart4 = new JRadioButton("backgroundX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtraFanart4 = new JRadioButton("backgroundX.*");
         panel.add(rbExtraFanart4, "cell 2 1");
 
         JLabel lblDownloadCount = new JLabel(TmmResourceBundle.getString("Settings.amount.autodownload"));

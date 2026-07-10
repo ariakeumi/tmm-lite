@@ -482,19 +482,16 @@ class MovieSetImageSettingsPanel extends JPanel {
         JLabel lblPosterFilenameT = new TmmLabel(TmmResourceBundle.getString("mediafiletype.poster"));
         panelMovieSet.add(lblPosterFilenameT, "cell 1 14 2 1");
 
-        chckbxPoster1 = new JCheckBox("movieset-poster." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxPoster1 = new JCheckBox("movieset-poster.*");
         panelMovieSet.add(chckbxPoster1, "cell 4 14");
 
-        chckbxPoster2 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/poster." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxPoster2 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/poster.*");
         panelMovieSet.add(chckbxPoster2, "cell 6 14");
 
-        chckbxPoster3 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-poster." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxPoster3 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-poster.*");
         panelMovieSet.add(chckbxPoster3, "cell 8 14");
 
-        chckbxPoster4 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-poster." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxPoster4 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-poster.*");
         panelMovieSet.add(chckbxPoster4, "cell 4 15");
       }
 
@@ -502,19 +499,16 @@ class MovieSetImageSettingsPanel extends JPanel {
         JLabel lblFanartFilenameT = new TmmLabel(TmmResourceBundle.getString("mediafiletype.fanart"));
         panelMovieSet.add(lblFanartFilenameT, "cell 1 17 2 1");
 
-        chckbxFanart1 = new JCheckBox("movieset-fanart." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxFanart1 = new JCheckBox("movieset-fanart.*");
         panelMovieSet.add(chckbxFanart1, "cell 4 17");
 
-        chckbxFanart2 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/fanart." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxFanart2 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/fanart.*");
         panelMovieSet.add(chckbxFanart2, "cell 6 17");
 
-        chckbxFanart3 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-fanart." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxFanart3 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-fanart.*");
         panelMovieSet.add(chckbxFanart3, "cell 8 17");
 
-        chckbxFanart4 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-fanart." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxFanart4 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-fanart.*");
         panelMovieSet.add(chckbxFanart4, "cell 4 18");
       }
 
@@ -522,19 +516,16 @@ class MovieSetImageSettingsPanel extends JPanel {
         JLabel lblBannerT = new TmmLabel(TmmResourceBundle.getString("mediafiletype.banner"));
         panelMovieSet.add(lblBannerT, "cell 1 20 2 1");
 
-        chckbxBanner1 = new JCheckBox("movieset-banner." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxBanner1 = new JCheckBox("movieset-banner.*");
         panelMovieSet.add(chckbxBanner1, "cell 4 20");
 
-        chckbxBanner2 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/banner." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxBanner2 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/banner.*");
         panelMovieSet.add(chckbxBanner2, "cell 6 20");
 
-        chckbxBanner3 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-banner." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxBanner3 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-banner.*");
         panelMovieSet.add(chckbxBanner3, "cell 8 20");
 
-        chckbxBanner4 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-banner." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxBanner4 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-banner.*");
         panelMovieSet.add(chckbxBanner4, "cell 4 21");
       }
 
@@ -542,19 +533,16 @@ class MovieSetImageSettingsPanel extends JPanel {
         JLabel lblClearartT = new TmmLabel(TmmResourceBundle.getString("mediafiletype.clearart"));
         panelMovieSet.add(lblClearartT, "cell 1 23 2 1");
 
-        chckbxClearart1 = new JCheckBox("movieset-clearart." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxClearart1 = new JCheckBox("movieset-clearart.*");
         panelMovieSet.add(chckbxClearart1, "cell 4 23");
 
-        chckbxClearart2 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/clearart." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxClearart2 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/clearart.*");
         panelMovieSet.add(chckbxClearart2, "cell 6 23");
 
-        chckbxClearart3 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-clearart." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxClearart3 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-clearart.*");
         panelMovieSet.add(chckbxClearart3, "cell 8 23");
 
-        chckbxClearart4 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-clearart." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxClearart4 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-clearart.*");
         panelMovieSet.add(chckbxClearart4, "cell 4 24");
       }
 
@@ -562,51 +550,42 @@ class MovieSetImageSettingsPanel extends JPanel {
         JLabel lblThumbT = new TmmLabel(TmmResourceBundle.getString("mediafiletype.thumb"));
         panelMovieSet.add(lblThumbT, "cell 1 26 2 1");
 
-        chckbxThumb1 = new JCheckBox("movieset-thumb." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxThumb1 = new JCheckBox("movieset-thumb.*");
         panelMovieSet.add(chckbxThumb1, "cell 4 26");
 
-        chckbxThumb2 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/thumb." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxThumb2 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/thumb.*");
         panelMovieSet.add(chckbxThumb2, "cell 6 26");
 
-        chckbxThumb3 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-thumb." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxThumb3 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-thumb.*");
         panelMovieSet.add(chckbxThumb3, "cell 8 26");
 
-        chckbxThumb4 = new JCheckBox("movieset-landscape." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxThumb4 = new JCheckBox("movieset-landscape.*");
         panelMovieSet.add(chckbxThumb4, "cell 4 27");
 
-        chckbxThumb5 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/landscape."
-            + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxThumb5 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/landscape.*");
         panelMovieSet.add(chckbxThumb5, "cell 6 27");
 
-        chckbxThumb6 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-landscape."
-            + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxThumb6 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-landscape.*");
         panelMovieSet.add(chckbxThumb6, "cell 8 27");
 
-        chckbxThumb7 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-thumb." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxThumb7 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-thumb.*");
         panelMovieSet.add(chckbxThumb7, "cell 4 28");
 
-        chckbxThumb8 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-landscape."
-            + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxThumb8 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-landscape.*");
         panelMovieSet.add(chckbxThumb8, "cell 4 29");
       }
 
       {
-        chckbxLogo1 = new JCheckBox("movieset-logo." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxLogo1 = new JCheckBox("movieset-logo.*");
         panelMovieSet.add(chckbxLogo1, "cell 4 33");
 
-        chckbxLogo2 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/logo." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxLogo2 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/logo.*");
         panelMovieSet.add(chckbxLogo2, "cell 6 33");
 
-        chckbxLogo3 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-logo." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxLogo3 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-logo.*");
         panelMovieSet.add(chckbxLogo3, "cell 8 33");
 
-        chckbxLogo4 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-logo." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxLogo4 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-logo.*");
         panelMovieSet.add(chckbxLogo4, "cell 4 34");
       }
 
@@ -614,19 +593,16 @@ class MovieSetImageSettingsPanel extends JPanel {
         JLabel lblClearlogoT = new TmmLabel(TmmResourceBundle.getString("mediafiletype.clearlogo"));
         panelMovieSet.add(lblClearlogoT, "cell 1 31 2 1");
 
-        chckbxClearlogo1 = new JCheckBox("movieset-clearlogo." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxClearlogo1 = new JCheckBox("movieset-clearlogo.*");
         panelMovieSet.add(chckbxClearlogo1, "cell 4 31");
 
-        chckbxClearlogo2 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/clearlogo."
-            + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxClearlogo2 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/clearlogo.*");
         panelMovieSet.add(chckbxClearlogo2, "cell 6 31");
 
-        chckbxClearlogo3 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-clearlogo."
-            + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxClearlogo3 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-clearlogo.*");
         panelMovieSet.add(chckbxClearlogo3, "cell 8 31");
 
-        chckbxClearlogo4 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-clearlogo."
-            + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxClearlogo4 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-clearlogo.*");
         panelMovieSet.add(chckbxClearlogo4, "cell 4 32,aligny center");
       }
 
@@ -634,34 +610,28 @@ class MovieSetImageSettingsPanel extends JPanel {
         JLabel lblDiscartT = new TmmLabel(TmmResourceBundle.getString("mediafiletype.disc"));
         panelMovieSet.add(lblDiscartT, "cell 1 36 2 1");
 
-        chckbxDiscart1 = new JCheckBox("movieset-disc." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxDiscart1 = new JCheckBox("movieset-disc.*");
         panelMovieSet.add(chckbxDiscart1, "cell 4 36");
 
-        chckbxDiscart2 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/disc." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxDiscart2 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/disc.*");
         panelMovieSet.add(chckbxDiscart2, "cell 6 36");
 
-        chckbxDiscart3 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-disc." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxDiscart3 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-disc.*");
         panelMovieSet.add(chckbxDiscart3, "cell 8 36");
 
-        chckbxDiscart4 = new JCheckBox("movieset-discart." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxDiscart4 = new JCheckBox("movieset-discart.*");
         panelMovieSet.add(chckbxDiscart4, "cell 4 37");
 
-        chckbxDiscart5 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/discart." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxDiscart5 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "/discart.*");
         panelMovieSet.add(chckbxDiscart5, "cell 6 37");
 
-        chckbxDiscart6 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-discart." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxDiscart6 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-discart.*");
         panelMovieSet.add(chckbxDiscart6, "cell 8 37");
 
-        chckbxDiscart7 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-disc." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxDiscart7 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-disc.*");
         panelMovieSet.add(chckbxDiscart7, "cell 4 38");
 
-        chckbxDiscart8 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-discart." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        chckbxDiscart8 = new JCheckBox(TmmResourceBundle.getString("Settings.movieset.moviesetname") + "-discart.*");
         panelMovieSet.add(chckbxDiscart8, "cell 4 39");
       }
 

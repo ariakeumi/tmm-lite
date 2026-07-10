@@ -244,40 +244,34 @@ class MovieImageExtraPanel extends JPanel {
         panelExtra.add(panelExtraFanart, "cell 2 5,grow");
         panelExtraFanart.setLayout(new MigLayout("insets 0", "[][]", "[][][][][][]"));
 
-        rbExtrafanart1 = new JRadioButton(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-fanartX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtrafanart1 = new JRadioButton(TmmResourceBundle.getString("Settings.moviefilename") + "-fanartX.*");
         panelExtraFanart.add(rbExtrafanart1, "flowy,cell 0 0");
 
-        rbExtrafanart2 = new JRadioButton(
-            TmmResourceBundle.getString("Settings.moviefilename") + ".fanartX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtrafanart2 = new JRadioButton(TmmResourceBundle.getString("Settings.moviefilename") + ".fanartX.*");
         panelExtraFanart.add(rbExtrafanart2, "cell 0 1");
 
-        rbExtrafanart3 = new JRadioButton("fanartX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtrafanart3 = new JRadioButton("fanartX.*");
         panelExtraFanart.add(rbExtrafanart3, "cell 0 2");
 
-        rbExtrafanart4 = new JRadioButton("extrafanart/fanartX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtrafanart4 = new JRadioButton("extrafanart/fanartX.*");
         panelExtraFanart.add(rbExtrafanart4, "cell 0 3");
 
-        rbExtrafanart5 = new JRadioButton(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-backdropX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtrafanart5 = new JRadioButton(TmmResourceBundle.getString("Settings.moviefilename") + "-backdropX.*");
         panelExtraFanart.add(rbExtrafanart5, "cell 1 0");
 
-        rbExtrafanart6 = new JRadioButton(
-            TmmResourceBundle.getString("Settings.moviefilename") + ".backdropX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtrafanart6 = new JRadioButton(TmmResourceBundle.getString("Settings.moviefilename") + ".backdropX.*");
         panelExtraFanart.add(rbExtrafanart6, "cell 1 1");
 
-        rbExtrafanart7 = new JRadioButton("backdropX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtrafanart7 = new JRadioButton("backdropX.*");
         panelExtraFanart.add(rbExtrafanart7, "cell 1 2");
 
-        rbExtrafanart8 = new JRadioButton(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-backgroundX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtrafanart8 = new JRadioButton(TmmResourceBundle.getString("Settings.moviefilename") + "-backgroundX.*");
         panelExtraFanart.add(rbExtrafanart8, "cell 1 3");
 
-        rbExtrafanart9 = new JRadioButton(
-            TmmResourceBundle.getString("Settings.moviefilename") + ".backgroundX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtrafanart9 = new JRadioButton(TmmResourceBundle.getString("Settings.moviefilename") + ".backgroundX.*");
         panelExtraFanart.add(rbExtrafanart9, "cell 1 4");
 
-        rbExtrafanart10 = new JRadioButton("backgroundX." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbExtrafanart10 = new JRadioButton("backgroundX.*");
         panelExtraFanart.add(rbExtrafanart10, "cell 1 5");
 
         JLabel lblDownloadCount = new JLabel(TmmResourceBundle.getString("Settings.amount.autodownload"));

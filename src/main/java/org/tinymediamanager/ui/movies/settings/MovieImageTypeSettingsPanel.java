@@ -17,12 +17,14 @@ package org.tinymediamanager.ui.movies.settings;
 
 import static org.tinymediamanager.ui.TmmFontHelper.H3;
 
+import java.awt.GridLayout;
 import java.awt.event.ItemListener;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import javax.swing.border.TitledBorder;
 
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.movie.MovieModuleManager;
@@ -386,157 +388,182 @@ class MovieImageTypeSettingsPanel extends JPanel {
   private void initComponents() {
     setLayout(new MigLayout("", "[grow]", "[]"));
     {
-      JPanel panelFileNaming = new JPanel(
-          new MigLayout("insets 0", "[20lp!][right][][50lp!][right][]", "[][][][][][][][][][15lp!][][][][][][][][][][][15lp!][]"));
+      JPanel panelFileNaming = new JPanel(new MigLayout("insets 0", "[20lp!][][50lp,grow]", "[][15lp!]"));
 
       JLabel lblFiletypes = new TmmLabel(TmmResourceBundle.getString("Settings.artwork.naming"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelFileNaming, lblFiletypes, true);
       collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/settings#artwork-filenames"));
       add(collapsiblePanel, "cell 0 0,growx, wmin 0");
+
+      JPanel panelRow = new JPanel();
+      panelFileNaming.add(panelRow, "cell 1 0,grow");
+      panelRow.setLayout(new GridLayout(1, 2, 0, 0));
+
+      JPanel panelColumn1 = new JPanel();
+      panelRow.add(panelColumn1);
+      panelColumn1.setLayout(new MigLayout("", "[300lp,grow][25lp!]", "[][][][][]"));
+
+      JPanel panelColumn2 = new JPanel();
+      panelRow.add(panelColumn2);
+      panelColumn2.setLayout(new MigLayout("", "[grow]", "[][][][]"));
+
       {
-        JLabel lblPosterFilename = new TmmLabel(TmmResourceBundle.getString("mediafiletype.poster"));
-        panelFileNaming.add(lblPosterFilename, "cell 1 0");
+        JPanel panelPoster = new JPanel();
+        panelPoster.setBorder(new TitledBorder(TmmResourceBundle.getString("mediafiletype.poster")));
+        panelPoster.setLayout(new MigLayout("", "[]", "[][][][][]"));
 
-        JLabel lblFanartFileNaming = new TmmLabel(TmmResourceBundle.getString("mediafiletype.fanart"));
-        panelFileNaming.add(lblFanartFileNaming, "cell 4 0");
+        chckbxMoviePosterFilename4 = new JCheckBox("poster.*");
+        panelPoster.add(chckbxMoviePosterFilename4, "cell 0 0");
 
-        chckbxMovieFanartFilename2 = new JCheckBox("fanart." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMovieFanartFilename2, "cell 5 0");
+        chckbxMoviePosterFilename2 = new JCheckBox("movie.*");
+        panelPoster.add(chckbxMoviePosterFilename2, "cell 0 1");
 
-        chckbxMoviePosterFilename2 = new JCheckBox("movie." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMoviePosterFilename2, "cell 2 1");
+        chckbxMoviePosterFilename6 = new JCheckBox("folder.*");
+        panelPoster.add(chckbxMoviePosterFilename6, "cell 0 2");
 
-        chckbxMoviePosterFilename4 = new JCheckBox("poster." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMoviePosterFilename4, "cell 2 0");
+        chckbxMoviePosterFilename8 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-poster.*");
+        panelPoster.add(chckbxMoviePosterFilename8, "cell 0 3");
 
-        chckbxMovieFanartFilename1 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-fanart." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMovieFanartFilename1, "cell 5 1");
+        chckbxMoviePosterFilename7 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + ".*");
+        panelPoster.add(chckbxMoviePosterFilename7, "cell 0 4");
 
-        chckbxMoviePosterFilename6 = new JCheckBox("folder." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMoviePosterFilename6, "cell 2 2");
+        chckbxMoviePosterFilename9 = new JCheckBox("cover.*");
+        panelPoster.add(chckbxMoviePosterFilename9, "cell 0 5");
 
-        chckbxMovieFanartFilename3 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + ".fanart." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMovieFanartFilename3, "cell 5 2");
+        panelColumn1.add(panelPoster, "cell 0 0,growx");
+      }
+      {
+        JPanel panelBanner = new JPanel();
+        panelBanner.setBorder(new TitledBorder(TmmResourceBundle.getString("mediafiletype.banner")));
+        panelBanner.setLayout(new MigLayout("", "[grow]", "[][]"));
 
-        chckbxMoviePosterFilename8 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-poster." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMoviePosterFilename8, "cell 2 3");
+        chckbxBanner2 = new JCheckBox("banner.*");
+        panelBanner.add(chckbxBanner2, "cell 0 0");
 
-        chckbxMovieFanartFilename4 = new JCheckBox("backdrop." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMovieFanartFilename4, "cell 5 3");
+        chckbxBanner1 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-banner.*");
+        panelBanner.add(chckbxBanner1, "cell 0 1");
 
-        chckbxMoviePosterFilename7 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMoviePosterFilename7, "cell 2 4");
+        panelColumn1.add(panelBanner, "cell 0 1,growx");
+      }
+      {
+        JPanel panelClearart = new JPanel();
+        panelColumn1.add(panelClearart, "cell 0 2,growx");
+        panelClearart.setBorder(new TitledBorder(TmmResourceBundle.getString("mediafiletype.clearart")));
+        panelClearart.setLayout(new MigLayout("", "[grow]", "[][]"));
 
-        chckbxMovieFanartFilename5 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-backdrop." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMovieFanartFilename5, "cell 5 4");
+        chckbxClearart2 = new JCheckBox("clearart.*");
+        panelClearart.add(chckbxClearart2, "cell 0 0");
 
-        chckbxMoviePosterFilename9 = new JCheckBox("cover." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMoviePosterFilename9, "cell 2 5");
+        chckbxClearart1 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-clearart.*");
+        panelClearart.add(chckbxClearart1, "cell 0 1");
+      }
+      {
+        JPanel panelThumb = new JPanel();
+        panelThumb.setBorder(new TitledBorder(TmmResourceBundle.getString("mediafiletype.thumb")));
+        panelThumb.setLayout(new MigLayout("", "[grow]", "[][][][]"));
 
-        chckbxMovieFanartFilename6 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + ".backdrop." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMovieFanartFilename6, "cell 5 5");
+        chckbxThumb2 = new JCheckBox("thumb.*");
+        panelThumb.add(chckbxThumb2, "cell 0 0");
 
-        chckbxMovieFanartFilename7 = new JCheckBox("background." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMovieFanartFilename7, "cell 5 6");
+        chckbxThumb1 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-thumb.*");
+        panelThumb.add(chckbxThumb1, "cell 0 1");
 
-        JLabel lblBannerNamingT = new TmmLabel(TmmResourceBundle.getString("mediafiletype.banner"));
-        panelFileNaming.add(lblBannerNamingT, "cell 1 7");
+        chckbxThumb4 = new JCheckBox("landscape.*");
+        panelThumb.add(chckbxThumb4, "cell 0 2");
 
-        chckbxBanner2 = new JCheckBox("banner." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxBanner2, "cell 2 7");
+        chckbxThumb3 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-landscape.*");
+        panelThumb.add(chckbxThumb3, "cell 0 3");
 
-        chckbxMovieFanartFilename8 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-background." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMovieFanartFilename8, "cell 5 7");
+        panelColumn1.add(panelThumb, "cell 0 3,growx");
+      }
+      {
+        JPanel panelKeyart = new JPanel();
+        panelColumn1.add(panelKeyart, "cell 0 4,growx");
+        panelKeyart.setBorder(new TitledBorder(TmmResourceBundle.getString("mediafiletype.keyart")));
+        panelKeyart.setLayout(new MigLayout("", "[grow]", "[]"));
 
-        chckbxBanner1 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-banner." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxBanner1, "cell 2 8");
+        chckbxKeyart1 = new JCheckBox("keyart.*");
+        panelKeyart.add(chckbxKeyart1, "cell 0 0");
 
-        chckbxMovieFanartFilename9 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + ".background." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxMovieFanartFilename9, "cell 5 8");
+        chckbxKeyart2 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-keyart.*");
+        panelKeyart.add(chckbxKeyart2, "cell 0 1");
+      }
 
-        JLabel lblDiscartNamingT = new TmmLabel(TmmResourceBundle.getString("mediafiletype.disc"));
-        panelFileNaming.add(lblDiscartNamingT, "cell 1 10");
+      {
+        JPanel panelFanart = new JPanel();
+        panelFanart.setBorder(new TitledBorder(null, TmmResourceBundle.getString("mediafiletype.fanart")));
+        panelFanart.setLayout(new MigLayout("", "[]", "[][][][][][][]"));
 
-        chckbxDiscart2 = new JCheckBox("disc." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxDiscart2, "cell 2 10");
+        chckbxMovieFanartFilename2 = new JCheckBox("fanart.*");
+        panelFanart.add(chckbxMovieFanartFilename2, "cell 0 0");
 
-        JLabel lblClearartNamingT = new TmmLabel(TmmResourceBundle.getString("mediafiletype.clearart"));
-        panelFileNaming.add(lblClearartNamingT, "cell 4 10");
+        chckbxMovieFanartFilename1 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-fanart.*");
+        panelFanart.add(chckbxMovieFanartFilename1, "cell 0 1");
 
-        chckbxClearart2 = new JCheckBox("clearart." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxClearart2, "cell 5 10");
+        chckbxMovieFanartFilename3 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + ".fanart.*");
+        panelFanart.add(chckbxMovieFanartFilename3, "cell 0 2");
 
-        chckbxDiscart4 = new JCheckBox("discart." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxDiscart4, "cell 2 11");
+        chckbxMovieFanartFilename4 = new JCheckBox("backdrop.*");
+        panelFanart.add(chckbxMovieFanartFilename4, "cell 0 3");
 
-        chckbxClearart1 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-clearart." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxClearart1, "cell 5 11");
+        chckbxMovieFanartFilename5 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-backdrop.*");
+        panelFanart.add(chckbxMovieFanartFilename5, "cell 0 4");
 
-        chckbxDiscart3 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-discart." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxDiscart3, "cell 2 12");
+        chckbxMovieFanartFilename6 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + ".backdrop.*");
+        panelFanart.add(chckbxMovieFanartFilename6, "cell 0 5");
 
-        chckbxDiscart1 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-disc." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxDiscart1, "cell 2 13");
+        chckbxMovieFanartFilename7 = new JCheckBox("background.*");
+        panelFanart.add(chckbxMovieFanartFilename7, "cell 0 6");
 
-        JLabel lblThumbNamingT = new TmmLabel(TmmResourceBundle.getString("mediafiletype.thumb"));
-        panelFileNaming.add(lblThumbNamingT, "cell 4 13");
+        chckbxMovieFanartFilename8 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-background.*");
+        panelFanart.add(chckbxMovieFanartFilename8, "cell 0 7");
 
-        chckbxThumb2 = new JCheckBox("thumb." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxThumb2, "cell 5 13");
+        chckbxMovieFanartFilename9 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + ".background.*");
+        panelFanart.add(chckbxMovieFanartFilename9, "cell 0 8");
 
-        chckbxThumb1 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-thumb." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxThumb1, "cell 5 14");
+        panelColumn2.add(panelFanart, "cell 0 0,growx");
+      }
+      {
+        JPanel panelDiscart = new JPanel();
+        panelDiscart.setBorder(new TitledBorder(TmmResourceBundle.getString("mediafiletype.disc")));
+        panelDiscart.setLayout(new MigLayout("", "[grow]", "[][][][]"));
 
-        JLabel lblClearlogoNamingT = new TmmLabel(TmmResourceBundle.getString("mediafiletype.clearlogo"));
-        panelFileNaming.add(lblClearlogoNamingT, "cell 1 15");
+        chckbxDiscart2 = new JCheckBox("disc.*");
+        panelDiscart.add(chckbxDiscart2, "cell 0 0");
 
-        chckbxClearlogo2 = new JCheckBox("clearlogo." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxClearlogo2, "cell 2 15");
+        chckbxDiscart4 = new JCheckBox("discart.*");
+        panelDiscart.add(chckbxDiscart4, "cell 0 1");
 
-        chckbxThumb4 = new JCheckBox("landscape." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxThumb4, "cell 5 15");
+        chckbxDiscart3 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-discart.*");
+        panelDiscart.add(chckbxDiscart3, "cell 0 2");
 
-        chckbxClearlogo1 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-clearlogo." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxClearlogo1, "cell 2 16");
+        chckbxDiscart1 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-disc.*");
+        panelDiscart.add(chckbxDiscart1, "cell 0 3");
 
-        chckbxThumb3 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-landscape." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxThumb3, "cell 5 16");
+        panelColumn2.add(panelDiscart, "cell 0 1,growx");
+      }
+      {
+        JPanel panelClearlogo = new JPanel();
+        panelClearlogo.setBorder(new TitledBorder(TmmResourceBundle.getString("mediafiletype.clearlogo")));
+        panelClearlogo.setLayout(new MigLayout("", "[grow]", "[][][][]"));
 
-        chckbxLogo2 = new JCheckBox("logo." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxLogo2, "cell 2 17");
+        chckbxClearlogo2 = new JCheckBox("clearlogo.*");
+        panelClearlogo.add(chckbxClearlogo2, "cell 0 0");
 
-        chckbxLogo1 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-logo." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxLogo1, "cell 2 18");
+        chckbxClearlogo1 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-clearlogo.*");
+        panelClearlogo.add(chckbxClearlogo1, "cell 0 1");
 
-        JLabel lblKeyartT = new TmmLabel(TmmResourceBundle.getString("mediafiletype.keyart"));
-        panelFileNaming.add(lblKeyartT, "cell 4 18");
+        chckbxLogo2 = new JCheckBox("logo.*");
+        panelClearlogo.add(chckbxLogo2, "cell 0 2");
 
-        chckbxKeyart1 = new JCheckBox("keyart." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxKeyart1, "cell 5 18");
+        chckbxLogo1 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-logo.*");
+        panelClearlogo.add(chckbxLogo1, "cell 0 3");
 
-        chckbxKeyart2 = new JCheckBox(
-            TmmResourceBundle.getString("Settings.moviefilename") + "-keyart." + TmmResourceBundle.getString("Settings.artwork.extension"));
-        panelFileNaming.add(chckbxKeyart2, "cell 5 19");
+        panelColumn2.add(panelClearlogo, "cell 0 2,growx");
       }
 
       JTextArea tpFileNamingHint = new ReadOnlyTextArea(TmmResourceBundle.getString("Settings.naming.info"));
-      panelFileNaming.add(tpFileNamingHint, "cell 1 21 5 1,growx,wmin 0");
+      panelFileNaming.add(tpFileNamingHint, "cell 1 1 2 1,growx,wmin 0");
       TmmFontHelper.changeFont(tpFileNamingHint, 0.833);
     }
   }

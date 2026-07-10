@@ -180,21 +180,19 @@ public class TvShowTrailerOptionsSettingsPanel extends JPanel {
         JLabel lblTrailerFileNaming = new JLabel(TmmResourceBundle.getString("Settings.trailerFileNaming"));
         panelTrailerFilenames.add(lblTrailerFileNaming, "cell 0 0");
 
-        rbTrailerFilename1 = new JRadioButton("tvshow-trailer." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbTrailerFilename1 = new JRadioButton("tvshow-trailer.*");
         trailerFilenameButtonGroup.add(rbTrailerFilename1);
         panelTrailerFilenames.add(rbTrailerFilename1, "cell 1 0");
 
-        rbTrailerFilename2 = new JRadioButton(
-            TmmResourceBundle.getString("Settings.trailer.tvshowtitle") + "-trailer." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbTrailerFilename2 = new JRadioButton(TmmResourceBundle.getString("Settings.trailer.tvshowtitle") + "-trailer.*");
         trailerFilenameButtonGroup.add(rbTrailerFilename2);
         panelTrailerFilenames.add(rbTrailerFilename2, "cell 1 1");
 
-        rbTrailerFilename3 = new JRadioButton("trailers/" + TmmResourceBundle.getString("Settings.trailer.tvshowtitle") + "-trailer."
-            + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbTrailerFilename3 = new JRadioButton("trailers/" + TmmResourceBundle.getString("Settings.trailer.tvshowtitle") + "-trailer.*");
         trailerFilenameButtonGroup.add(rbTrailerFilename3);
         panelTrailerFilenames.add(rbTrailerFilename3, "cell 1 2");
 
-        rbTrailerFilename4 = new JRadioButton("trailer." + TmmResourceBundle.getString("Settings.artwork.extension"));
+        rbTrailerFilename4 = new JRadioButton("trailer.*");
         trailerFilenameButtonGroup.add(rbTrailerFilename4);
         panelTrailerFilenames.add(rbTrailerFilename4, "cell 1 3");
       }
