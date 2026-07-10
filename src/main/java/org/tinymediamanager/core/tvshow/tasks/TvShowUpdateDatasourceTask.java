@@ -118,6 +118,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
 
   // skip folders starting with a SINGLE "." or "._"
   private static final String                    SKIP_REGEX      = "^[.][\\w@]+.*";
+  private static final Pattern                   BIF_PATTERN     = Pattern.compile("-\\d+-\\d+\\.bif$", Pattern.CASE_INSENSITIVE);    // xxx-320-10.bif
 
   private static long                            preDir          = 0;
   private static long                            postDir         = 0;
@@ -1373,6 +1374,12 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
         }
 
         String relativePath = showDir.relativize(mf.getFileAsPath()).toString();
+        if (relativePath.endsWith(".bif")) {
+          Matcher matcher = BIF_PATTERN.matcher(relativePath);
+          if (matcher.find()) {
+            relativePath = matcher.replaceAll(".bif"); // remove numbers like -320-10
+          }
+        }
         EpisodeMatchingResult result = TvShowEpisodeAndSeasonParser.detectEpisodeFromFilename(relativePath, tvShow.getTitle());
         if (result.season > -1 && !result.episodes.isEmpty()) {
           for (int epnr : result.episodes) {
