@@ -720,7 +720,7 @@ public class Utils {
 
       // rename folder; try 5 times and wait a sec
       boolean rename = false;
-      boolean atomicMoveSupported = true;
+      boolean atomicMoveSupported = srcDir.getFileSystem().provider() == destDir.getFileSystem().provider();
       for (int i = 0; i < 5; i++) {
         try {
           // need atomic fs move for changing cASE
@@ -766,8 +766,9 @@ public class Utils {
           LOGGER.error("ACCESS DENIED (move folder) for '{}' to '{}' - '{}' [{}]", srcDir, destDir, e.getMessage(), e.getClass().getSimpleName());
         }
         catch (AtomicMoveNotSupportedException e) {
-          LOGGER.debug("Atomic move not supported - '{}'", e.getMessage());
-          atomicMoveSupported = false; // no need to try it 5 times, just remember this
+          // next try without atomic move
+          atomicMoveSupported = false;
+          continue;
         }
         catch (IOException e) {
           LOGGER.warn("Rename problem for '{} - '{}' [{}]", srcDir, e.getMessage(), e.getClass().getSimpleName());
@@ -920,7 +921,8 @@ public class Utils {
           LOGGER.error("ACCESS DENIED (move file) for '{}' to '{}' - '{}' [{}]", srcFile, destFile, e.getMessage(), e.getClass().getSimpleName());
         }
         catch (AtomicMoveNotSupportedException e) {
-          atomicMoveSupported = false; // no need to try it 5 times, just remember this
+          // next try without atomic move
+          atomicMoveSupported = false;
           continue;
         }
         catch (IOException e) {
