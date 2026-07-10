@@ -348,6 +348,10 @@ public class MediaFileTest extends BasicTest {
     checkMediaFileType("Specials/sEaSoN-specials.GIF", MediaFileType.SEASON_POSTER);
     checkMediaFileType("Season 0/season-specials-poster.webp", MediaFileType.SEASON_POSTER);
     checkMediaFileType("S00/season0-poster.webp", MediaFileType.SEASON_POSTER);
+
+    // bare artwork name in season folder
+    checkMediaFileType("Season 1/poster.jpg", MediaFileType.SEASON_POSTER);
+    checkMediaFileType("Specials/folder.png", MediaFileType.SEASON_POSTER);
   }
 
   @Test
@@ -358,6 +362,14 @@ public class MediaFileTest extends BasicTest {
     checkMediaFileType("season12-fanart.tbn", MediaFileType.SEASON_FANART);
     checkMediaFileType("season-specials-fanart.webp", MediaFileType.SEASON_FANART);
     checkMediaFileType("season-all-fanart.gif", MediaFileType.SEASON_FANART);
+    checkMediaFileType("season01-backdrop.jpg", MediaFileType.SEASON_FANART);
+    checkMediaFileType("SEASON1-BACKDROP.JPG", MediaFileType.SEASON_FANART);
+    checkMediaFileType("season-specials-backdrop.webp", MediaFileType.SEASON_FANART);
+    checkMediaFileType("season-all-backdrop.gif", MediaFileType.SEASON_FANART);
+    checkMediaFileType("season01-background.png", MediaFileType.SEASON_FANART);
+    checkMediaFileType("SEASON1-BACKGROUND.JPG", MediaFileType.SEASON_FANART);
+    checkMediaFileType("season-specials-background.webp", MediaFileType.SEASON_FANART);
+    checkMediaFileType("season-all-background.gif", MediaFileType.SEASON_FANART);
 
     checkMediaFileType("Season 1/season01-fanart.png", MediaFileType.SEASON_FANART);
     checkMediaFileType("S01/SEASON1-FANART.JPG", MediaFileType.SEASON_FANART);
@@ -365,6 +377,16 @@ public class MediaFileTest extends BasicTest {
     checkMediaFileType("Season 12/season12-fanart.tbn", MediaFileType.SEASON_FANART);
     checkMediaFileType("Specials/sEaSoN-specials-fanart.GIF", MediaFileType.SEASON_FANART);
     checkMediaFileType("Season 0/season0-fanart.webp", MediaFileType.SEASON_FANART);
+
+    // bare artwork name in season folder
+    checkMediaFileType("Season 1/fanart.jpg", MediaFileType.SEASON_FANART);
+    checkMediaFileType("Season 1/backdrop.png", MediaFileType.SEASON_FANART);
+    checkMediaFileType("Season 1/background.webp", MediaFileType.SEASON_FANART);
+
+    // seasonXX-backdrop / seasonXX-background in season folder
+    checkMediaFileType("Season 1/season01-backdrop.jpg", MediaFileType.SEASON_FANART);
+    checkMediaFileType("Specials/season-specials-backdrop.png", MediaFileType.SEASON_FANART);
+    checkMediaFileType("Season 1/season01-background.webp", MediaFileType.SEASON_FANART);
   }
 
   @Test
@@ -382,6 +404,9 @@ public class MediaFileTest extends BasicTest {
     checkMediaFileType("Season 12/season12-banner.tbn", MediaFileType.SEASON_BANNER);
     checkMediaFileType("Specials/sEaSoN-specials-banner.GIF", MediaFileType.SEASON_BANNER);
     checkMediaFileType("Season 0/season0-banner.webp", MediaFileType.SEASON_BANNER);
+
+    // bare artwork name in season folder
+    checkMediaFileType("Season 1/banner.jpg", MediaFileType.SEASON_BANNER);
   }
 
   @Test
@@ -413,6 +438,10 @@ public class MediaFileTest extends BasicTest {
     checkMediaFileType("Season 12/season12-landscape.tbn", MediaFileType.SEASON_THUMB);
     checkMediaFileType("Specials/sEaSoN-specials-landscape.GIF", MediaFileType.SEASON_THUMB);
     checkMediaFileType("Season 0/season0-landscape.webp", MediaFileType.SEASON_THUMB);
+
+    // bare artwork name in season folder
+    checkMediaFileType("Season 1/thumb.jpg", MediaFileType.SEASON_THUMB);
+    checkMediaFileType("Season 1/landscape.png", MediaFileType.SEASON_THUMB);
   }
 
   private void checkMediaFileType(String filename, MediaFileType mediaFileType) {

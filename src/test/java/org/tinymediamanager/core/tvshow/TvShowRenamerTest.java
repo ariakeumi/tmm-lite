@@ -1048,6 +1048,104 @@ public class TvShowRenamerTest extends BasicTvShowTest {
     assertSeasonArtworkExists(show, 1, "Season 1/season01-fanart.jpg");
   }
 
+  @Test
+  public void testSeasonFanartNaming_FANART() throws Exception {
+    TvShowSettings settings = TvShowSettings.getInstance();
+    settings.clearSeasonFanartFilenames();
+    settings.addSeasonFanartFilename(TvShowSeasonFanartNaming.FANART);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
+
+    TvShow show = createShowWithSeasonArtwork("fanart_fanart", MediaFileType.SEASON_FANART, "jpg");
+    renameTvShow(show);
+
+    assertSeasonArtworkExists(show, 0, "Specials/fanart.jpg");
+    assertSeasonArtworkExists(show, 1, "Season 1/fanart.jpg");
+  }
+
+  @Test
+  public void testSeasonFanartNaming_BACKDROP() throws Exception {
+    TvShowSettings settings = TvShowSettings.getInstance();
+    settings.clearSeasonFanartFilenames();
+    settings.addSeasonFanartFilename(TvShowSeasonFanartNaming.BACKDROP);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
+
+    TvShow show = createShowWithSeasonArtwork("fanart_backdrop", MediaFileType.SEASON_FANART, "jpg");
+    renameTvShow(show);
+
+    assertSeasonArtworkExists(show, 0, "Specials/backdrop.jpg");
+    assertSeasonArtworkExists(show, 1, "Season 1/backdrop.jpg");
+  }
+
+  @Test
+  public void testSeasonFanartNaming_BACKGROUND() throws Exception {
+    TvShowSettings settings = TvShowSettings.getInstance();
+    settings.clearSeasonFanartFilenames();
+    settings.addSeasonFanartFilename(TvShowSeasonFanartNaming.BACKGROUND);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
+
+    TvShow show = createShowWithSeasonArtwork("fanart_background", MediaFileType.SEASON_FANART, "jpg");
+    renameTvShow(show);
+
+    assertSeasonArtworkExists(show, 0, "Specials/background.jpg");
+    assertSeasonArtworkExists(show, 1, "Season 1/background.jpg");
+  }
+
+  @Test
+  public void testSeasonFanartNaming_SEASON_BACKDROP() throws Exception {
+    TvShowSettings settings = TvShowSettings.getInstance();
+    settings.clearSeasonFanartFilenames();
+    settings.addSeasonFanartFilename(TvShowSeasonFanartNaming.SEASON_BACKDROP);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
+
+    TvShow show = createShowWithSeasonArtwork("fanart_season_backdrop", MediaFileType.SEASON_FANART, "jpg");
+    renameTvShow(show);
+
+    assertSeasonArtworkExists(show, 0, "season-specials-backdrop.jpg");
+    assertSeasonArtworkExists(show, 1, "season01-backdrop.jpg");
+  }
+
+  @Test
+  public void testSeasonFanartNaming_SEASON_BACKGROUND() throws Exception {
+    TvShowSettings settings = TvShowSettings.getInstance();
+    settings.clearSeasonFanartFilenames();
+    settings.addSeasonFanartFilename(TvShowSeasonFanartNaming.SEASON_BACKGROUND);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
+
+    TvShow show = createShowWithSeasonArtwork("fanart_season_background", MediaFileType.SEASON_FANART, "jpg");
+    renameTvShow(show);
+
+    assertSeasonArtworkExists(show, 0, "season-specials-background.jpg");
+    assertSeasonArtworkExists(show, 1, "season01-background.jpg");
+  }
+
+  @Test
+  public void testSeasonFanartNaming_SEASON_FOLDER_BACKDROP() throws Exception {
+    TvShowSettings settings = TvShowSettings.getInstance();
+    settings.clearSeasonFanartFilenames();
+    settings.addSeasonFanartFilename(TvShowSeasonFanartNaming.SEASON_FOLDER_BACKDROP);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
+
+    TvShow show = createShowWithSeasonArtwork("fanart_season_folder_backdrop", MediaFileType.SEASON_FANART, "jpg");
+    renameTvShow(show);
+
+    assertSeasonArtworkExists(show, 0, "Specials/season-specials-backdrop.jpg");
+    assertSeasonArtworkExists(show, 1, "Season 1/season01-backdrop.jpg");
+  }
+
+  @Test
+  public void testSeasonFanartNaming_SEASON_FOLDER_BACKGROUND() throws Exception {
+    TvShowSettings settings = TvShowSettings.getInstance();
+    settings.clearSeasonFanartFilenames();
+    settings.addSeasonFanartFilename(TvShowSeasonFanartNaming.SEASON_FOLDER_BACKGROUND);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
+
+    TvShow show = createShowWithSeasonArtwork("fanart_season_folder_background", MediaFileType.SEASON_FANART, "jpg");
+    renameTvShow(show);
+
+    assertSeasonArtworkExists(show, 0, "Specials/season-specials-background.jpg");
+    assertSeasonArtworkExists(show, 1, "Season 1/season01-background.jpg");
+  }
+
   // =====================================================================================
   // Season Banner Naming Tests
   // =====================================================================================
@@ -1078,6 +1176,20 @@ public class TvShowRenamerTest extends BasicTvShowTest {
 
     assertSeasonArtworkExists(show, 0, "Specials/season-specials-banner.jpg");
     assertSeasonArtworkExists(show, 1, "Season 1/season01-banner.jpg");
+  }
+
+  @Test
+  public void testSeasonBannerNaming_BANNER() throws Exception {
+    TvShowSettings settings = TvShowSettings.getInstance();
+    settings.clearSeasonBannerFilenames();
+    settings.addSeasonBannerFilename(TvShowSeasonBannerNaming.BANNER);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
+
+    TvShow show = createShowWithSeasonArtwork("banner_banner", MediaFileType.SEASON_BANNER, "jpg");
+    renameTvShow(show);
+
+    assertSeasonArtworkExists(show, 0, "Specials/banner.jpg");
+    assertSeasonArtworkExists(show, 1, "Season 1/banner.jpg");
   }
 
   // =====================================================================================
@@ -1138,6 +1250,34 @@ public class TvShowRenamerTest extends BasicTvShowTest {
 
     assertSeasonArtworkExists(show, 0, "Specials/season-specials-landscape.jpg");
     assertSeasonArtworkExists(show, 1, "Season 1/season01-landscape.jpg");
+  }
+
+  @Test
+  public void testSeasonThumbNaming_THUMB() throws Exception {
+    TvShowSettings settings = TvShowSettings.getInstance();
+    settings.clearSeasonThumbFilenames();
+    settings.addSeasonThumbFilename(TvShowSeasonThumbNaming.THUMB);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
+
+    TvShow show = createShowWithSeasonArtwork("thumb_thumb", MediaFileType.SEASON_THUMB, "jpg");
+    renameTvShow(show);
+
+    assertSeasonArtworkExists(show, 0, "Specials/thumb.jpg");
+    assertSeasonArtworkExists(show, 1, "Season 1/thumb.jpg");
+  }
+
+  @Test
+  public void testSeasonThumbNaming_LANDSCAPE() throws Exception {
+    TvShowSettings settings = TvShowSettings.getInstance();
+    settings.clearSeasonThumbFilenames();
+    settings.addSeasonThumbFilename(TvShowSeasonThumbNaming.LANDSCAPE);
+    settings.getDefaultRenamerProfile().setSpecialSeason(true);
+
+    TvShow show = createShowWithSeasonArtwork("thumb_landscape", MediaFileType.SEASON_THUMB, "jpg");
+    renameTvShow(show);
+
+    assertSeasonArtworkExists(show, 0, "Specials/landscape.jpg");
+    assertSeasonArtworkExists(show, 1, "Season 1/landscape.jpg");
   }
 
   // =====================================================================================

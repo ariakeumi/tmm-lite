@@ -77,5 +77,168 @@ public enum TvShowSeasonFanartNaming implements ITvShowSeasonFileNaming {
 
       return seasonFoldername + File.separator + filename;
     }
+  },
+
+  /** seasonXX-backdrop.* */
+  SEASON_BACKDROP {
+    @Override
+    public String getFilename(TvShowSeason tvShowSeason, String extension, boolean forRenamer, TvShowRenamerProfile renamerProfile) {
+      String filename;
+
+      if (tvShowSeason.getSeason() == -1) {
+        filename = "season-all-backdrop." + extension;
+      }
+      else if (tvShowSeason.getSeason() == 0 && renamerProfile.isSpecialSeason()) {
+        filename = "season-specials-backdrop." + extension;
+      }
+      else if (tvShowSeason.getSeason() > -1) {
+        filename = String.format("season%02d-backdrop.%s", tvShowSeason.getSeason(), extension);
+      }
+      else {
+        filename = "";
+      }
+
+      return filename;
+    }
+  },
+
+  /** seasonXX-background.* */
+  SEASON_BACKGROUND {
+    @Override
+    public String getFilename(TvShowSeason tvShowSeason, String extension, boolean forRenamer, TvShowRenamerProfile renamerProfile) {
+      String filename;
+
+      if (tvShowSeason.getSeason() == -1) {
+        filename = "season-all-background." + extension;
+      }
+      else if (tvShowSeason.getSeason() == 0 && renamerProfile.isSpecialSeason()) {
+        filename = "season-specials-background." + extension;
+      }
+      else if (tvShowSeason.getSeason() > -1) {
+        filename = String.format("season%02d-background.%s", tvShowSeason.getSeason(), extension);
+      }
+      else {
+        filename = "";
+      }
+
+      return filename;
+    }
+  },
+
+  /** season_folder/seasonXX-backdrop.* */
+  SEASON_FOLDER_BACKDROP {
+    @Override
+    public String getFilename(TvShowSeason tvShowSeason, String extension, boolean forRenamer, TvShowRenamerProfile renamerProfile) {
+      TvShow tvShow = tvShowSeason.getTvShow();
+      if (tvShow == null) {
+        return "";
+      }
+
+      String seasonFoldername = getSeasonFolder(tvShowSeason, forRenamer, renamerProfile);
+
+      if (StringUtils.isBlank(seasonFoldername)) {
+        return SEASON_BACKDROP.getFilename(tvShowSeason, extension, forRenamer, renamerProfile);
+      }
+
+      String filename = String.format("season%02d-backdrop.%s", tvShowSeason.getSeason(), extension);
+      if (tvShowSeason.getSeason() == 0 && renamerProfile.isSpecialSeason()) {
+        filename = "season-specials-backdrop." + extension;
+      }
+
+      return seasonFoldername + File.separator + filename;
+    }
+  },
+
+  /** season_folder/seasonXX-background.* */
+  SEASON_FOLDER_BACKGROUND {
+    @Override
+    public String getFilename(TvShowSeason tvShowSeason, String extension, boolean forRenamer, TvShowRenamerProfile renamerProfile) {
+      TvShow tvShow = tvShowSeason.getTvShow();
+      if (tvShow == null) {
+        return "";
+      }
+
+      String seasonFoldername = getSeasonFolder(tvShowSeason, forRenamer, renamerProfile);
+
+      if (StringUtils.isBlank(seasonFoldername)) {
+        return SEASON_BACKGROUND.getFilename(tvShowSeason, extension, forRenamer, renamerProfile);
+      }
+
+      String filename = String.format("season%02d-background.%s", tvShowSeason.getSeason(), extension);
+      if (tvShowSeason.getSeason() == 0 && renamerProfile.isSpecialSeason()) {
+        filename = "season-specials-background." + extension;
+      }
+
+      return seasonFoldername + File.separator + filename;
+    }
+  },
+
+  /**
+   * season_folder/fanart.*
+   */
+  FANART {
+    @Override
+    public String getFilename(TvShowSeason tvShowSeason, String extension, boolean forRenamer, TvShowRenamerProfile renamerProfile) {
+      TvShow tvShow = tvShowSeason.getTvShow();
+      if (tvShow == null) {
+        return "";
+      }
+
+      String seasonFoldername = getSeasonFolder(tvShowSeason, forRenamer, renamerProfile);
+
+      // check whether the season folder name exists or not; do not create it just for the artwork!
+      if (StringUtils.isBlank(seasonFoldername)) {
+        // no season folder name in the templates found - fall back to the show base filename style
+        return SEASON_FANART.getFilename(tvShowSeason, extension, forRenamer, renamerProfile);
+      }
+
+      return seasonFoldername + File.separator + "fanart." + extension;
+    }
+  },
+
+  /**
+   * season_folder/backdrop.*
+   */
+  BACKDROP {
+    @Override
+    public String getFilename(TvShowSeason tvShowSeason, String extension, boolean forRenamer, TvShowRenamerProfile renamerProfile) {
+      TvShow tvShow = tvShowSeason.getTvShow();
+      if (tvShow == null) {
+        return "";
+      }
+
+      String seasonFoldername = getSeasonFolder(tvShowSeason, forRenamer, renamerProfile);
+
+      // check whether the season folder name exists or not; do not create it just for the artwork!
+      if (StringUtils.isBlank(seasonFoldername)) {
+        // no season folder name in the templates found - fall back to the show base filename style
+        return SEASON_BACKDROP.getFilename(tvShowSeason, extension, forRenamer, renamerProfile);
+      }
+
+      return seasonFoldername + File.separator + "backdrop." + extension;
+    }
+  },
+
+  /**
+   * season_folder/background.*
+   */
+  BACKGROUND {
+    @Override
+    public String getFilename(TvShowSeason tvShowSeason, String extension, boolean forRenamer, TvShowRenamerProfile renamerProfile) {
+      TvShow tvShow = tvShowSeason.getTvShow();
+      if (tvShow == null) {
+        return "";
+      }
+
+      String seasonFoldername = getSeasonFolder(tvShowSeason, forRenamer, renamerProfile);
+
+      // check whether the season folder name exists or not; do not create it just for the artwork!
+      if (StringUtils.isBlank(seasonFoldername)) {
+        // no season folder name in the templates found - fall back to the show base filename style
+        return SEASON_BACKGROUND.getFilename(tvShowSeason, extension, forRenamer, renamerProfile);
+      }
+
+      return seasonFoldername + File.separator + "background." + extension;
+    }
   }
 }

@@ -76,5 +76,28 @@ public enum TvShowSeasonBannerNaming implements ITvShowSeasonFileNaming {
 
       return seasonFoldername + File.separator + filename;
     }
+  },
+
+  /**
+   * season_folder/banner.*
+   */
+  BANNER {
+    @Override
+    public String getFilename(TvShowSeason tvShowSeason, String extension, boolean forRenamer, TvShowRenamerProfile renamerProfile) {
+      TvShow tvShow = tvShowSeason.getTvShow();
+      if (tvShow == null) {
+        return "";
+      }
+
+      String seasonFoldername = getSeasonFolder(tvShowSeason, forRenamer, renamerProfile);
+
+      // check whether the season folder name exists or not; do not create it just for the artwork!
+      if (StringUtils.isBlank(seasonFoldername)) {
+        // no season folder name in the templates found - fall back to the show base filename style
+        return SEASON_BANNER.getFilename(tvShowSeason, extension, forRenamer, renamerProfile);
+      }
+
+      return seasonFoldername + File.separator + "banner." + extension;
+    }
   }
 }
