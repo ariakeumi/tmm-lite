@@ -235,23 +235,6 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
         continue;
       }
 
-      // check if the folder is a subpath of an existing movie
-      boolean isMovieSubpath = false;
-      for (Path movieFolder : movieFolders) {
-        if (normalizedPath.equals(movieFolder) || normalizedPath.startsWith(movieFolder)) {
-          if (!foldersToUpdate.contains(movieFolder)) {
-            foldersToUpdate.add(movieFolder);
-          }
-
-          isMovieSubpath = true;
-          break;
-        }
-      }
-
-      if (isMovieSubpath) {
-        continue;
-      }
-
       // check if the folder is a subpath of any datasource
       for (Path ds : datasourcesFromSettings) {
         if (normalizedPath.startsWith(ds) && !normalizedPath.equals(ds)) {
