@@ -121,7 +121,6 @@ public class MediaFileHelper {
   public static final Pattern      DISCART_PATTERN;
   public static final Pattern      CLEARART_PATTERN;
   public static final Pattern      KEYART_PATTERN;
-  public static final Pattern      SEASON_FOLDER_PATTERN;
 
   public static final String       VIDEO_FORMAT_96P   = "96p";
   public static final String       VIDEO_FORMAT_120P  = "120p";
@@ -197,7 +196,6 @@ public class MediaFileHelper {
     DISCART_PATTERN = Pattern.compile("^" + opt_delim + "(discart|disc)\\.(" + extensions + ")$", Pattern.CASE_INSENSITIVE);
     CLEARART_PATTERN = Pattern.compile("^" + opt_delim + "(clearart)\\.(" + extensions + ")$", Pattern.CASE_INSENSITIVE);
     KEYART_PATTERN = Pattern.compile("^" + opt_delim + "(keyart)\\.(" + extensions + ")$", Pattern.CASE_INSENSITIVE);
-    SEASON_FOLDER_PATTERN = Pattern.compile("(?i)(season\\s?\\d+|specials|s\\d+).*");
   }
 
   private MediaFileHelper() {
@@ -410,34 +408,6 @@ public class MediaFileHelper {
     matcher = MediaFileHelper.SEASON_THUMB_PATTERN.matcher(filename);
     if (matcher.matches()) {
       return MediaFileType.SEASON_THUMB;
-    }
-
-    // detect bare artwork names inside season folders (e.g. Season 1/fanart.*)
-    // to avoid false positives with TV show artwork, only match when parent folder looks like a season folder
-    if (SEASON_FOLDER_PATTERN.matcher(parentName).matches()) {
-      // *-poster.* or poster.* or folder.* or movie.* or cover.*
-      matcher = MediaFileHelper.POSTER_PATTERN.matcher(filename);
-      if (matcher.matches()) {
-        return MediaFileType.SEASON_POSTER;
-      }
-
-      // *-fanart.* or fanart.* or *-backdrop.* or *-background.*
-      matcher = MediaFileHelper.FANART_PATTERN.matcher(filename);
-      if (matcher.matches()) {
-        return MediaFileType.SEASON_FANART;
-      }
-
-      // *-banner.* or banner.*
-      matcher = MediaFileHelper.BANNER_PATTERN.matcher(filename);
-      if (matcher.matches()) {
-        return MediaFileType.SEASON_BANNER;
-      }
-
-      // *-thumb.* or thumb.* or *-landscape.* or landscape.*
-      matcher = MediaFileHelper.THUMB_PATTERN.matcher(filename);
-      if (matcher.matches()) {
-        return MediaFileType.SEASON_THUMB;
-      }
     }
 
     // *-poster.* or poster.* or folder.* or movie.*
