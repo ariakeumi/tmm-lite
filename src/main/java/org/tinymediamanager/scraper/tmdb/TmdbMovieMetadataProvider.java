@@ -198,6 +198,28 @@ public final class TmdbMovieMetadataProvider extends TmdbMetadataProvider implem
         int page = 1;
         int maxPage = 1;
 
+        // if the searchString is ALSO a number, treat this additionally as TMDB id and fetch it.
+        if (searchString.matches("^\\d+$")) {
+          try {
+            int tid = MetadataUtil.parseInt(searchString, 0);
+            Response<Movie> httpResponse = api.moviesService()
+                .summary(tid, language, new AppendToResponse(AppendToResponseItem.TRANSLATIONS))
+                .execute();
+            if (httpResponse.isSuccessful()) {
+              Movie movie = httpResponse.body();
+              injectTranslations(Locale.forLanguageTag(language), movie);
+              MediaSearchResult result = morphMovieToSearchResult(movie, options);
+              results.add(result);
+              LOGGER.debug("found {} results with TMDB id (from searchString)", results.size());
+            }
+          }
+          catch (Exception e) {
+            LOGGER.debug("problem getting data from tmdb: {}", e.getMessage());
+            savedException = e;
+          }
+          // fall through
+        }
+
         // get all result pages
         do {
           Response<MovieResultsPage> httpResponse = api.searchService().movie(searchString, page, language, null, adult, null, null).execute();

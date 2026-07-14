@@ -229,6 +229,25 @@ public final class TmdbTvShowMetadataProvider extends TmdbMetadataProvider imple
         int page = 1;
         int maxPage = 1;
 
+        // if the searchString is ALSO a number, treat this additionally as TMDB id and fetch it.
+        if (searchString.matches("^\\d+$")) {
+          try {
+            int tid = MetadataUtil.parseInt(searchString, 0);
+            Response<TvShow> httpResponse = api.tvService().tv(tid, language, new AppendToResponse(AppendToResponseItem.TRANSLATIONS)).execute();
+            if (httpResponse.isSuccessful()) {
+              TvShow show = httpResponse.body();
+              injectTranslations(Locale.forLanguageTag(language), show);
+              results.add(morphTvShowToSearchResult(show, options));
+              LOGGER.debug("found {} results with TMDB id", results.size());
+            }
+          }
+          catch (Exception e) {
+            LOGGER.debug("problem getting data from tmdb: {}", e.getMessage());
+            savedException = e;
+          }
+          // fall through
+        }
+
         // get all result pages
         do {
           Response<TvShowResultsPage> httpResponse = api.searchService().tv(searchString, page, language, null, adult).execute();
