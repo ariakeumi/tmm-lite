@@ -37,6 +37,7 @@ x [TMDB] also search with TMDB id
 x [TMDB] added second fallback language to TV show/episode plot too
 x [TVDB] increased performance on trailer scrape
 x [TVDB] fixed lookup by IMDB id
+x [imdbapi.dev] removed - the API has been shut down
 x [Trakt.tv] added pagination for the watched endpoints too
 x [Library] upgraded to Java 25.0.3 (on macOS x64, we stick to Java 21.0.11)
 x [Library] upgraded libmediainfo to 26.05

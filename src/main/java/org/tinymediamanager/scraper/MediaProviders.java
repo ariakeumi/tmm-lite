@@ -43,8 +43,6 @@ import org.tinymediamanager.scraper.imdb.ImdbMovieTrailerProvider;
 import org.tinymediamanager.scraper.imdb.ImdbTvShowArtworkProvider;
 import org.tinymediamanager.scraper.imdb.ImdbTvShowMetadataProvider;
 import org.tinymediamanager.scraper.imdb.ImdbTvShowTrailerProvider;
-import org.tinymediamanager.scraper.imdbapidev.ImdbApiDevMovieMetadataProvider;
-import org.tinymediamanager.scraper.imdbapidev.ImdbApiDevTvShowMetadataProvider;
 import org.tinymediamanager.scraper.interfaces.IKodiMetadataProvider;
 import org.tinymediamanager.scraper.interfaces.IMediaProvider;
 import org.tinymediamanager.scraper.interfaces.IMovieArtworkProvider;
@@ -128,7 +126,6 @@ public class MediaProviders {
     loadProvider(TmdbMovieMetadataProvider.class);
     loadProvider(ImdbMovieMetadataProvider.class);
     loadProvider(OmdbMovieMetadataProvider.class);
-    loadProvider(ImdbApiDevMovieMetadataProvider.class);
     loadProvider(TraktMovieMetadataProvider.class);
     loadProvider(MovieMeterMovieMetadataProvider.class);
     loadProvider(TheTvDbMovieMetadataProvider.class);
@@ -193,7 +190,6 @@ public class MediaProviders {
     loadProvider(TheTvDbTvShowMetadataProvider.class);
     loadProvider(TmdbTvShowMetadataProvider.class);
     loadProvider(ImdbTvShowMetadataProvider.class);
-    loadProvider(ImdbApiDevTvShowMetadataProvider.class);
     loadProvider(TraktTvShowMetadataProvider.class);
     loadProvider(AniDbTvShowMetadataProvider.class);
     loadProvider(TvMazeTvShowMetadataProvider.class);
