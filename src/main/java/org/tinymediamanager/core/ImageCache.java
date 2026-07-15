@@ -260,6 +260,7 @@ public class ImageCache {
             return writeAnimatedGif(originalFile, cachedFile);
           }
 
+          LOGGER.trace("Creating image from file {} (read {} bytes)", mediaFile.getFileAsPath(), bytes.length);
           originalImage = ImageUtils.createImage(bytes);
 
           // only break if we have a valid image
@@ -596,8 +597,8 @@ public class ImageCache {
     catch (EmptyFileException e) {
       LOGGER.debug("failed to cache file (file is empty): {}", path);
     }
-    catch (FileNotFoundException ignored) {
-      // no need to log anything here
+    catch (FileNotFoundException fnf) {
+      LOGGER.trace("problem caching file: {} [{}]", fnf.getMessage(), fnf.getClass().getSimpleName());
     }
     catch (Exception e) {
       LOGGER.debug("problem caching file: {} [{}]", e.getMessage(), e.getClass().getSimpleName());
