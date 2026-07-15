@@ -84,7 +84,6 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
   private final List<String>                 colonReplacement = new ArrayList<>(Arrays.asList(" ", "-", "_", "∶"));
 
   private final MovieRenamerProfileContainer renamerProfileContainer;
-  private final ActionListener               profileActionListener;
 
   /**
    * UI components
@@ -128,7 +127,7 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
     initDataBindings();
 
     // data init
-    profileActionListener = evt -> {
+    ActionListener profileActionListener = evt -> {
       String item = (String) cbProfile.getSelectedItem();
       renamerProfileContainer.setProfile(settings.getRenamerProfile(item));
 
@@ -232,7 +231,7 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
 
       JLabel lblProfileTitle = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.profile"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelProfile, lblProfileTitle, true);
-      collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/settings#renamer-profile"));
+      collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/settings#renamer-profiles"));
       add(collapsiblePanel, "cell 0 0,growx, wmin 0");
       {
         JLabel lblProfileT = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.profile"));
@@ -384,7 +383,7 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
 
       JLabel lblAdvancedOptions = new TmmLabel(TmmResourceBundle.getString("Settings.advancedoptions"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelAdvancedOptions, lblAdvancedOptions, true);
-      collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/settings#advanced-options-4"));
+      collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/renamer#advanced-options"));
       add(collapsiblePanel, "cell 0 4,growx, wmin 0");
       {
         chckbxMoviesetSingleMovie = new JCheckBox(TmmResourceBundle.getString("Settings.renamer.moviesetsinglemovie"));
@@ -409,7 +408,7 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
 
       JLabel lblReplacementsT = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.replacements"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelReplacements, lblReplacementsT, true);
-      collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/settings#advanced-options-4"));
+      collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/renamer#replacements"));
       add(collapsiblePanel, "cell 0 6,growx, wmin 0");
       {
         chckbxFoldernameSpaceReplacement = new JCheckBox(TmmResourceBundle.getString("Settings.renamer.folderspacereplacement"));
@@ -477,7 +476,6 @@ public class MovieRenamerSettingsPanel extends JPanel implements HierarchyListen
 
       JLabel lblExampleHeader = new TmmLabel(TmmResourceBundle.getString("Settings.example"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelExample, lblExampleHeader, true);
-      collapsiblePanel.addExtraTitleComponent(new DocsButton("/movies/settings#example"));
       add(collapsiblePanel, "cell 0 8, growx, wmin 0");
       {
         JLabel lblExampleT = new TmmLabel(TmmResourceBundle.getString("tmm.movie"));

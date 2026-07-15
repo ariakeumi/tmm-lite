@@ -90,7 +90,6 @@ public class TvShowRenamerSettingsPanel extends JPanel implements HierarchyListe
   private final List<String>                       colonReplacements = new ArrayList<>(Arrays.asList(" ", "-", "_", "∶"));
 
   private final TvShowRenamerProfileContainer      renamerProfileContainer;
-  private final ActionListener                     profileActionListener;
 
   /*
    * UI components
@@ -134,7 +133,7 @@ public class TvShowRenamerSettingsPanel extends JPanel implements HierarchyListe
     initDataBindings();
 
     // data init
-    profileActionListener = evt -> {
+    ActionListener profileActionListener = evt -> {
       String item = (String) cbProfile.getSelectedItem();
       renamerProfileContainer.setProfile(settings.getRenamerProfile(item));
 
@@ -258,7 +257,7 @@ public class TvShowRenamerSettingsPanel extends JPanel implements HierarchyListe
 
       JLabel lblProfileTitle = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.profile"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelProfile, lblProfileTitle, true);
-      collapsiblePanel.addExtraTitleComponent(new DocsButton("/tvshows/settings#renamer-profile"));
+      collapsiblePanel.addExtraTitleComponent(new DocsButton("/tvshows/settings#renamer-profiles"));
       add(collapsiblePanel, "cell 0 0,growx, wmin 0");
       {
         JLabel lblProfileT = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.profile"));
@@ -339,7 +338,7 @@ public class TvShowRenamerSettingsPanel extends JPanel implements HierarchyListe
 
       JLabel lblPatternsT = new TmmLabel(TmmResourceBundle.getString("Settings.tvshow.renamer.title"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelPatterns, lblPatternsT, true);
-      collapsiblePanel.addExtraTitleComponent(new DocsButton("/tvshows/settings#renamer"));
+      collapsiblePanel.addExtraTitleComponent(new DocsButton("tvshows/renamer#renamer-pattern"));
       add(collapsiblePanel, "cell 0 2,growx,wmin 0");
 
       {
@@ -423,7 +422,7 @@ public class TvShowRenamerSettingsPanel extends JPanel implements HierarchyListe
 
       JLabel lblAdvancedOptions = new TmmLabel(TmmResourceBundle.getString("Settings.advancedoptions"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelAdvancedOptions, lblAdvancedOptions, true);
-      collapsiblePanel.addExtraTitleComponent(new DocsButton("/tvshows/settings#advanced-options-3"));
+      collapsiblePanel.addExtraTitleComponent(new DocsButton("/tvshows/renamer#advanced-options"));
       add(collapsiblePanel, "cell 0 4,growx");
 
       chckbxSpecialSeason = new JCheckBox(TmmResourceBundle.getString("tvshow.renamer.specialseason"));
@@ -447,7 +446,7 @@ public class TvShowRenamerSettingsPanel extends JPanel implements HierarchyListe
 
       JLabel lblReplacementsT = new TmmLabel(TmmResourceBundle.getString("Settings.renamer.replacements"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelReplacements, lblReplacementsT, true);
-      collapsiblePanel.addExtraTitleComponent(new DocsButton("/tvshows/settings#advanced-options-3"));
+      collapsiblePanel.addExtraTitleComponent(new DocsButton("/tvshows/renamer#replacements"));
       add(collapsiblePanel, "cell 0 6,growx");
 
       {
@@ -524,7 +523,6 @@ public class TvShowRenamerSettingsPanel extends JPanel implements HierarchyListe
 
       JLabel lblAdvancedOptions = new TmmLabel(TmmResourceBundle.getString("Settings.example"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelExample, lblAdvancedOptions, true);
-      collapsiblePanel.addExtraTitleComponent(new DocsButton("/tvshows/settings#example"));
       add(collapsiblePanel, "cell 0 8,growx, wmin 0");
       {
         JLabel lblExampleTvShowT = new JLabel(TmmResourceBundle.getString("metatag.tvshow"));
