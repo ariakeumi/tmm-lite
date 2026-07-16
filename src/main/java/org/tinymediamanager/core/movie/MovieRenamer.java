@@ -1091,6 +1091,21 @@ public class MovieRenamer {
         newFiles.add(sample);
         break;
 
+      case BIF:
+        MediaFile bif = new MediaFile(mf);
+        Matcher m = MediaFileHelper.BIF_PATTERN.matcher(mf.getFilename());
+        if (m.find()) {
+          // name-320-10.bif
+          newFilename += m.group(1) + "." + mf.getExtension();
+        }
+        else {
+          // name.bif
+          newFilename += "." + mf.getExtension();
+        }
+        bif.setFile(newMovieDir.resolve(newFilename));
+        newFiles.add(bif);
+        break;
+
       case MEDIAINFO:
         MediaFile mi = new MediaFile(mf);
         if (movie.isDisc()) {

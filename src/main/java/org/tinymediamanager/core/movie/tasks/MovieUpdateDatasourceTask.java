@@ -1569,6 +1569,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
           case THEME:
           case CHARACTERART:
           case DOUBLE_EXT:
+          case BIF:
             movie.addToMediaFiles(mf);
             break;
 

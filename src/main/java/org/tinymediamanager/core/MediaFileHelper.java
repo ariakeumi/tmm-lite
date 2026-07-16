@@ -99,7 +99,7 @@ public class MediaFileHelper {
       "bloopers", "trickplay");
   // for structure detection
   public static final List<String> BLURAY_FOLDERS     = List.of("BDMV", "PLAYLIST", "CLIPINF", "STREAM");
-  public static final Pattern      BIF_PATTERN        = Pattern.compile("-\\d+-\\d+\\.bif$", Pattern.CASE_INSENSITIVE);                           // xxx-320-10.bif
+  public static final Pattern      BIF_PATTERN        = Pattern.compile("(-\\d+-\\d+)\\.bif$", Pattern.CASE_INSENSITIVE);                         // xxx-320-10.bif
 
   public static final List<String> SUPPORTED_ARTWORK_FILETYPES;
   public static final List<String> DEFAULT_VIDEO_FILETYPES;
