@@ -260,7 +260,11 @@ public class ImageCache {
             return writeAnimatedGif(originalFile, cachedFile);
           }
 
-          LOGGER.trace("Creating image from file {} (read {} bytes)", mediaFile.getFileAsPath(), bytes.length);
+          if (Globals.isDebug()) {
+            // we need that, since the internal JPG methjods write only to std err, and so we have the chance of finding the culprit file
+            // but nothing to clutter the users log, as the system.err is omitted...
+            LOGGER.trace("Creating image from file {} (read {} bytes)", mediaFile.getFileAsPath(), bytes.length);
+          }
           originalImage = ImageUtils.createImage(bytes);
 
           // only break if we have a valid image
