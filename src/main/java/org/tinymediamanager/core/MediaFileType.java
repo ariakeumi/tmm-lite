@@ -55,6 +55,7 @@ public enum MediaFileType {
   EXTRAFANART, // gfx
   EXTRATHUMB, // gfx
   EXTRA,
+  BIF, // Base Index Frame see https://github.com/zerorooot/BIFParser
   GRAPHIC, // NO gfx (since not a searchable type)
   MEDIAINFO, // xxx-mediainfo.xml
   VSMETA, // xxx.ext.vsmeta Synology
