@@ -393,11 +393,11 @@ public class Url {
    * gets the url with the given amount of retries
    *
    * @param retries
-   *          the amount of retries (>0)
+   *          the amount of retries (>=0)
    * @return the InputStream or null
    */
   public InputStream getInputStreamWithRetry(int retries) throws Exception {
-    if (retries <= 0) {
+    if (retries < 0) {
       return null;
     }
 
@@ -406,7 +406,7 @@ public class Url {
     Exception exception = null;
 
     int counter = 0;
-    do {
+    while (counter <= retries) {
       counter++;
       try {
         is = getInputStream();
@@ -434,7 +434,10 @@ public class Url {
       }
 
       LOGGER.debug("could not fetch: {} - retrying", url);
-    } while (counter <= retries);
+
+      // wait for a bit
+      Thread.sleep(200);
+    }
 
     if (exception != null) {
       throw exception;

@@ -740,20 +740,21 @@ public class ImageLabel extends JComponent {
             }
           }
         }
-
-        // no image cache? just fetch it directly
-        Url url;
-
-        if (cacheUrl) {
-          url = new InMemoryCachedUrl(imageUrl);
-        }
         else {
-          url = new Url(imageUrl);
+          // fetch it directly
+          Url url;
+
+          if (cacheUrl) {
+            url = new InMemoryCachedUrl(imageUrl);
+          }
+          else {
+            url = new Url(imageUrl);
+          }
+          byte[] bytes = url.getBytesWithRetry(1);
+          clearImageData();
+          setImageBytes(bytes);
+          recreateScaledImageIfNeeded(0, 0, newSize.width, newSize.height);
         }
-        byte[] bytes = url.getBytesWithRetry(2);
-        clearImageData();
-        setImageBytes(bytes);
-        recreateScaledImageIfNeeded(0, 0, newSize.width, newSize.height);
       }
       catch (Exception e) {
         ImageLabel.this.imageUrl = "";
