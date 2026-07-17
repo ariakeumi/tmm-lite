@@ -39,10 +39,9 @@ x [TVDB] increased performance on trailer scrape
 x [TVDB] fixed lookup by IMDB id
 x [imdbapi.dev] removed - the API has been shut down
 x [Trakt.tv] added pagination for the watched endpoints too
-x [Library] upgraded to Java 25.0.3 (on macOS x64, we stick to Java 21.0.11)
+x [Library] upgraded to Java 25.0.3 (on macOS, we stick to Java 21.0.10)
 x [Library] upgraded libmediainfo to 26.05
 x [Library] upgraded libtinyfiledialogs to v3.21.3
-x [Java] upgraded Java to 21.0.11
 x [Scraper] Fernsehserien.de - ignore unavailable cast/crew
 x [Scraper] also save scraped editor/composer/camera crew
 x [Trailer] fix downloading TvShow trailers #3283 - thx @gamebeaker
