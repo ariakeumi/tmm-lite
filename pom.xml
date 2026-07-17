@@ -964,14 +964,14 @@
                                         <artifactItem>
                                             <groupId>org.tinymediamanager.jre</groupId>
                                             <artifactId>macos_x64</artifactId>
-                                            <version>${jre.version}</version>
+                                            <version>${jre.version.macosx64}</version>
                                             <type>tar.xz</type>
                                             <outputDirectory>${project.build.directory}/macos-x64/jre</outputDirectory>
                                         </artifactItem>
                                         <artifactItem>
                                             <groupId>org.tinymediamanager.jre</groupId>
                                             <artifactId>macos_aarch64</artifactId>
-                                            <version>${jre.version}</version>
+                                            <version>${jre.version.macosx64}</version>
                                             <type>tar.xz</type>
                                             <outputDirectory>${project.build.directory}/macos-aarch64/jre
                                             </outputDirectory>
