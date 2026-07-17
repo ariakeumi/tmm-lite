@@ -1,3 +1,7 @@
+Version 5.3.1
+=======================
+
+
 Version 5.3.0
 =======================
 + [Renamer] the support for renamer profiles has been added!
