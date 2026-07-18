@@ -1,5 +1,6 @@
 Version 5.3.1
 =======================
+x [UI] fixed displaying of season plot in the information panel #3324
 x [Trakt.tv] added new authentication method
 
 

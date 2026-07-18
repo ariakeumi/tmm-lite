@@ -127,6 +127,12 @@ public class TvShowSeasonInformationPanel extends InformationPanel {
       lblSeason.setText(TmmResourceBundle.getString("metatag.season") + " " + season.getSeason());
     }
 
+    if (season.getTvShow() != null) {
+      lblTvshowTitle.setText(season.getTvShow().getTitle());
+    }
+
+    taOverview.setText(season.getPlot());
+
     // Season poster
     setSeasonArtwork(season, MediaFileType.SEASON_POSTER, MediaFileType.POSTER);
 
