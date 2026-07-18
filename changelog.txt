@@ -1,5 +1,6 @@
 Version 5.3.1
 =======================
+x [Trakt.tv] added new authentication method
 
 
 Version 5.3.0

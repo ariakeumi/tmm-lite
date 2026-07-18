@@ -40,6 +40,7 @@ import org.tinymediamanager.scraper.http.TmmHttpClient;
 import com.uwetrottmann.trakt5.TraktV2;
 import com.uwetrottmann.trakt5.TraktV2Interceptor;
 import com.uwetrottmann.trakt5.entities.AccessToken;
+import com.uwetrottmann.trakt5.entities.DeviceCode;
 import com.uwetrottmann.trakt5.entities.ListEntry;
 import com.uwetrottmann.trakt5.entities.SyncErrors;
 import com.uwetrottmann.trakt5.entities.SyncResponse;
@@ -119,19 +120,36 @@ public class TraktTv implements TmmFeature {
   private TraktTv() {
   }
 
-  public Map<String, String> authenticateViaPin(String pin) throws Exception {
+  public Map<String, String> getDeviceCode() throws Exception {
     initAPI();
 
     Map<String, String> result = new HashMap<>();
-    Response<AccessToken> response = api.exchangeCodeForAccessToken(pin);
+    Response<DeviceCode> response = api.generateDeviceCode();
+
+    if (response.isSuccessful() && response.body() != null) {
+      DeviceCode deviceCode = response.body();
+      result.put("AUTH_URL", deviceCode.verification_url);
+      result.put("DEVICE_CODE", deviceCode.device_code);
+      result.put("USER_CODE", deviceCode.user_code);
+      result.put("INTERVAL", String.valueOf(deviceCode.interval));
+    }
+
+    return result;
+  }
+
+  public Map<String, String> getToken(String deviceCode) throws Exception {
+    initAPI();
+
+    Map<String, String> result = new HashMap<>();
+
+    Response<AccessToken> response = api.exchangeDeviceCodeForAccessToken(deviceCode);
 
     if (response.isSuccessful() && response.body() != null) {
       // get tokens
-      String accessToken = response.body().access_token;
-      String refreshToken = response.body().refresh_token;
-      if (StringUtils.isNoneBlank(accessToken, refreshToken)) {
-        result.put("accessToken", accessToken);
-        result.put("refreshToken", refreshToken);
+      AccessToken accessToken = response.body();
+      if (StringUtils.isNoneBlank(accessToken.access_token, accessToken.refresh_token)) {
+        result.put("accessToken", accessToken.access_token);
+        result.put("refreshToken", accessToken.refresh_token);
       }
     }
 
@@ -152,9 +170,10 @@ public class TraktTv implements TmmFeature {
         .refreshAccessToken(Settings.getInstance().getTraktRefreshToken());
 
     if (response.isSuccessful() && response.body() != null) {
-      if (StringUtils.isNoneBlank(response.body().access_token, response.body().refresh_token)) {
-        Settings.getInstance().setTraktAccessToken(response.body().access_token);
-        Settings.getInstance().setTraktRefreshToken(response.body().refresh_token);
+      AccessToken accessToken = response.body();
+      if (StringUtils.isNoneBlank(accessToken.access_token, accessToken.refresh_token)) {
+        Settings.getInstance().setTraktAccessToken(accessToken.access_token);
+        Settings.getInstance().setTraktRefreshToken(accessToken.refresh_token);
         api.accessToken(Settings.getInstance().getTraktAccessToken());
       }
     }

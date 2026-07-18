@@ -18,8 +18,10 @@ package org.tinymediamanager.ui.settings;
 import static org.tinymediamanager.ui.TmmFontHelper.H3;
 import static org.tinymediamanager.ui.TmmFontHelper.L2;
 
+import java.awt.BorderLayout;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -34,6 +36,8 @@ import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
 import org.jdesktop.beansbinding.Bindings;
 import org.jdesktop.beansbinding.Property;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.DateField;
 import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.TmmResourceBundle;
@@ -43,6 +47,7 @@ import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.TmmUIHelper;
 import org.tinymediamanager.ui.components.button.DocsButton;
+import org.tinymediamanager.ui.components.label.LinkLabel;
 import org.tinymediamanager.ui.components.label.TmmLabel;
 import org.tinymediamanager.ui.components.panel.CollapsiblePanel;
 import org.tinymediamanager.ui.components.textfield.ReadOnlyTextArea;
@@ -56,14 +61,15 @@ import net.miginfocom.swing.MigLayout;
  * @author Manuel Laggner
  */
 class ExternalServicesSettingsPanel extends JPanel {
-  private final Settings settings = Settings.getInstance();
+  private static final Logger LOGGER   = LoggerFactory.getLogger(ExternalServicesSettingsPanel.class);
 
-  private JButton        btnGetTraktPin;
-  private JButton        btnTestTraktConnection;
-  private JLabel         lblTraktStatus;
-  private JTextField     tfMdbListApiKey;
-  private JComboBox      cbTraktDate;
-  private AutoBinding    autobinding_1;
+  private final Settings      settings = Settings.getInstance();
+
+  private JButton             btnGetTraktPin;
+  private JButton             btnTestTraktConnection;
+  private JLabel              lblTraktStatus;
+  private JTextField          tfMdbListApiKey;
+  private JComboBox           cbTraktDate;
 
   ExternalServicesSettingsPanel() {
     // UI init
@@ -95,52 +101,97 @@ class ExternalServicesSettingsPanel extends JPanel {
   }
 
   private void getTraktPin() {
+    settings.setTraktAccessToken("");
+    settings.setTraktRefreshToken("");
+
+    TraktTv traktTv = TraktTv.getInstance();
+
+    String deviceCode = "";
+    String url;
     // open the pin url in a browser
     try {
-      TmmUIHelper.browseUrl("https://trakt.tv/pin/799");
+      Map<String, String> response = traktTv.getDeviceCode();
+      deviceCode = response.get("DEVICE_CODE");
+      String authUrl = response.get("AUTH_URL");
+      String userCode = response.get("USER_CODE");
+      if (StringUtils.isNoneBlank(deviceCode, authUrl, userCode)) {
+        url = authUrl + "/" + userCode;
+        TmmUIHelper.browseUrl(url);
+      }
+      else {
+        throw new Exception("No verification url and user code received");
+      }
     }
-    catch (Exception e1) {
+    catch (Exception ex) {
       // browser could not be opened, show a dialog box
       TmmToastManager.showErrorToast(this, TmmResourceBundle.getString("Settings.trakttv"),
-          TmmResourceBundle.getString("Settings.trakt.getpin.fallback"));
-    }
-
-    // let the user insert the pin
-    String pin = JOptionPane.showInputDialog(MainWindow.getFrame(), TmmResourceBundle.getString("Settings.trakt.getpin.entercode"));
-
-    // user clicked abort
-    if (pin == null || pin.isEmpty()) {
+          TmmResourceBundle.getString("Settings.trakt.getpin.error"));
+      LOGGER.error("Error occurred while trying to get Trakt.tv access code - '{}'", ex.getMessage());
       return;
     }
 
-    // try to get the tokens
+    // let the user insert the pin
     String accessToken = "";
     String refreshToken = "";
-    try {
-      Map<String, String> tokens = TraktTv.getInstance().authenticateViaPin(pin);
-      accessToken = tokens.get("accessToken") == null ? "" : tokens.get("accessToken");
-      refreshToken = tokens.get("refreshToken") == null ? "" : tokens.get("refreshToken");
-    }
-    catch (Exception ignored) {
-      // ignored
+
+    int retryCount = 0;
+    while (retryCount < 5) {
+      JPanel panel = new JPanel(new BorderLayout());
+      panel.add(new JLabel(TmmResourceBundle.getString("Settings.trakt.getpin.desc")), BorderLayout.NORTH);
+      LinkLabel linkLabel = new LinkLabel(url);
+      linkLabel.addActionListener(e -> {
+        try {
+          TmmUIHelper.browseUrl(url);
+        }
+        catch (Exception ignored) {
+          // ignored
+        }
+      });
+      linkLabel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
+
+      panel.add(linkLabel, BorderLayout.CENTER);
+      panel.add(new JLabel(TmmResourceBundle.getString("Settings.trakt.getpin.desc2")), BorderLayout.SOUTH);
+
+      int answer = JOptionPane.showConfirmDialog(MainWindow.getFrame(), panel, TmmResourceBundle.getString("Settings.trakttv"),
+          JOptionPane.OK_CANCEL_OPTION);
+
+      // user clicked abort
+      if (answer == JOptionPane.OK_OPTION) {
+        // try to get access token
+        try {
+          Map<String, String> tokens = traktTv.getToken(deviceCode);
+          accessToken = tokens.get("accessToken") == null ? "" : tokens.get("accessToken");
+          refreshToken = tokens.get("refreshToken") == null ? "" : tokens.get("refreshToken");
+
+          if (StringUtils.isNoneBlank(accessToken, refreshToken)) {
+            break;
+          }
+
+          retryCount++;
+          TmmToastManager.showErrorToast(this, TmmResourceBundle.getString("Settings.trakttv"),
+              TmmResourceBundle.getString("Settings.trakt.getpin.error"));
+        }
+        catch (Exception ignored) {
+          // ignored
+        }
+      }
+      else if (answer == JOptionPane.CANCEL_OPTION) {
+        lblTraktStatus.setText(null);
+        return;
+      }
     }
 
     if (StringUtils.isNoneBlank(accessToken, refreshToken)) {
-      Settings.getInstance().setTraktAccessToken(accessToken);
-      Settings.getInstance().setTraktRefreshToken(refreshToken);
+      settings.setTraktAccessToken(accessToken);
+      settings.setTraktRefreshToken(refreshToken);
       lblTraktStatus.setText(TmmResourceBundle.getString("Settings.trakt.status.good"));
+      TmmToastManager.showSuccessToast(this, TmmResourceBundle.getString("Settings.trakttv"),
+          TmmResourceBundle.getString("Settings.trakt.getpin.success"));
     }
     else {
       JOptionPane.showMessageDialog(MainWindow.getFrame(), TmmResourceBundle.getString("Settings.trakt.getpin.problem"),
           TmmResourceBundle.getString("Settings.trakt.getpin"), JOptionPane.ERROR_MESSAGE);
-
-      if (StringUtils.isNoneBlank(Settings.getInstance().getTraktAccessToken(), Settings.getInstance().getTraktRefreshToken())) {
-        // we got an error, but we already have old setted-up tokens, so display msg accordingly
-        lblTraktStatus.setText(TmmResourceBundle.getString("Settings.trakt.status.good"));
-      }
-      else {
-        lblTraktStatus.setText(TmmResourceBundle.getString("Settings.trakt.status.bad"));
-      }
+      lblTraktStatus.setText(TmmResourceBundle.getString("Settings.trakt.status.bad"));
     }
   }
 
