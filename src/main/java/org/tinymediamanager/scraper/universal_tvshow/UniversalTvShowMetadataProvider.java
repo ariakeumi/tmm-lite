@@ -559,10 +559,23 @@ public final class UniversalTvShowMetadataProvider implements ITvShowMetadataPro
   }
 
   private void assignEpisodeResults(MediaMetadata md, Map<String, MediaMetadata> metadataMap) {
-    // take all ids we can get
+    // take all ids we can get - use the scraper which offers the episode numbers as primary source
+    MediaMetadata episodeMd = metadataMap.get(providerInfo.getConfig().getValue("episodes"));
+    if (episodeMd != null) {
+      // pure episode data needs to be from the main scraper
+      md.setEpisodeNumbers(episodeMd.getEpisodeNumbers());
+      md.setReleaseDate(episodeMd.getReleaseDate());
+
+      for (Map.Entry<String, Object> id : episodeMd.getIds().entrySet()) {
+        md.setId(id.getKey(), id.getValue());
+      }
+    }
+
     for (Map.Entry<String, MediaMetadata> entry : metadataMap.entrySet()) {
       for (Map.Entry<String, Object> id : entry.getValue().getIds().entrySet()) {
-        md.setId(id.getKey(), id.getValue());
+        if (!md.getIds().containsKey(id.getKey())) {
+          md.setId(id.getKey(), id.getValue());
+        }
       }
     }
 
@@ -572,19 +585,8 @@ public final class UniversalTvShowMetadataProvider implements ITvShowMetadataPro
     // assign the requested metadata (fallback is now possible, since the matching has been rewritten to ID matching)
     for (Map.Entry<String, String> entry : providerInfo.getConfig().getConfigKeyValuePairs().entrySet()) {
       if (entry.getKey().startsWith("episode") && !UNDEFINED.equals(entry.getValue())) {
-
-        if ("episodes".equals(entry.getKey())) {
-          // pure episode data needs to be from the main scraper
-          MediaMetadata mediaMetadata = metadataMap.get(entry.getValue());
-
-          if (mediaMetadata == null) {
-            continue;
-          }
-
-          md.setEpisodeNumbers(mediaMetadata.getEpisodeNumbers());
-          md.setReleaseDate(mediaMetadata.getReleaseDate());
-        }
-        else {
+        if (!"episodes".equals(entry.getKey())) {
+          // episodes have already been added above
           // others can be done with fallback
           List<String> scrapers = new ArrayList<>(fallbackScrapers);
           scrapers.remove(entry.getValue());
