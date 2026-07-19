@@ -68,6 +68,7 @@ import com.uwetrottmann.trakt5.entities.SyncSeason;
 import com.uwetrottmann.trakt5.entities.SyncShow;
 import com.uwetrottmann.trakt5.entities.TraktError;
 import com.uwetrottmann.trakt5.entities.TraktOAuthError;
+import com.uwetrottmann.trakt5.enums.ExtendedShowsWatched;
 import com.uwetrottmann.trakt5.enums.Rating;
 import com.uwetrottmann.trakt5.enums.RatingsFilter;
 
@@ -285,7 +286,7 @@ class TraktTvTvShow {
       int maxPages = 50; // hard stop after this amount of pages
 
       while (true) {
-        List<BaseShow> pageResults = executeCall(api.sync().watchedShows(page, limit, null, null));
+        List<BaseShow> pageResults = executeCall(api.sync().watchedShows(page, limit, ExtendedShowsWatched.PROGRESS, null));
         if (pageResults.isEmpty()) {
           break;
         }
@@ -653,7 +654,7 @@ class TraktTvTvShow {
       // Fetch all pages using pagination with limit of 250
       page = 1;
       while (true) {
-        List<BaseShow> pageResults = executeCall(api.sync().watchedShows(page, limit, null, null));
+        List<BaseShow> pageResults = executeCall(api.sync().watchedShows(page, limit, ExtendedShowsWatched.PROGRESS, null));
         if (pageResults.isEmpty()) {
           break;
         }
