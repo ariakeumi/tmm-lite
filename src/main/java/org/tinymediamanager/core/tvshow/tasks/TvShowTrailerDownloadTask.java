@@ -92,6 +92,20 @@ public class TvShowTrailerDownloadTask extends TmmTask {
     // add the rest
     trailers.addAll(tvShow.getTrailer());
 
+    // remove invalid MediaTrailers
+    trailers.removeIf(trailer -> {
+      String url = trailer.getUrl();
+      if (StringUtils.isAllBlank(trailer.getUrl(), trailer.getId())) {
+        return true;
+      }
+
+      if (url.startsWith("file:")) {
+        return true;
+      }
+
+      return false;
+    });
+
     if (trailers.isEmpty()) {
       LOGGER.info("No trailers available for '{}'", tvShow.getTitle());
       return;
