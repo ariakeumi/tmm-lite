@@ -278,12 +278,11 @@ class TraktTvTvShow {
 
     List<BaseShow> traktShows = new ArrayList<>();
     try {
-      // Extended.DEFAULT adds url, poster, fanart, banner, genres
-      // Extended.MAX adds certs, runtime, and other stuff (useful for scraper!)
-      // Fetch all pages using pagination with limit of 250
+      // Fetch all pages using pagination with limit of 100 (here is another limit as with other calls)
+      // https://github.com/trakt/trakt-api/discussions/775#discussioncomment-17526614
       int page = 1;
-      int limit = TraktTv.MAX_PAGE_SIZE;
-      int maxPages = 50; // hard stop after this amount of pages
+      int limit = 100;
+      int maxPages = 100; // hard stop after this amount of pages
 
       while (true) {
         List<BaseShow> pageResults = executeCall(api.sync().watchedShows(page, limit, ExtendedShowsWatched.PROGRESS, null));
@@ -651,8 +650,11 @@ class TraktTvTvShow {
         page++;
       }
 
-      // Fetch all pages using pagination with limit of 250
+      // Fetch all pages using pagination with limit of 100 (here is another limit as with other calls)
+      // https://github.com/trakt/trakt-api/discussions/775#discussioncomment-17526614
       page = 1;
+      limit = 100;
+      maxPages = 100;
       while (true) {
         List<BaseShow> pageResults = executeCall(api.sync().watchedShows(page, limit, ExtendedShowsWatched.PROGRESS, null));
         if (pageResults.isEmpty()) {
