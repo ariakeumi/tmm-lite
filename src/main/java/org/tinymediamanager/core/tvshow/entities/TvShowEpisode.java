@@ -1698,6 +1698,10 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
       }
     }
 
+    if (mediaFile.getType() == MediaFileType.VIDEO) {
+      updateMediaInfoSnapshot();
+    }
+
     if (dirty) {
       saveToDb();
     }

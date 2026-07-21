@@ -2856,6 +2856,10 @@ public class Movie extends MediaEntity implements IMediaInformation {
       }
     }
 
+    if (mediaFile.getType() == MediaFileType.VIDEO) {
+      updateMediaInfoSnapshot();
+    }
+
     if (dirty) {
       saveToDb();
     }
