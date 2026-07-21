@@ -386,19 +386,26 @@ public class TvShowSeasonEditorDialog extends AbstractEditorDialog {
         }
       }
 
-      JButton cancelButton = new JButton(new CancelAction());
-      addButton(cancelButton);
-
-      JButton okButton = new JButton(new OKAction());
-      getRootPane().registerKeyboardAction(new OKAction(),
-          KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), JComponent.WHEN_IN_FOCUSED_WINDOW);
-      getRootPane().registerKeyboardAction(new OKAction(),
-          KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), JComponent.WHEN_IN_FOCUSED_WINDOW);
-      if (SystemUtils.IS_OS_MAC) {
-        getRootPane().registerKeyboardAction(new OKAction(), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.META_DOWN_MASK),
-            JComponent.WHEN_IN_FOCUSED_WINDOW);
+      if (tvShowSeasonToEdit.isLocked()) {
+        JButton closeButton = new JButton(TmmResourceBundle.getString("Button.close"));
+        closeButton.addActionListener(e -> setVisible(false));
+        addButton(closeButton);
       }
-      addDefaultButton(okButton);
+      else {
+        JButton cancelButton = new JButton(new CancelAction());
+        addButton(cancelButton);
+
+        JButton okButton = new JButton(new OKAction());
+        getRootPane().registerKeyboardAction(new OKAction(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), JComponent.WHEN_IN_FOCUSED_WINDOW);
+        getRootPane().registerKeyboardAction(new OKAction(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), JComponent.WHEN_IN_FOCUSED_WINDOW);
+        if (SystemUtils.IS_OS_MAC) {
+          getRootPane().registerKeyboardAction(new OKAction(), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.META_DOWN_MASK),
+              JComponent.WHEN_IN_FOCUSED_WINDOW);
+        }
+        addButton(okButton);
+      }
     }
   }
 

@@ -29,7 +29,6 @@ import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.core.tvshow.entities.TvShowSeason;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.actions.TmmAction;
-import org.tinymediamanager.ui.tvshows.TvShowSelectionModel;
 import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 import org.tinymediamanager.ui.tvshows.dialogs.TvShowEditorDialog;
 import org.tinymediamanager.ui.tvshows.dialogs.TvShowEpisodeEditorDialog;
@@ -54,35 +53,18 @@ public class TvShowEditAction extends TmmAction {
   protected void processAction(ActionEvent e) {
     List<Object> selectedObjects = TvShowUIModule.getInstance().getSelectionModel().getSelectedTreeObjects();
 
-    List<Object> selectedObjectWoLocked = selectedObjects.stream().filter(obj -> {
-      if (obj instanceof TvShow && !((TvShow) obj).isLocked()) {
-        return true;
-      }
-      else if (obj instanceof TvShowSeason && !((TvShowSeason) obj).isLocked()) {
-        return true;
-      }
-      else if (obj instanceof TvShowEpisode && !((TvShowEpisode) obj).isLocked()) {
-        return true;
-      }
-      return false;
-    }).toList();
-
-    if (selectedObjects.size() != selectedObjectWoLocked.size()) {
-      TvShowSelectionModel.showLockedInformation();
-    }
-
-    if (selectedObjectWoLocked.isEmpty()) {
+    if (selectedObjects.isEmpty()) {
       return;
     }
 
-    int selectedCount = selectedObjectWoLocked.size();
+    int selectedCount = selectedObjects.size();
     int index = 0;
     int selectedShowTab = 0;
     int selectedSeasonTab = 0;
     int selectedEpisodeTab = 0;
 
     do {
-      Object obj = selectedObjectWoLocked.get(index);
+      Object obj = selectedObjects.get(index);
 
       // display tv show editor
       if (obj instanceof TvShow tvShow) {

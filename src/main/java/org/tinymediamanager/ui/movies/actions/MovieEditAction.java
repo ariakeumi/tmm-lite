@@ -47,7 +47,7 @@ public class MovieEditAction extends TmmAction {
 
   @Override
   protected void processAction(ActionEvent e) {
-    List<Movie> selectedMovies = MovieUIModule.getInstance().getSelectionModel().getSelectedMovies();
+    List<Movie> selectedMovies = MovieUIModule.getInstance().getSelectionModel().getSelectedMovies(true);
 
     if (selectedMovies.isEmpty()) {
       return;

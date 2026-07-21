@@ -30,6 +30,7 @@ import java.awt.Toolkit;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -52,6 +53,7 @@ import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
 import org.jdesktop.beansbinding.BindingGroup;
@@ -518,15 +520,26 @@ public class MovieSetEditorDialog extends AbstractEditorDialog {
         }
       }
 
-      JButton btnCancel = new JButton(new CancelAction());
-      addButton(btnCancel);
+      if (movieSetToEdit.isLocked()) {
+        JButton closeButton = new JButton(TmmResourceBundle.getString("Button.close"));
+        closeButton.addActionListener(e -> setVisible(false));
+        addButton(closeButton);
+      }
+      else {
+        JButton btnCancel = new JButton(new CancelAction());
+        addButton(btnCancel);
 
-      JButton btnOk = new JButton(new OkAction());
-      getRootPane().registerKeyboardAction(new OkAction(),
-          KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), JComponent.WHEN_IN_FOCUSED_WINDOW);
-      getRootPane().registerKeyboardAction(new OkAction(),
-          KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), JComponent.WHEN_IN_FOCUSED_WINDOW);
-      addDefaultButton(btnOk);
+        JButton btnOk = new JButton(new OkAction());
+        getRootPane().registerKeyboardAction(new OkAction(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), JComponent.WHEN_IN_FOCUSED_WINDOW);
+        getRootPane().registerKeyboardAction(new OkAction(),
+            KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), JComponent.WHEN_IN_FOCUSED_WINDOW);
+        if (SystemUtils.IS_OS_MAC) {
+          getRootPane().registerKeyboardAction(new OkAction(), KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.META_DOWN_MASK),
+              JComponent.WHEN_IN_FOCUSED_WINDOW);
+        }
+        addDefaultButton(btnOk);
+      }
     }
 
     {

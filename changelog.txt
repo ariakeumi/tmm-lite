@@ -1,5 +1,7 @@
 Version 5.3.1
 =======================
++ [UI] enabled to open the editor for locked entries in read only mode
+---
 x [UI] fixed displaying of season plot in the information panel #3324
 x [Trakt.tv] added new authentication method
 x [Trakt.tv] fixed TV show watched sync #3326
