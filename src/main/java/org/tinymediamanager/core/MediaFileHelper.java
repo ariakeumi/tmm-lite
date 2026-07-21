@@ -2461,7 +2461,7 @@ public class MediaFileHelper {
       mediaFile.addExtraData("imdbId", imdbId);
     }
 
-    String tmdbId = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.General, 0, "id", "extra/TMDB");
+    String tmdbId = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.General, 0, "extra/TMDB");
     if (tmdbId.matches("^\\d+$")) {
       // number only
       mediaFile.addExtraData("tmdbId", tmdbId);
