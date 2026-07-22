@@ -39,8 +39,7 @@ import org.tinymediamanager.ui.actions.TmmAction;
 import org.tinymediamanager.ui.movies.MovieUIModule;
 
 public class MovieChecksumPHashAction extends TmmAction {
-  private static final Logger LOGGER           = LoggerFactory.getLogger(MovieChecksumPHashAction.class);
-  private static final long   serialVersionUID = 1L;
+  private static final Logger LOGGER = LoggerFactory.getLogger(MovieChecksumPHashAction.class);
 
   public MovieChecksumPHashAction() {
     putValue(NAME, TmmResourceBundle.getString("checksum.phash.calculate"));
@@ -74,6 +73,7 @@ public class MovieChecksumPHashAction extends TmmAction {
           }
 
           MediaFile main = movie.getMainVideoFile();
+          setTaskDescription(main.getFilename());
           if (main.getPHash().isEmpty()) {
             try {
               String phash = VideoPHash.generate(main.getFileAsPath());

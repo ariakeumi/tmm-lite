@@ -37,8 +37,7 @@ import org.tinymediamanager.ui.tvshows.TvShowSelectionModel.SelectedObjects;
 import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 
 public class TvshowChecksumPHashAction extends TmmAction {
-  private static final Logger LOGGER           = LoggerFactory.getLogger(TvshowChecksumPHashAction.class);
-  private static final long   serialVersionUID = 1L;
+  private static final Logger LOGGER = LoggerFactory.getLogger(TvshowChecksumPHashAction.class);
 
   public TvshowChecksumPHashAction() {
     putValue(NAME, TmmResourceBundle.getString("checksum.phash.calculate"));
@@ -68,6 +67,7 @@ public class TvshowChecksumPHashAction extends TmmAction {
           }
 
           MediaFile main = ep.getMainVideoFile();
+          setTaskDescription(main.getFilename());
           if (main.getPHash().isEmpty()) {
             try {
               String phash = VideoPHash.generate(main.getFileAsPath());

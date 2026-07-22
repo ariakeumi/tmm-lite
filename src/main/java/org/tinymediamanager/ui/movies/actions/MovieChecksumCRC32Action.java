@@ -32,7 +32,6 @@ import org.tinymediamanager.ui.actions.TmmAction;
 import org.tinymediamanager.ui.movies.MovieUIModule;
 
 public class MovieChecksumCRC32Action extends TmmAction {
-  private static final long serialVersionUID = 1L;
 
   public MovieChecksumCRC32Action() {
     putValue(NAME, TmmResourceBundle.getString("checksum.crc32.calculate"));
@@ -60,6 +59,7 @@ public class MovieChecksumCRC32Action extends TmmAction {
           }
 
           MediaFile main = movie.getMainVideoFile();
+          setTaskDescription(main.getFilename());
           if (main.getCRC32().isEmpty()) {
             String crc = Utils.getCRC32(main.getFileAsPath());
             if (!crc.isEmpty()) {

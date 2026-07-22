@@ -53,6 +53,7 @@ public class TvshowChecksumCRC32Action extends TmmAction {
           }
 
           MediaFile main = ep.getMainVideoFile();
+          setTaskDescription(main.getFilename());
           if (main.getCRC32().isEmpty()) {
             String crc = Utils.getCRC32(main.getFileAsPath());
             if (!crc.isEmpty()) {
