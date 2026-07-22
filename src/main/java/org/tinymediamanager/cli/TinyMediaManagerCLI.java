@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.http.TmmHttpServer;
 import org.tinymediamanager.ui.MainWindow;
+import org.tinymediamanager.ui.TmmUIHelper;
 import org.tinymediamanager.updater.UpdateCheck;
 import org.tinymediamanager.updater.UpdaterTask;
 
@@ -133,7 +134,7 @@ public class TinyMediaManagerCLI implements Runnable {
 
   @Override
   public void run() {
-    if (update) {
+    if (update && TmmUIHelper.shouldCheckForUpdate()) {
       LOGGER.info("Checking for new updates...");
 
       if (new UpdateCheck().isUpdateAvailable()) {
