@@ -223,6 +223,11 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
           Path relativePath = ds.relativize(normalizedFolder);
           Path firstChild = ds.resolve(relativePath.getName(0));
 
+          // some support of one basic nesting
+          if (firstChild.getFileName().toString().length() == 1) {
+            firstChild = firstChild.resolve(relativePath.getName(1));
+          }
+
           if (!foldersToUpdate.contains(firstChild)) {
             foldersToUpdate.add(firstChild);
           }
