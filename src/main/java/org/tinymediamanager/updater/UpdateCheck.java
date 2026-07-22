@@ -89,7 +89,7 @@ public class UpdateCheck {
         try {
           Url url;
 
-          if (ReleaseInfo.isNightly()) {
+          if (ReleaseInfo.isNightly() || StringUtils.isBlank(License.getInstance().ref())) {
             // different webserver, no caching - no need to create a cached call
             url = new Url(urlAsString);
           }
