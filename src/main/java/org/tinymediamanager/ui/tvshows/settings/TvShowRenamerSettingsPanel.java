@@ -600,7 +600,7 @@ public class TvShowRenamerSettingsPanel extends JPanel implements HierarchyListe
     Object obj = cbTvShowForPreview.getSelectedItem();
     if (obj instanceof TvShowPreviewContainer) {
       TvShowPreviewContainer c = (TvShowPreviewContainer) cbTvShowForPreview.getSelectedItem();
-      List<TvShowEpisode> sel = TvShowUIModule.getInstance().getSelectionModel().getSelectedEpisodes();
+      List<TvShowEpisode> sel = TvShowUIModule.getInstance().getSelectionModel().getSelectedEpisodes(true);
       for (TvShowEpisode episode : c.tvShow.getEpisodes()) {
         TvShowEpisodePreviewContainer container = new TvShowEpisodePreviewContainer();
         container.episode = episode;

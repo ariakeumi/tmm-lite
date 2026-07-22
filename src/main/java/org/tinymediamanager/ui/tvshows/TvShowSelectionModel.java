@@ -187,7 +187,8 @@ public class TvShowSelectionModel extends AbstractModelObject {
       selectedTvShows.add(episode.getTvShow());
     }
 
-    if (selectedObjects.lockedFound) {
+    // show info if we want to select only non-locked
+    if (!withLocked && selectedObjects.lockedFound) {
       showLockedInformation();
     }
 
@@ -233,7 +234,8 @@ public class TvShowSelectionModel extends AbstractModelObject {
 
     episodes.addAll(selectedObjects.episodes);
 
-    if (selectedObjects.lockedFound) {
+    // show info if we want to select only non-locked
+    if (!withLocked && selectedObjects.lockedFound) {
       showLockedInformation();
     }
 
