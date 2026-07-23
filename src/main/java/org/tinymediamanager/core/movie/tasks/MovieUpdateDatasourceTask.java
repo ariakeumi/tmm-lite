@@ -115,42 +115,41 @@ import org.tinymediamanager.thirdparty.trakttv.MovieSyncTraktTvTask;
  * @author Myron Boyle
  */
 public class MovieUpdateDatasourceTask extends TmmThreadPool {
-  private static final Logger                              LOGGER                = LoggerFactory.getLogger(MovieUpdateDatasourceTask.class);
+  private static final Logger                              LOGGER           = LoggerFactory.getLogger(MovieUpdateDatasourceTask.class);
 
-  private static long                                      preDir                = 0;
-  private static long                                      postDir               = 0;
-  private static long                                      visFile               = 0;
-  private static long                                      preDirAll             = 0;
-  private static long                                      postDirAll            = 0;
-  private static long                                      visFileAll            = 0;
+  private static long                                      preDir           = 0;
+  private static long                                      postDir          = 0;
+  private static long                                      visFile          = 0;
+  private static long                                      preDirAll        = 0;
+  private static long                                      postDirAll       = 0;
+  private static long                                      visFileAll       = 0;
 
   // skip well-known, but unneeded folders (UPPERCASE)
-  private static final List<String>                        SKIP_FOLDERS          = Arrays.asList(".", "..", "CERTIFICATE", "$RECYCLE.BIN", "RECYCLER",
+  private static final List<String>                        SKIP_FOLDERS     = Arrays.asList(".", "..", "CERTIFICATE", "$RECYCLE.BIN", "RECYCLER",
       "SYSTEM VOLUME INFORMATION", "@EADIR", "ADV_OBJ", "PLEX VERSIONS", "LOST.DIR");
 
   // skip folders starting with a SINGLE "." or "._" (exception for movie ".45")
-  private static final String                              SKIP_REGEX            = "(?i)^[.@](?!45|buelos)[\\w@]+.*";
+  private static final String                              SKIP_REGEX       = "(?i)^[.@](?!45|buelos)[\\w@]+.*";
   // MMD detected as single movie in a structured folder such as /A/, /2010/ or decade
-  public static final String                               FOLDER_STRUCTURE      = "(?i)^(\\w|\\d{4}|\\d{4}s|\\d{4}\\-\\d{4})$";
-  private static final Pattern                             VIDEO_3D_PATTERN      = Pattern.compile("(?i)[ .,_\\(\\[-]3D[ .,_\\)\\]-]?");
+  public static final String                               FOLDER_STRUCTURE = "(?i)^(\\w|\\d{4}|\\d{4}s|\\d{4}\\-\\d{4})$";
+  private static final Pattern                             VIDEO_3D_PATTERN = Pattern.compile("(?i)[ .,_\\(\\[-]3D[ .,_\\)\\]-]?");
 
   private final MovieList                                  movieList;
   private final MovieSettings                              settings;
 
-  private final List<Path>                                 dataSources           = new ArrayList<>();
-  private final List<Path>                                 foldersToUpdate       = new ArrayList<>();
-  private final List<Path>                                 dataSourcesForFolders = new ArrayList<>();
+  private final List<Path>                                 dataSources      = new ArrayList<>();
+  private final List<Path>                                 foldersToUpdate  = new ArrayList<>();
 
-  private final List<Pattern>                              skipFolders           = new ArrayList<>();
-  private final Set<Path>                                  filesFound            = new HashSet<>();
-  private final ReentrantReadWriteLock                     fileLock              = new ReentrantReadWriteLock();
-  private final List<Runnable>                             miTasks               = Collections.synchronizedList(new ArrayList<>());
-  private final List<Path>                                 existingMovies        = new ArrayList<>();
-  private final List<MediaFile>                            imageFiles            = new ArrayList<>();
+  private final List<Pattern>                              skipFolders      = new ArrayList<>();
+  private final Set<Path>                                  filesFound       = new HashSet<>();
+  private final ReentrantReadWriteLock                     fileLock         = new ReentrantReadWriteLock();
+  private final List<Runnable>                             miTasks          = Collections.synchronizedList(new ArrayList<>());
+  private final List<Path>                                 existingMovies   = new ArrayList<>();
+  private final List<MediaFile>                            imageFiles       = new ArrayList<>();
   /**
    * Lightweight filesystem attribute cache collected during recursive walks to reduce repeated network I/O on remote datasources.
    */
-  private final ConcurrentMap<String, BasicFileAttributes> fsAttrCache           = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, BasicFileAttributes> fsAttrCache      = new ConcurrentHashMap<>();
 
   public MovieUpdateDatasourceTask() {
     super(TmmResourceBundle.getString("update.datasource"));
@@ -568,8 +567,6 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
     // reset cache for selected-movies processing, since we work across datasources too
     fsAttrCache.clear();
 
-    int existingMovieCount = movieList.getMovies().size();
-
     initThreadPool(3, "update");
     setTaskName(TmmResourceBundle.getString("update.datasource"));
     publishState();
@@ -592,6 +589,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
       }
     }
 
+    List<Movie> existingMovies = new ArrayList<>(movieList.getMovies());
     List<Movie> moviesToCleanup = new ArrayList<>();
 
     // update movies grouped by data source
@@ -653,11 +651,18 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
       }
     }
 
+    // also add new movies to cleanupToCleanup
+    for (Movie movie : movieList.getMovies()) {
+      if (!existingMovies.contains(movie)) {
+        moviesToCleanup.add(movie);
+      }
+    }
+
     waitForCompletionOrCancel();
 
     // print stats
     LOGGER.info("Files found: {}", filesFound.size());
-    LOGGER.info("New movies found: {}", movieList.getMovieCount() - existingMovieCount);
+    LOGGER.info("New movies found: {}", movieList.getMovieCount() - existingMovies.size());
     LOGGER.info("Total movie count: {}", movieList.getMovieCount());
     LOGGER.debug("PreDir: {}", preDir);
     LOGGER.debug("PostDir: {}", postDir);

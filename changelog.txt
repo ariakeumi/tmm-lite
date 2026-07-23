@@ -3,6 +3,7 @@ Version 5.3.1
 + [UI] enabled to open the editor for locked entries in read only mode
 ---
 x [Movies, TV shows] fixed parsing of TMDB id from mediainfo data #3325
+x [Movies] when running update data sources for a single folder, also make sure to gather mediainfo for new movies found #3269
 x [TV shows] re-enable "light" nesting of TV show folders: single letter subfolders in data source root are allowed again
 x [UI] fixed displaying of season plot in the information panel #3324
 x [UI] fixed update of mediainfo data for exchanged video files #3327
