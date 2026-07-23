@@ -223,7 +223,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
           Path relativePath = ds.relativize(normalizedFolder);
           Path firstChild = ds.resolve(relativePath.getName(0));
 
-          // some support of one basic nesting
+          // some support of basic nesting (like A-Z sub-folders)
           if (firstChild.getFileName().toString().length() == 1) {
             firstChild = firstChild.resolve(relativePath.getName(1));
           }
@@ -735,6 +735,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
    */
   private class FindTvShowTask implements Callable<Object> {
     private final Path          showDir;
+    private final Path          datasource;
     private final long          uniqueId;
     private final List<Pattern> extraMfFiletypePatterns;
 
@@ -748,6 +749,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
      */
     public FindTvShowTask(Path showDir, Path datasource) {
       this.showDir = showDir;
+      this.datasource = datasource;
       this.uniqueId = TmmTaskManager.getInstance().GLOB_THRD_CNT.incrementAndGet();
 
       this.extraMfFiletypePatterns = new ArrayList<>();
@@ -885,7 +887,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
         }
 
         tvShow.setPath(showDir.toAbsolutePath().toString());
-        tvShow.setDataSource(showDir.getParent().toAbsolutePath().toString());
+        tvShow.setDataSource(datasource.toString());
         tvShow.setNewlyAdded(true);
         tvShowList.addTvShow(tvShow);
       }
