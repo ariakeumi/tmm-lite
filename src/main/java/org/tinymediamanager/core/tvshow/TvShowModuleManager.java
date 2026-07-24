@@ -29,7 +29,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
@@ -47,6 +47,7 @@ import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.entities.MediaEntity;
+import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.http.TmmHttpServer;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
@@ -161,7 +162,7 @@ public final class TvShowModuleManager implements ITmmModule {
         .addModule(new BlackbirdModule())
         .build();
     objectMapper.setTimeZone(TimeZone.getDefault());
-    objectMapper.setSerializationInclusion(Include.NON_DEFAULT);
+    objectMapper.setDefaultPropertyInclusion(Include.NON_DEFAULT);
     objectMapper.setSerializerProvider(new CustomNullStringSerializerProvider());
     objectMapper.getSerializerProvider().setNullKeySerializer(new NullKeySerializer());
 
@@ -469,7 +470,7 @@ public final class TvShowModuleManager implements ITmmModule {
             // only diffs
             String oldValue = tvShowMap.get(tvShow.getDbId());
             String newValue = tvShowObjectWriter.writeValueAsString(tvShow);
-            if (!StringUtils.equals(oldValue, newValue)) {
+            if (!Strings.CS.equals(oldValue, newValue)) {
               tvShowMap.put(tvShow.getDbId(), newValue);
             }
           }
@@ -477,7 +478,7 @@ public final class TvShowModuleManager implements ITmmModule {
             // only diffs
             String oldValue = seasonMap.get(season.getDbId());
             String newValue = seasonObjectWriter.writeValueAsString(season);
-            if (!StringUtils.equals(oldValue, newValue)) {
+            if (!Strings.CS.equals(oldValue, newValue)) {
               seasonMap.put(season.getDbId(), newValue);
             }
           }
@@ -485,7 +486,7 @@ public final class TvShowModuleManager implements ITmmModule {
             // only diffs
             String oldValue = episodeMap.get(episode.getDbId());
             String newValue = episodeObjectWriter.writeValueAsString(episode);
-            if (!StringUtils.equals(oldValue, newValue)) {
+            if (!Strings.CS.equals(oldValue, newValue)) {
               episodeMap.put(episode.getDbId(), newValue);
             }
           }
@@ -538,8 +539,7 @@ public final class TvShowModuleManager implements ITmmModule {
         }
         showNode.set("seasons", seasons);
       }
-      String s = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(showNode);
-      return s;
+      return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(showNode);
     }
     catch (Exception e) {
       LOGGER.debug("Cannot parse JSON!", e);
@@ -553,8 +553,8 @@ public final class TvShowModuleManager implements ITmmModule {
    * @param tvShow
    *          the TV show to dump the data for
    */
-  public void dump(TvShow tvShow, boolean withChilds) {
-    String d = getTvShowJsonFromDB(tvShow, withChilds);
+  public void dump(TvShow tvShow, boolean withChildren) {
+    String d = getTvShowJsonFromDB(tvShow, withChildren);
     if (!d.isEmpty()) {
       LOGGER.debug("Dumping TvShow: {}\n{}", tvShow.getDbId(), d);
     }
@@ -677,6 +677,18 @@ public final class TvShowModuleManager implements ITmmModule {
     if (!enabled) {
       // do not accept saving objects when not enabled
       return;
+    }
+
+    // only serialize an episode if it has a valid MF
+    if (episode.getMainFile() == MediaFile.EMPTY_MEDIAFILE) {
+      try {
+        // throw an exception to get a nice stacktrace
+        throw new Exception();
+      }
+      catch (Exception e) {
+        LOGGER.debug("Tried to save episode '{}' without real MF", episode.getTitle(), e);
+        return;
+      }
     }
 
     try {

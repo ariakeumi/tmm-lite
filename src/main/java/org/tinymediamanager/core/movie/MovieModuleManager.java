@@ -30,7 +30,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.h2.mvstore.MVStoreException;
@@ -48,6 +48,7 @@ import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.entities.MediaEntity;
+import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.http.TmmHttpServer;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.movie.entities.MovieSet;
@@ -155,7 +156,7 @@ public final class MovieModuleManager implements ITmmModule {
         .addModule(new BlackbirdModule())
         .build();
     objectMapper.setTimeZone(TimeZone.getDefault());
-    objectMapper.setSerializationInclusion(Include.NON_DEFAULT);
+    objectMapper.setDefaultPropertyInclusion(Include.NON_DEFAULT);
     objectMapper.setSerializerProvider(new CustomNullStringSerializerProvider());
     objectMapper.getSerializerProvider().setNullKeySerializer(new NullKeySerializer());
 
@@ -447,7 +448,7 @@ public final class MovieModuleManager implements ITmmModule {
             // only diffs
             String oldValue = movieMap.get(movie.getDbId());
             String newValue = movieObjectWriter.writeValueAsString(movie);
-            if (!StringUtils.equals(oldValue, newValue)) {
+            if (!Strings.CS.equals(oldValue, newValue)) {
               movieMap.put(movie.getDbId(), newValue);
             }
           }
@@ -455,7 +456,7 @@ public final class MovieModuleManager implements ITmmModule {
             // only diffs
             String oldValue = movieSetMap.get(movieSet.getDbId());
             String newValue = movieSetObjectWriter.writeValueAsString(movieSet);
-            if (!StringUtils.equals(oldValue, newValue)) {
+            if (!Strings.CS.equals(oldValue, newValue)) {
               movieSetMap.put(movieSet.getDbId(), newValue);
             }
           }
@@ -508,6 +509,7 @@ public final class MovieModuleManager implements ITmmModule {
    * the opposite of dump - load a JSON string into DB
    * 
    * @param json
+   *          the JSON string to deserialize a {@link Movie} of
    */
   public void load(String json) {
     try {
@@ -517,7 +519,7 @@ public final class MovieModuleManager implements ITmmModule {
       LOGGER.info("Loaded movie '{}' ({})", m.getTitle(), m.getDbId());
     }
     catch (IOException e) {
-      LOGGER.error("Failed loading movie from String: {}", e);
+      LOGGER.error("Failed loading movie from String: '{}'", e.getMessage());
     }
   }
 
@@ -563,6 +565,18 @@ public final class MovieModuleManager implements ITmmModule {
     if (!enabled) {
       // do not accept saving objects when not enabled
       return;
+    }
+
+    // only serialize a movie if it has a valid MF
+    if (movie.getMainFile() == MediaFile.EMPTY_MEDIAFILE) {
+      try {
+        // throw an exception to get a nice stacktrace
+        throw new Exception();
+      }
+      catch (Exception e) {
+        LOGGER.debug("Tried to save movie '{}'/'{}' without real MF", movie.getTitle(), movie.getPath(), e);
+        return;
+      }
     }
 
     // write movie to DB
