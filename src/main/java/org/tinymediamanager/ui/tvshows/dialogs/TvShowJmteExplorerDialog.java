@@ -138,6 +138,8 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
   private JLabel                             lblEntityTemplate;
 
   private TmmTable                           tableExamples;
+  private TmmTable                           tableRendererExamples;
+  private TmmTable                           tableEntityExamples;
 
   private final EventList<RenamerExample>    exampleEventList;
   private final EventList<EntityExample>     entityExampleEventList;
@@ -186,7 +188,7 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
 
     tableExamples.addMouseListener(new TablePopupListener(popupMenu, tableExamples));
 
-    final KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx(), false);
+    KeyStroke copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx(), false);
     tableExamples.registerKeyboardAction(new CopyShortRenamerTokenAction(), "Copy", copy, JComponent.WHEN_FOCUSED);
 
     // register double click
@@ -204,6 +206,53 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
             else {
               taJmteTokens.setText(taJmteTokens.getText() + example.longToken);
             }
+          }
+        }
+      }
+    });
+
+    // make renderers copyable
+    popupMenu = new JPopupMenu();
+    popupMenu.add(new CopyRenamerRendererAction());
+
+    tableRendererExamples.addMouseListener(new TablePopupListener(popupMenu, tableRendererExamples));
+
+    copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx(), false);
+    tableRendererExamples.registerKeyboardAction(new CopyRenamerRendererAction(), "Copy", copy, JComponent.WHEN_FOCUSED);
+
+    // make entity examples copyable
+    popupMenu = new JPopupMenu();
+    popupMenu.add(new CopyEntityExampleAction());
+
+    tableEntityExamples.addMouseListener(new TablePopupListener(popupMenu, tableEntityExamples));
+
+    copy = KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx(), false);
+    tableEntityExamples.registerKeyboardAction(new CopyEntityExampleAction(), "Copy", copy, JComponent.WHEN_FOCUSED);
+
+    // register double click
+    tableRendererExamples.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() >= 2 && !e.isConsumed() && e.getButton() == MouseEvent.BUTTON1) {
+          int row = tableRendererExamples.getSelectedRow();
+          if (row > -1) {
+            row = tableRendererExamples.convertRowIndexToModel(row);
+            RendererExample example = rendererExampleList.get(row);
+            taJmteTokens.setText(taJmteTokens.getText() + example.token);
+          }
+        }
+      }
+    });
+
+    tableEntityExamples.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() >= 2 && !e.isConsumed() && e.getButton() == MouseEvent.BUTTON1) {
+          int row = tableEntityExamples.getSelectedRow();
+          if (row > -1) {
+            row = tableEntityExamples.convertRowIndexToModel(row);
+            EntityExample example = entityExampleEventList.get(row);
+            taJmteTokens.setText(taJmteTokens.getText() + example.pattern);
           }
         }
       }
@@ -538,7 +587,7 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
     rendererExampleList.add(new RendererExample("--- enhanced ---"));
     rendererExampleList.add(new RendererExample("${tvShow.title;chain(replace(a,XX);lower)}"));
 
-    TmmTable tableRendererExamples = new TmmTable(
+    tableRendererExamples = new TmmTable(
         new TmmTableModel<>(GlazedListsSwing.swingThreadProxyList(rendererExampleList), new RendererExampleTableFormat()));
 
     JScrollPane scrollPane = new JScrollPane();
@@ -576,7 +625,7 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
     lblEntityTemplate = new JLabel("");
     panel.add(lblEntityTemplate, "cell 0 1, growx, wmin 0");
 
-    TmmTable tableEntityExamples = new TmmTable(
+    tableEntityExamples = new TmmTable(
         new TmmTableModel<>(GlazedListsSwing.swingThreadProxyList(entityExampleEventList), new EntityExampleTableFormat()));
 
     JScrollPane scrollPane = new JScrollPane();
@@ -806,22 +855,23 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
         if (descriptor.getReadMethod() != null) {
           try {
             String title = descriptor.getDisplayName();
+            String fullPattern = entityContainer.getTemplate().replace("}", "." + title + "}");
 
             // suppress some huge patterns, because they may lock up the UI
             switch (title) {
               case "episodes", "episodesForDisplay", "episodesToScrape" ->
-                entityExampleEventList.add(new EntityExample(title, "[TvShowEpisode, ...]"));
+                entityExampleEventList.add(new EntityExample(title, "[TvShowEpisode, ...]", fullPattern));
 
-              case "seasons" -> entityExampleEventList.add(new EntityExample(title, "[TvShowSeason, ...]"));
+              case "seasons" -> entityExampleEventList.add(new EntityExample(title, "[TvShowSeason, ...]", fullPattern));
 
-              case "episodesMediaFiles, seasonMediaFiles" -> entityExampleEventList.add(new EntityExample(title, "[MediaFile, ...]"));
+              case "episodesMediaFiles, seasonMediaFiles" -> entityExampleEventList.add(new EntityExample(title, "[MediaFile, ...]", fullPattern));
 
-              case "tvShowSeason" -> entityExampleEventList.add(new EntityExample(title, "TvShowSeason[...]"));
+              case "tvShowSeason" -> entityExampleEventList.add(new EntityExample(title, "TvShowSeason[...]", fullPattern));
 
-              case "tvShow" -> entityExampleEventList.add(new EntityExample(title, "TvShow[...]"));
+              case "tvShow" -> entityExampleEventList.add(new EntityExample(title, "TvShow[...]", fullPattern));
 
-              default -> entityExampleEventList.add(new EntityExample(title,
-                  processPattern(tvShow, episode, entityContainer.getTemplate().replace("}", "." + title + "}"), renamerProfile)));
+              default ->
+                entityExampleEventList.add(new EntityExample(title, processPattern(tvShow, episode, fullPattern, renamerProfile), fullPattern));
             }
           }
           catch (Exception ignored) {
@@ -999,10 +1049,18 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
   private static class EntityExample extends AbstractModelObject {
     private final String title;
     private final String result;
+    private final String pattern;
 
     private EntityExample(String title, String result) {
       this.title = title;
       this.result = result;
+      this.pattern = "";
+    }
+
+    private EntityExample(String title, String result, String pattern) {
+      this.title = title;
+      this.result = result;
+      this.pattern = pattern;
     }
   }
 
@@ -1098,6 +1156,50 @@ public class TvShowJmteExplorerDialog extends TmmDialog {
         row = tableExamples.convertRowIndexToModel(row);
         RenamerExample example = exampleEventList.get(row);
         StringSelection stringSelection = new StringSelection(example.longToken);
+
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(stringSelection, stringSelection);
+      }
+    }
+  }
+
+  private class CopyRenamerRendererAction extends AbstractAction {
+    CopyRenamerRendererAction() {
+      putValue(LARGE_ICON_KEY, IconManager.COPY);
+      putValue(SMALL_ICON, IconManager.COPY);
+      putValue(NAME, TmmResourceBundle.getString("renamer.copytoken.generic"));
+      putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("renamer.copytoken.generic"));
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      int row = tableRendererExamples.getSelectedRow();
+      if (row > -1) {
+        row = tableRendererExamples.convertRowIndexToModel(row);
+        RendererExample example = rendererExampleList.get(row);
+        StringSelection stringSelection = new StringSelection(example.token);
+
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        clipboard.setContents(stringSelection, stringSelection);
+      }
+    }
+  }
+
+  private class CopyEntityExampleAction extends AbstractAction {
+    CopyEntityExampleAction() {
+      putValue(LARGE_ICON_KEY, IconManager.COPY);
+      putValue(SMALL_ICON, IconManager.COPY);
+      putValue(NAME, TmmResourceBundle.getString("renamer.copytoken.generic"));
+      putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("renamer.copytoken.generic"));
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      int row = tableEntityExamples.getSelectedRow();
+      if (row > -1) {
+        row = tableEntityExamples.convertRowIndexToModel(row);
+        EntityExample example = entityExampleEventList.get(row);
+        StringSelection stringSelection = new StringSelection(example.pattern);
 
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         clipboard.setContents(stringSelection, stringSelection);
