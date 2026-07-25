@@ -9,6 +9,7 @@ x [TV shows] re-enable "light" nesting of TV show folders: single letter subfold
 x [UI] fixed displaying of season plot in the information panel #3324
 x [UI] fixed update of mediainfo data for exchanged video files #3327
 x [UI] show progress description for checksum/hash tasks
+x [UI] fixed searching for duplicated entries, having alternate IDs (facebook, twitter, ...) #3332
 x [Trakt.tv] added new authentication method
 x [Trakt.tv] fixed TV show watched sync #3326
 

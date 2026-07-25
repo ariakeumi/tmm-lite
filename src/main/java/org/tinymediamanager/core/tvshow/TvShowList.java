@@ -1614,10 +1614,26 @@ public final class TvShowList extends AbstractModelObject {
 
       Map<String, Object> ids = tvShow.getIds();
       for (var entry : ids.entrySet()) {
-        // ignore collection "IDs"
-        if (MediaMetadata.TMDB_SET.equalsIgnoreCase(entry.getKey()) || "tmdbcol".equalsIgnoreCase(entry.getKey())) {
+        // only do the duplicate check on well known IDs (to prevent false positives from facebook, twitter, ... IDs)
+        switch (entry.getKey().toLowerCase(Locale.ROOT)) {
+          case MediaMetadata.TMDB:
+          case MediaMetadata.IMDB:
+          case MediaMetadata.TVDB:
+          case MediaMetadata.TRAKT_TV:
+          case MediaMetadata.WIKIDATA:
+          case MediaMetadata.TSDB:
+          case MediaMetadata.TVMAZE:
+          case MediaMetadata.TVRAGE:
+            break;
+
+          default:
+            continue;
+        }
+
+        if (entry.getValue() == null || StringUtils.isBlank(entry.getValue().toString()) || entry.getValue().toString().equals("0")) {
           continue;
         }
+
         String id = entry.getKey() + entry.getValue();
 
         if (showMap.containsKey(id)) {
