@@ -553,6 +553,7 @@ public class MediaSearchResult implements Comparable<MediaSearchResult> {
    * <p>
    * Uses <code>ReflectionToStringBuilder</code> to generate a <code>toString</code> for the specified object.
    * </p>
+   * Do not log big infos which do not have any added value in the log files (like overview, posterUrl, ...)
    *
    * @return the String result
    * @see ReflectionToStringBuilder#toString(Object)
@@ -562,7 +563,7 @@ public class MediaSearchResult implements Comparable<MediaSearchResult> {
     return (new ReflectionToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE) {
       @Override
       protected boolean accept(Field f) {
-        return super.accept(f) && !f.getName().equals("metadata");
+        return super.accept(f) && !f.getName().equals("metadata") && !f.getName().equals("overview") && !f.getName().equals("posterUrl");
       }
     }).toString();
   }
