@@ -32,7 +32,7 @@ import javax.swing.JPanel;
 
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.ui.IconManager;
-import org.tinymediamanager.ui.TmmUILayoutStore;
+import org.tinymediamanager.ui.components.DarkenGlassPane;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -49,6 +49,7 @@ public class TmmOptionDialog extends JDialog {
     super(owner, title, true);
     setName("message");
     setLayout(new BorderLayout());
+    setResizable(false);
 
     JPanel panelContent = new JPanel(new MigLayout("hidemode 3", "10lp[50lp]10lp[500lp, grow]10lp", "10lp[10lp, center][10lp, center]"));
     add(panelContent, BorderLayout.CENTER);
@@ -105,15 +106,29 @@ public class TmmOptionDialog extends JDialog {
   public void setVisible(boolean visible) {
     if (visible) {
       pack();
-      TmmUILayoutStore.getInstance().loadSettings(this);
+
+      // darken the owner window when this modal dialog becomes visible
+      if (isModal()) {
+        DarkenGlassPane.install(getOwner());
+      }
+
+      setLocationRelativeTo(getOwner());
+
       super.setVisible(true);
       toFront();
     }
     else {
-      TmmUILayoutStore.getInstance().saveSettings(this);
       super.setVisible(false);
       dispose();
     }
+  }
+
+  @Override
+  public void dispose() {
+    // undarken the owner window when this dialog is disposed
+    DarkenGlassPane.uninstall(getOwner());
+
+    super.dispose();
   }
 
   /**

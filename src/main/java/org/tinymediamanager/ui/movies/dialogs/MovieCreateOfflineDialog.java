@@ -16,11 +16,11 @@
 package org.tinymediamanager.ui.movies.dialogs;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -29,8 +29,8 @@ import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.entities.MediaSource;
 import org.tinymediamanager.core.movie.MovieList;
 import org.tinymediamanager.core.movie.MovieModuleManager;
-import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.components.label.TmmLabel;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
 import org.tinymediamanager.ui.dialogs.TmmDialog;
 
 import net.miginfocom.swing.MigLayout;
@@ -46,9 +46,11 @@ public class MovieCreateOfflineDialog extends TmmDialog {
   public MovieCreateOfflineDialog() {
     super(TmmResourceBundle.getString("movie.createoffline"), "movieCreateOffline");
 
+    setMinimumSize(new Dimension(400, 200)); // $hide$ - do not parse this in wbpro
+
     JPanel panelContent = new JPanel();
     getContentPane().add(panelContent, BorderLayout.CENTER);
-    panelContent.setLayout(new MigLayout("", "[][][]", "[][][]"));
+    panelContent.setLayout(new MigLayout("", "[][grow]", "[][][][]"));
 
     JLabel lblTitle = new TmmLabel(TmmResourceBundle.getString("metatag.title"));
     panelContent.add(lblTitle, "cell 0 0,alignx right");
@@ -74,7 +76,7 @@ public class MovieCreateOfflineDialog extends TmmDialog {
     final JComboBox<String> cbDatasource = new JComboBox();
     panelContent.add(cbDatasource, "cell 1 2,growx");
 
-    JButton btnAdd = new JButton(IconManager.ADD_INV);
+    JButton btnAdd = new JButton(TmmResourceBundle.getString("Button.add"));
     btnAdd.addActionListener(e -> {
       String title = tfMovieName.getText();
       String datasource = (String) cbDatasource.getSelectedItem();
@@ -83,10 +85,10 @@ public class MovieCreateOfflineDialog extends TmmDialog {
         movieList.addOfflineMovie(title, datasource, mediaSource);
         // message
         String text = TmmResourceBundle.getString("movie.createoffline.created").replaceAll("\\{\\}", title);
-        JOptionPane.showMessageDialog(MovieCreateOfflineDialog.this, text); // $NON-NLS-1$
+        TmmToastManager.showSuccessToast(getContentPane(), TmmResourceBundle.getString("movie.createoffline"), text);
       }
     });
-    panelContent.add(btnAdd, "cell 2 0");
+    panelContent.add(btnAdd, "cell 1 3,alignx right");
 
     {
       JButton btnClose = new JButton(TmmResourceBundle.getString("Button.close"));
