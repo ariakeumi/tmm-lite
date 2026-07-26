@@ -617,14 +617,9 @@ public abstract class MovieGenericXmlConnector implements IMovieConnector {
       if (videoFile != MediaFile.EMPTY_MEDIAFILE) {
         {
           Element video = NfoUtils.createStreamdetailsVideoTag(streamdetails, videoFile);
-
-          // does not work reliable for disc style movies, MediaInfo and even Kodi write weird values in there
-          if (!movie.isDisc() && !movie.getMainVideoFile().getExtension().equalsIgnoreCase("iso")) {
-            Element durationinseconds = document.createElement("durationinseconds");
-            durationinseconds.setTextContent(Integer.toString(movie.getRuntimeFromMediaFilesInSeconds()));
-            video.appendChild(durationinseconds);
-          }
-
+          Element durationinseconds = document.createElement("durationinseconds");
+          durationinseconds.setTextContent(Integer.toString(movie.getRuntimeFromMediaFilesInSeconds()));
+          video.appendChild(durationinseconds);
           streamdetails.appendChild(video);
         }
 

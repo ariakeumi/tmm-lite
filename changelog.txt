@@ -13,6 +13,7 @@ x [UI] fixed searching for duplicated entries, having alternate IDs (facebook, t
 x [UI] some minor enhancements to small popup dialogs
 x [Trakt.tv] added new authentication method
 x [Trakt.tv] fixed TV show watched sync #3326
+x [NFO] write runtime for disc/iso movies again #3329
 
 
 Version 5.3.0
