@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,7 @@ public class TmmHttpLoggingInterceptor implements Interceptor {
   private static final Charset UTF8                 = StandardCharsets.UTF_8;
   private static final int     HTTP_CONTINUE        = 100;
   private static final int     MAX_TEXT_BODY_LENGTH = 1000;
+  private static final int     MIN_TEXT_BODY_LENGTH = 100;
   private static final Pattern CONTENT_PATTERN      = Pattern.compile("(password|api-key|apikey)", Pattern.CASE_INSENSITIVE);
 
   @NotNull
@@ -127,7 +129,7 @@ public class TmmHttpLoggingInterceptor implements Interceptor {
       if (response.networkResponse() == null) {
         cached = "[CACHE HIT] "; // inMemory or onDisk
       }
-      else if (response.networkResponse() != null && response.networkResponse().code() == 304) {
+      else if (response.networkResponse().code() == 304) {
         cached = "[CACHE HIT 304] "; // asked server - said not modified
       }
     }
@@ -162,12 +164,23 @@ public class TmmHttpLoggingInterceptor implements Interceptor {
 
         if (contentLength != 0) {
           String content = buffer.clone().readString(charset);
-          // only log the first 1k characters
-          if (!Globals.isDebug() && content.length() > MAX_TEXT_BODY_LENGTH) {
-            LOGGER.trace("{}...", content.substring(0, MAX_TEXT_BODY_LENGTH)); // NOSONAR
+          // log scenarios
+          // 1. Globals.isDebug() -> log all
+          // 2. when there is a cached response, we probably have already logged the response -> log MIN_TEXT_BODY_LENGTH
+          // 3. otherwise log MAX_TEXT_BODY_LENGTH
+          // always remove newlines for the log
+
+          if (Globals.isDebug()) {
+            LOGGER.trace(content);
+          }
+          else if (StringUtils.isNotBlank(cached) && content.length() > MIN_TEXT_BODY_LENGTH) {
+            LOGGER.trace("{}...", content.substring(0, MIN_TEXT_BODY_LENGTH).replace("\n", " ")); // NOSONAR
+          }
+          else if (content.length() > MAX_TEXT_BODY_LENGTH) {
+            LOGGER.trace("{}...", content.substring(0, MAX_TEXT_BODY_LENGTH).replace("\n", " ")); // NOSONAR
           }
           else {
-            LOGGER.trace(content);
+            LOGGER.trace(content.replace("\n", " "));
           }
         }
 
