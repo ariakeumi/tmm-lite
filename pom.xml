@@ -479,7 +479,7 @@
                             <manifestEntries>
                                 <SplashScreen-Image>splashscreen.png</SplashScreen-Image>
                                 <Human-Version>${human.version}</Human-Version>
-                                <Build-Nr>${git.commit.id.describe}</Build-Nr>
+                                <Build-Nr>${git.commit.id.abbrev}</Build-Nr>
                                 <Build-Date>${git.commit.time}</Build-Date>
                             </manifestEntries>
                         </archive>
@@ -1172,7 +1172,7 @@
                         <configuration>
                             <exportAntProperties>true</exportAntProperties>
                             <target>
-                                <property name="tmmRevision" value="${git.commit.id.describe}"/>
+                                <property name="tmmRevision" value="${git.commit.id.abbrev}"/>
                                 <property name="tmmTimestamp" value="${project.build.outputTimestamp}"/>
                                 <ant antfile="${project.basedir}/ant-getdown.xml">
                                     <target name="getdown"/>
