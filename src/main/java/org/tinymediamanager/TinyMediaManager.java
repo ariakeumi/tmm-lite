@@ -407,6 +407,7 @@ public final class TinyMediaManager {
     lines.add("tmm.version      : " + ReleaseInfo.getRealVersion());
     if (!ReleaseInfo.isGitBuild()) {
       lines.add("tmm.build        : " + ReleaseInfo.getRealBuildDate());
+      lines.add("tmm.revision     : " + ReleaseInfo.getBuild());
     }
     if (Globals.isDocker()) {
       lines.add("tmm.docker       : true");
