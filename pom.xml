@@ -1171,23 +1171,39 @@
                         <version>3.1.0</version>
                         <executions>
                             <execution>
+                                <id>fix-crlf</id>
+                                <phase>process-classes</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- create SBOM with Linux LF line endings, so file is binary same on windows build -->
+                                    <target>
+                                        <fixcrlf srcdir="${project.build.outputDirectory}/META-INF/sbom"
+                                            includes="application.cdx.json"
+                                            eol="lf"
+                                            encoding="utf-8"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                            <execution>
                                 <id>ant-getdown</id>
                                 <phase>prepare-package</phase>
                                 <goals>
                                     <goal>run</goal>
                                 </goals>
+                                <configuration>
+                                    <exportAntProperties>true</exportAntProperties>
+                                    <target>
+                                        <property name="tmmRevision" value="${git.commit.id.abbrev}"/>
+                                        <property name="tmmTimestamp" value="${project.build.outputTimestamp}"/>
+                                        <ant antfile="${project.basedir}/ant-getdown.xml">
+                                            <target name="getdown"/>
+                                        </ant>
+                                    </target>
+                                </configuration>
                             </execution>
                         </executions>
-                        <configuration>
-                            <exportAntProperties>true</exportAntProperties>
-                            <target>
-                                <property name="tmmRevision" value="${git.commit.id.abbrev}"/>
-                                <property name="tmmTimestamp" value="${project.build.outputTimestamp}"/>
-                                <ant antfile="${project.basedir}/ant-getdown.xml">
-                                    <target name="getdown"/>
-                                </ant>
-                            </target>
-                        </configuration>
                     </plugin>
                 </plugins>
             </build>
