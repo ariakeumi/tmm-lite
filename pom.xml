@@ -481,6 +481,8 @@
                                 <Human-Version>${human.version}</Human-Version>
                                 <Build-Nr>${git.commit.id.abbrev}</Build-Nr>
                                 <Build-Date>${git.commit.time}</Build-Date>
+                                <Sbom-Location>META-INF/sbom/application.cdx.json</Sbom-Location>
+                                <Sbom-Format>CycloneDX</Sbom-Format>
                             </manifestEntries>
                         </archive>
                     </configuration>
@@ -811,20 +813,6 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <plugin>
-                        <!-- test this here, move to release build -->
-                        <groupId>org.cyclonedx</groupId>
-                        <artifactId>cyclonedx-maven-plugin</artifactId>
-                        <version>2.9.2</version>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>makeAggregateBom</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
                 </plugins>
             </build>
         </profile>
@@ -832,6 +820,27 @@
             <id>dist</id>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>org.cyclonedx</groupId>
+                        <artifactId>cyclonedx-maven-plugin</artifactId>
+                        <version>2.9.2</version>
+                        <executions>
+                            <execution>
+                                <phase>process-classes</phase>
+                                <goals>
+                                    <goal>makeBom</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <projectType>application</projectType>
+                            <outputFormat>json</outputFormat>
+                            <outputName>application.cdx</outputName>
+                            <outputDirectory>${project.build.outputDirectory}/META-INF/sbom</outputDirectory>
+                            <skipNotDeployed>false</skipNotDeployed>
+                            <skipAttach>true</skipAttach>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-jar-plugin</artifactId>

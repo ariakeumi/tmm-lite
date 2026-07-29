@@ -40,6 +40,7 @@ date=${tmmTimestamp}
         <!--echo level="info" message="${gd.code}" /-->
         <copy file="AppBundler/${getdown}" tofile="${build.dir}/getdown.txt" />
         <replace file="${build.dir}/getdown.txt" token="%CODELIBS%" value="${gd.code}" />
+        <fixcrlf srcdir="${build.dir}" includes="**/getdown.txt" eol="unix" eof="asis"/>
 
         <echo level="info" message="generating GetDown files..." />
         <taskdef name="digest" classname="com.threerings.getdown.tools.DigesterTask">
@@ -49,5 +50,6 @@ date=${tmmTimestamp}
             </classpath>
         </taskdef>
         <digest appdir="${build.dir}" />
+        <fixcrlf srcdir="${build.dir}" includes="**/digest*.txt" eol="unix" eof="asis"/>
     </target>
 </project>
