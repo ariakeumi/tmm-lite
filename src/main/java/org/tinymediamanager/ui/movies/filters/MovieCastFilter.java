@@ -44,41 +44,23 @@ public class MovieCastFilter extends AbstractTextMovieUIFilter {
       return true;
     }
     try {
-      // director
-      for (Person director : movie.getDirectors()) {
-        if (StringUtils.isNotEmpty(director.getName())) {
-          Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(director.getName()));
-          if (matcher.find()) {
-            return true;
-          }
-        }
-      }
-
-      // writer
-      for (Person writer : movie.getWriters()) {
-        if (StringUtils.isNotEmpty(writer.getName())) {
-          Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(writer.getName()));
-          if (matcher.find()) {
-            return true;
-          }
-        }
-      }
-
       // actors
-      for (Person cast : movie.getActors()) {
-        if (StringUtils.isNotEmpty(cast.getName())) {
-          Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(cast.getName()));
+      for (Person actor : movie.getActors()) {
+        if (StringUtils.isNotEmpty(actor.getName())) {
+          Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(actor.getName()));
           if (matcher.find()) {
             return true;
           }
         }
       }
 
-      // producers
-      for (Person producer : movie.getProducers()) {
-        if (StringUtils.isNotEmpty(producer.getName())) {
-          Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(producer.getName()));
-          return matcher.find();
+      // crew
+      for (Person crew : movie.getCrew()) {
+        if (StringUtils.isNotEmpty(crew.getName())) {
+          Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(crew.getName()));
+          if (matcher.find()) {
+            return true;
+          }
         }
       }
     }

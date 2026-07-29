@@ -47,12 +47,25 @@ public class TvShowCastFilter extends AbstractTextTvShowUIFilter {
     }
 
     try {
-      // first: filter on the base cast of the TV show
       boolean foundShow = false;
+
+      // first: filter on the base cast of the TV show
       for (Person actor : tvShow.getActors()) {
         Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(actor.getName()));
         if (matcher.find()) {
           foundShow = true;
+          break;
+        }
+      }
+
+      if (!foundShow) {
+        // also search for crew
+        for (Person crew : tvShow.getCrew()) {
+          Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(crew.getName()));
+          if (matcher.find()) {
+            foundShow = true;
+            break;
+          }
         }
       }
 
@@ -64,45 +77,38 @@ public class TvShowCastFilter extends AbstractTextTvShowUIFilter {
         return false;
       }
 
-      // second: filter director/writer and guests from episodes
+      // second: filter guests and crew from episodes
       for (TvShowEpisode episode : episodes) {
-        boolean foundGuest = false;
-        boolean foundWriter = false;
-        boolean foundDirector = false;
+        boolean foundEpisode = false;
 
-        for (Person director : episode.getCrew()) {
-          if (StringUtils.isNotBlank(director.getName())) {
-            Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(director.getName()));
-            if (matcher.find()) {
-              foundDirector = true;
-              break;
-            }
-          }
-        }
-        for (Person writer : episode.getWriters()) {
-          if (StringUtils.isNotBlank(writer.getName())) {
-            Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(writer.getName()));
-            if (matcher.find()) {
-              foundWriter = true;
-              break;
-            }
-          }
-        }
         for (Person actor : episode.getActors()) {
           if (StringUtils.isNotBlank(actor.getName())) {
             Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(actor.getName()));
             if (matcher.find()) {
-              foundGuest = true;
+              foundEpisode = true;
               break;
+            }
+          }
+        }
+
+        if (!foundEpisode) {
+          // also search for crew
+          for (Person crew : episode.getCrew()) {
+            if (StringUtils.isNotBlank(crew.getName())) {
+              Matcher matcher = filterPattern.matcher(StrgUtils.normalizeString(crew.getName()));
+              if (matcher.find()) {
+                foundEpisode = true;
+                break;
+              }
             }
           }
         }
 
         // if there is a match in this episode, we can stop
-        if (invert && !foundDirector && !foundWriter && !foundGuest) {
+        if (invert && !foundEpisode) {
           return true;
         }
-        else if (!invert && (foundDirector || foundWriter || foundGuest)) {
+        else if (!invert && foundEpisode) {
           return true;
         }
       }
