@@ -49,7 +49,7 @@ import org.tinymediamanager.ui.movies.MovieUIModule;
 public class MovieRenameAction extends TmmAction {
   public MovieRenameAction() {
     putValue(NAME, TmmResourceBundle.getString("movie.rename"));
-    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("movie.rename"));
+    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("movie.rename.long"));
     putValue(ACCELERATOR_KEY,
         KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() + InputEvent.SHIFT_DOWN_MASK));
   }

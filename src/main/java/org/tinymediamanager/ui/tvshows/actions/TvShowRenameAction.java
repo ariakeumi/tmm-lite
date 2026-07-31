@@ -48,7 +48,7 @@ import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 public class TvShowRenameAction extends TmmAction {
   public TvShowRenameAction() {
     putValue(NAME, TmmResourceBundle.getString("tvshow.rename"));
-    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("tvshow.rename"));
+    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("tvshow.rename.long"));
     putValue(ACCELERATOR_KEY,
         KeyStroke.getKeyStroke(KeyEvent.VK_R, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() + InputEvent.SHIFT_DOWN_MASK));
   }
