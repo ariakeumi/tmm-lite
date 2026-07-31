@@ -622,6 +622,7 @@
                 </executions>
                 <configuration>
                     <failOnNoGitDirectory>false</failOnNoGitDirectory>
+                    <dateFormatTimeZone>UTC</dateFormatTimeZone>
                 </configuration>
             </plugin>
             <plugin>
