@@ -51,11 +51,12 @@ public final class TmmModuleManager {
 
   /**
    * removes the active instance <br>
-   * <b>Should only be used for unit testing et all!</b><br>
+   * <b>Should only be used for unit testing et al.!</b><br>
    */
   static void clearInstances() {
     instance = null;
     Settings.clearInstance();
+    TmmStore.clearInstances();
   }
 
   public void registerModule(ITmmModule module) {
@@ -134,6 +135,7 @@ public final class TmmModuleManager {
 
     // do cleanup tasks
     RatingProvider.shutdown();
+    TmmStore.shutdown();
     Utils.clearTempFolder();
   }
 
