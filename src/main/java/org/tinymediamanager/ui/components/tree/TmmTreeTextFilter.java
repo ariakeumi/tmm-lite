@@ -44,16 +44,17 @@ public class TmmTreeTextFilter<E extends TmmTreeNode> extends EnhancedTextField 
 
   public TmmTreeTextFilter() {
     super(TmmResourceBundle.getString("tmm.searchfield"), IconManager.SEARCH_GRAY);
-    lblIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    lblIcon.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        if (StringUtils.isNotBlank(getText())) {
-          setText("");
+    if (lblIcon != null) {
+      lblIcon.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+      lblIcon.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+          if (StringUtils.isNotBlank(getText())) {
+            setText("");
+          }
         }
-      }
-    });
-
+      });
+    }
     initDocumentListener();
   }
 

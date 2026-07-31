@@ -473,34 +473,40 @@ public abstract class YtDownloadTask extends TmmTask {
     }
 
     ExecutorService executorService = Executors.newFixedThreadPool(2);
+    Path videoFile = null;
+    Path audioFile = null;
+    try {
+      // start Futures to download the two streams
+      Future<Path> futureVideo = executorService.submit(() -> {
+        try {
+          LOGGER.debug("Downloading video....");
+          return download(videoFormat);
+        }
+        catch (Exception e) {
+          LOGGER.error("Could not download video stream of trailer for '{}' - '{}'", mediaEntity.getTitle(), e.getMessage());
+          setState(TaskState.FAILED);
+          return null;
+        }
 
-    // start Futures to download the two streams
-    Future<Path> futureVideo = executorService.submit(() -> {
-      try {
-        LOGGER.debug("Downloading video....");
-        return download(videoFormat);
-      }
-      catch (Exception e) {
-        LOGGER.error("Could not download video stream of trailer for '{}' - '{}'", mediaEntity.getTitle(), e.getMessage());
-        setState(TaskState.FAILED);
-        return null;
-      }
+      });
+      Future<Path> futureAudio = executorService.submit(() -> {
+        try {
+          LOGGER.debug("Downloading audio....");
+          return download(audioFormat);
+        }
+        catch (Exception e) {
+          LOGGER.error("Could not download audio stream of trailer for '{}' - '{}'", mediaEntity.getTitle(), e.getMessage());
+          setState(TaskState.FAILED);
+          return null;
+        }
+      });
 
-    });
-    Future<Path> futureAudio = executorService.submit(() -> {
-      try {
-        LOGGER.debug("Downloading audio....");
-        return download(audioFormat);
-      }
-      catch (Exception e) {
-        LOGGER.error("Could not download audio stream of trailer for '{}' - '{}'", mediaEntity.getTitle(), e.getMessage());
-        setState(TaskState.FAILED);
-        return null;
-      }
-    });
-
-    Path videoFile = futureVideo.get();
-    Path audioFile = futureAudio.get();
+      videoFile = futureVideo.get();
+      audioFile = futureAudio.get();
+    }
+    finally {
+      executorService.shutdown();
+    }
 
     if (videoFile != null && audioFile != null) {
       // Mux the audio and video

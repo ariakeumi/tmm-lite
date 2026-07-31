@@ -60,7 +60,7 @@ public class TvShowRenamerPreview {
     else {
       container.newPath = tvShow.getPathNIO();
     }
-    this.clone.setPath(container.newPath.toString());
+    this.clone.setPath(container.newPath != null ? container.newPath.toString() : "");
 
     // process TV show media files
     processTvShow();
