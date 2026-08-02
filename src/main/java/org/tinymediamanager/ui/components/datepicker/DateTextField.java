@@ -56,6 +56,9 @@ class DateTextField extends JFormattedTextField implements CaretListener, FocusL
   private int                 seconds;
   private int                 millis;
 
+  private boolean             showTime;
+  private boolean             customDateFormat;
+
   private Calendar            calendar;
 
   public DateTextField() {
@@ -63,6 +66,7 @@ class DateTextField extends JFormattedTextField implements CaretListener, FocusL
   }
 
   public DateTextField(String datePattern) {
+    this.customDateFormat = (datePattern != null);
     setDateFormatString(datePattern);
     maskPattern = createMaskFromDatePattern(this.datePattern);
 
@@ -82,10 +86,14 @@ class DateTextField extends JFormattedTextField implements CaretListener, FocusL
   public Date getDate() {
     try {
       calendar.setTime(dateFormatter.parse(getText()));
-      calendar.set(Calendar.HOUR_OF_DAY, hours);
-      calendar.set(Calendar.MINUTE, minutes);
-      calendar.set(Calendar.SECOND, seconds);
-      calendar.set(Calendar.MILLISECOND, millis);
+      // only overwrite time from stored values if the format does not include time symbols
+      // (when showTime is enabled, the parsed date already contains the correct time)
+      if (!showTime) {
+        calendar.set(Calendar.HOUR_OF_DAY, hours);
+        calendar.set(Calendar.MINUTE, minutes);
+        calendar.set(Calendar.SECOND, seconds);
+        calendar.set(Calendar.MILLISECOND, millis);
+      }
       date = calendar.getTime();
     }
     catch (ParseException e) {
@@ -217,5 +225,42 @@ class DateTextField extends JFormattedTextField implements CaretListener, FocusL
     if (!enabled) {
       super.setBackground(UIManager.getColor("TextField.inactiveBackground"));
     }
+  }
+
+  /**
+   * Enable or disable time display in this text field. When enabled and no custom date format was provided, the field will use the system's
+   * date+short-time format pattern.
+   *
+   * @param showTime
+   *          true to show time, false to show date only
+   */
+  public void setShowTime(boolean showTime) {
+    if (this.showTime == showTime) {
+      return;
+    }
+    this.showTime = showTime;
+    if (!customDateFormat) {
+      if (showTime) {
+        dateFormatter = (SimpleDateFormat) TmmDateFormat.getDateShortTimeFormat();
+      }
+      else {
+        dateFormatter = (SimpleDateFormat) TmmDateFormat.getDateFormat();
+      }
+      dateFormatter.setLenient(false);
+      this.datePattern = dateFormatter.toPattern();
+      maskPattern = createMaskFromDatePattern(this.datePattern);
+      setColumns(this.datePattern.length());
+      setToolTipText(this.datePattern);
+      setDate(date, false);
+    }
+  }
+
+  /**
+   * Returns whether time display is enabled.
+   *
+   * @return true if time display is enabled, false otherwise
+   */
+  public boolean isShowTime() {
+    return showTime;
   }
 }

@@ -662,7 +662,7 @@ public class MovieEditorDialog extends AbstractEditorDialog {
         JLabel lblDateAdded = new TmmLabel(TmmResourceBundle.getString("metatag.dateadded"));
         details2Panel.add(lblDateAdded, "cell 0 0,alignx right");
 
-        dpDateAdded = new DatePicker();
+        dpDateAdded = new DatePicker(null, true);
         details2Panel.add(dpDateAdded, "cell 1 0,growx");
       }
       {

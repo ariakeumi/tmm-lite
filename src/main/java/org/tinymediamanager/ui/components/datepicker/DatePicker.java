@@ -50,6 +50,7 @@ public class DatePicker extends JPanel implements PropertyChangeListener {
 
   private boolean             dateSelected;
   private boolean             allowNull = false;
+  private boolean             showTime;
 
   private ChangeListener      changeListener;
 
@@ -57,7 +58,7 @@ public class DatePicker extends JPanel implements PropertyChangeListener {
    * Creates a new DatePicker with no date set
    */
   public DatePicker() {
-    this(null, null);
+    this(null, null, false);
   }
 
   /**
@@ -67,7 +68,7 @@ public class DatePicker extends JPanel implements PropertyChangeListener {
    *          the date or null
    */
   public DatePicker(Date date) {
-    this(date, null);
+    this(date, null, false);
   }
 
   /**
@@ -79,13 +80,42 @@ public class DatePicker extends JPanel implements PropertyChangeListener {
    *          the date format string or null (then MEDIUM SimpleDateFormat format is used)
    */
   public DatePicker(Date date, String dateFormat) {
+    this(date, dateFormat, false);
+  }
+
+  /**
+   * Creates a new DatePicker with the given date set and optional time display
+   * 
+   * @param date
+   *          the date or null
+   * @param showTime
+   *          true to show time spinners in the calendar popup, false for date only
+   */
+  public DatePicker(Date date, boolean showTime) {
+    this(date, null, showTime);
+  }
+
+  /**
+   * Creates a new DatePicker with the given date set, date format and optional time display
+   * 
+   * @param date
+   *          the date or null
+   * @param dateFormat
+   *          the date format string or null (then MEDIUM SimpleDateFormat format is used)
+   * @param showTime
+   *          true to show time spinners in the calendar popup, false for date only
+   */
+  public DatePicker(Date date, String dateFormat, boolean showTime) {
+    this.showTime = showTime;
     setLayout(new BorderLayout());
 
     dateEditor = new DateTextField(dateFormat);
+    dateEditor.setShowTime(showTime);
     dateEditor.addPropertyChangeListener("date", this);
 
-    calendarPanel = new CalendarPanel(date);
+    calendarPanel = new CalendarPanel(date, showTime);
     calendarPanel.addPropertyChangeListener("day", this);
+    calendarPanel.addPropertyChangeListener("time", this);
     calendarPanel.setAllowNull(this.allowNull);
 
     setDate(date);
@@ -184,6 +214,13 @@ public class DatePicker extends JPanel implements PropertyChangeListener {
         setDate((Date) evt.getNewValue());
       }
     }
+    else if (evt.getPropertyName().equals("time") && showTime) {
+      // time changed in the calendar popup - sync the editor (popup stays open)
+      Calendar cal = calendarPanel.getCalendar();
+      if (cal != null) {
+        setDate(cal.getTime());
+      }
+    }
   }
 
   @Override
@@ -279,6 +316,15 @@ public class DatePicker extends JPanel implements PropertyChangeListener {
   public void setAllowNull(boolean allowNull) {
     this.allowNull = allowNull;
     calendarPanel.setAllowNull(allowNull);
+  }
+
+  /**
+   * Returns whether time display is enabled.
+   *
+   * @return true if time display is enabled, false otherwise
+   */
+  public boolean isShowTime() {
+    return showTime;
   }
 
   /**

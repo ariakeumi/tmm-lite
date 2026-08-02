@@ -39,7 +39,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -66,7 +65,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.SpinnerDateModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
 
@@ -196,7 +194,7 @@ public class TvShowEditorDialog extends AbstractEditorDialog {
   private AutocompleteComboBox<String>             cbTags;
   private AutocompleteSupport<String>              cbTagsAutocompleteSupport;
   private JList<String>                            listTags;
-  private JSpinner                                 spDateAdded;
+  private DatePicker                               dpDateAdded;
   private JSpinner                                 spTop250;
   private DatePicker                               dpPremiered;
   private JComboBox<EpisodeGroupContainer>         cbEpisodeOrder;
@@ -291,7 +289,7 @@ public class TvShowEditorDialog extends AbstractEditorDialog {
       spTop250.setValue(tvShow.getTop250());
       int year = tvShow.getYear();
       spYear.setValue(year);
-      spDateAdded.setValue(tvShow.getDateAdded());
+      dpDateAdded.setDate(tvShow.getDateAdded());
       spRating.setModel(new SpinnerNumberModel(userMediaRating.getRating(), 0.0, 10.0, 0.1));
 
       for (Person origCast : tvShow.getCrew()) {
@@ -705,8 +703,8 @@ public class TvShowEditorDialog extends AbstractEditorDialog {
         JLabel lblDateAdded = new TmmLabel(TmmResourceBundle.getString("metatag.dateadded"));
         details2Panel.add(lblDateAdded, "cell 0 0,alignx right");
 
-        spDateAdded = new JSpinner(new SpinnerDateModel());
-        details2Panel.add(spDateAdded, "cell 1 0");
+        dpDateAdded = new DatePicker(null, true);
+        details2Panel.add(dpDateAdded, "cell 1 0");
       }
       {
         JLabel lblIds = new TmmLabel(TmmResourceBundle.getString("metatag.ids"));
@@ -1378,7 +1376,7 @@ public class TvShowEditorDialog extends AbstractEditorDialog {
       tvShowToEdit.removeAllTrailers();
       tvShowToEdit.addToTrailer(trailers);
 
-      tvShowToEdit.setDateAdded((Date) spDateAdded.getValue());
+      tvShowToEdit.setDateAdded(dpDateAdded.getDate());
       tvShowToEdit.setFirstAired(dpPremiered.getDate());
 
       tvShowToEdit.setStatus((MediaAiredStatus) cbStatus.getSelectedItem());

@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -47,24 +48,40 @@ class CalendarPanel extends JPanel implements PropertyChangeListener {
   MonthComboBox    monthComboBox;
   YearSpinner      yearSpinner;
   DayPanel         dayPanel;
+  TimePanel        timePanel;
 
   private JButton  noDateButton;
 
   public CalendarPanel(Date date) {
+    this(date, false);
+  }
+
+  /**
+   * Creates a new CalendarPanel with the given date and optional time display.
+   *
+   * @param date
+   *          the initial date or null
+   * @param showTime
+   *          true to show time spinners, false for date only
+   */
+  public CalendarPanel(Date date, boolean showTime) {
     setLayout(new BorderLayout());
+    // transparent, so the popup menu background is used (looks like a popup menu)
+    setOpaque(false);
 
     locale = Locale.getDefault();
     calendar = Calendar.getInstance(this.locale);
 
     JPanel monthYearPanel = new JPanel();
     monthYearPanel.setLayout(new BorderLayout());
+    monthYearPanel.setOpaque(false);
 
     monthComboBox = new MonthComboBox();
     yearSpinner = new YearSpinner();
 
     monthYearPanel.add(monthComboBox, BorderLayout.WEST);
     monthYearPanel.add(yearSpinner, BorderLayout.CENTER);
-    monthYearPanel.setBorder(BorderFactory.createEmptyBorder());
+    monthYearPanel.setBorder(BorderFactory.createEmptyBorder(4, 6, 2, 6));
 
     dayPanel = new DayPanel();
     dayPanel.setMonth(monthComboBox.getSelectedIndex());
@@ -91,18 +108,46 @@ class CalendarPanel extends JPanel implements PropertyChangeListener {
       dayPanel.setYear(value);
     });
     add(monthYearPanel, BorderLayout.NORTH);
-    add(dayPanel, BorderLayout.CENTER);
+
+    // build center panel with day grid and optionally time panel
+    JPanel centerPanel = new JPanel();
+    centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+    centerPanel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
+    centerPanel.setOpaque(false);
+    centerPanel.add(dayPanel);
+
+    if (showTime) {
+      timePanel = new TimePanel();
+      timePanel.addPropertyChangeListener(this);
+      centerPanel.add(timePanel);
+    }
+
+    add(centerPanel, BorderLayout.CENTER);
 
     JPanel specialButtonPanel = new JPanel();
 
     JButton todayButton = new JButton();
-    todayButton.addActionListener(e -> setDate(new Date()));
+    todayButton.addActionListener(e -> {
+      if (showTime) {
+        setDate(new Date());
+      }
+      else {
+        // preserve current time components, just set today's date
+        Calendar now = Calendar.getInstance();
+        Calendar c = (Calendar) calendar.clone();
+        c.set(Calendar.YEAR, now.get(Calendar.YEAR));
+        c.set(Calendar.MONTH, now.get(Calendar.MONTH));
+        c.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
+        setDate(c.getTime());
+      }
+    });
 
     noDateButton = new JButton();
     noDateButton.addActionListener(e -> setDate(null));
     noDateButton.setVisible(allowNull);
 
     specialButtonPanel.setLayout(new GridLayout(1, 3));
+    specialButtonPanel.setOpaque(false);
     todayButton.setText(TmmResourceBundle.getString("Button.today"));
     specialButtonPanel.add(todayButton);
 
@@ -110,6 +155,7 @@ class CalendarPanel extends JPanel implements PropertyChangeListener {
 
     noDateButton.setText(TmmResourceBundle.getString("Button.nodate"));
     specialButtonPanel.add(noDateButton);
+    specialButtonPanel.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
 
     add(specialButtonPanel, BorderLayout.SOUTH);
 
@@ -133,6 +179,14 @@ class CalendarPanel extends JPanel implements PropertyChangeListener {
     }
     else if (evt.getPropertyName().equals("date")) {
       setDate((Date) evt.getNewValue());
+    }
+    else if (evt.getPropertyName().equals("time") && timePanel != null) {
+      // update time from TimePanel spinners - do NOT fire "day" to keep the popup open
+      Calendar c = (Calendar) calendar.clone();
+      c.set(Calendar.HOUR_OF_DAY, timePanel.getHour());
+      c.set(Calendar.MINUTE, timePanel.getMinute());
+      calendar = c;
+      firePropertyChange("time", null, c.getTime());
     }
   }
 
@@ -173,6 +227,10 @@ class CalendarPanel extends JPanel implements PropertyChangeListener {
       }
       noDate = true;
       dayPanel.clearSelection();
+      if (timePanel != null) {
+        timePanel.setHour(0);
+        timePanel.setMinute(0);
+      }
       firePropertyChange("calendar", calendar, null);
       return;
     }
@@ -186,6 +244,10 @@ class CalendarPanel extends JPanel implements PropertyChangeListener {
       monthComboBox.setSelectedIndex(newCalendar.get(Calendar.MONTH));
       dayPanel.setCalendar(newCalendar);
       dayPanel.setDay(newCalendar.get(Calendar.DATE));
+      if (timePanel != null) {
+        timePanel.setHour(newCalendar.get(Calendar.HOUR_OF_DAY));
+        timePanel.setMinute(newCalendar.get(Calendar.MINUTE));
+      }
     }
 
     firePropertyChange("calendar", oldCalendar, calendar);
@@ -235,6 +297,10 @@ class CalendarPanel extends JPanel implements PropertyChangeListener {
       Date oldDate = getDate();
       noDate = true;
       dayPanel.clearSelection();
+      if (timePanel != null) {
+        timePanel.setHour(0);
+        timePanel.setMinute(0);
+      }
       firePropertyChange("date", oldDate, null);
       firePropertyChange("day", 0, -1);
       return;
@@ -251,6 +317,11 @@ class CalendarPanel extends JPanel implements PropertyChangeListener {
     monthComboBox.setSelectedIndex(month);
     dayPanel.setCalendar(calendar);
     dayPanel.setDay(day);
+
+    if (timePanel != null) {
+      timePanel.setHour(calendar.get(Calendar.HOUR_OF_DAY));
+      timePanel.setMinute(calendar.get(Calendar.MINUTE));
+    }
 
     firePropertyChange("date", oldDate, date);
   }

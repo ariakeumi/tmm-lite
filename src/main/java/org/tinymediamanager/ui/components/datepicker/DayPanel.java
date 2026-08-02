@@ -53,7 +53,8 @@ class DayPanel extends JPanel {
   private JLabel         selectedDay;
 
   DayPanel() {
-    setBackground(Color.blue);
+    // transparent, so the popup menu background is used
+    setOpaque(false);
 
     MouseAdapter mouseAdapter = new MouseAdapter() {
       @Override
@@ -85,6 +86,7 @@ class DayPanel extends JPanel {
 
     JPanel dayPanel = new JPanel();
     dayPanel.setLayout(new GridLayout(7, 7));
+    dayPanel.setOpaque(false);
 
     sundayForeground = new Color(164, 0, 0);
     weekdayForeground = UIManager.getColor("Component.linkColor");
@@ -97,7 +99,7 @@ class DayPanel extends JPanel {
       dayNames[i].setHorizontalAlignment(SwingConstants.CENTER);
       dayNames[i].setOpaque(true);
       dayNames[i].setBackground(decorationBackgroundColor);
-      dayNames[i].setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
+      dayNames[i].setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
       dayPanel.add(dayNames[i]);
     }
 
@@ -108,7 +110,7 @@ class DayPanel extends JPanel {
         days[index] = new JLabel("");
         days[index].setHorizontalAlignment(SwingConstants.CENTER);
         days[index].addMouseListener(mouseAdapter);
-        days[index].setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
+        days[index].setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
         dayPanel.add(days[index]);
       }
     }
