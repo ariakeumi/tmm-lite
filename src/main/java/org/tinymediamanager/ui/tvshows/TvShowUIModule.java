@@ -46,6 +46,7 @@ import org.tinymediamanager.ui.AbstractTmmUIModule;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmLazyMenuAdapter;
 import org.tinymediamanager.ui.components.MenuScroller;
+import org.tinymediamanager.ui.components.label.TmmMenuLabel;
 import org.tinymediamanager.ui.components.tabbedpane.MainTabbedPane;
 import org.tinymediamanager.ui.dialogs.PostProcessResultDialog;
 import org.tinymediamanager.ui.settings.TmmSettingsNode;
@@ -273,6 +274,22 @@ public class TvShowUIModule extends AbstractTmmUIModule {
 
   public TvShowSelectionModel getSelectionModel() {
     return tvShowSelectionModel;
+  }
+
+  @Override
+  public JPopupMenu getRenameButtonMenu() {
+    if (TvShowModuleManager.getInstance().getSettings().getRenamerProfiles().size() <= 1) {
+      return null;
+    }
+
+    JPopupMenu menu = new JPopupMenu(TmmResourceBundle.getString("Toolbar.rename"));
+    menu.setToolTipText(TmmResourceBundle.getString("Toolbar.rename"));
+    menu.add(new TmmMenuLabel(TmmResourceBundle.getString("tmm.renamewithprofile")));
+    menu.addSeparator();
+    for (String profile : TvShowModuleManager.getInstance().getSettings().getRenamerProfiles().keySet()) {
+      menu.add(new TvShowRenameWithProfileAction(profile));
+    }
+    return menu;
   }
 
   @Override

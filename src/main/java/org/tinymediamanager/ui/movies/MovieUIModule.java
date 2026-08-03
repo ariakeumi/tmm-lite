@@ -43,6 +43,7 @@ import org.tinymediamanager.ui.AbstractTmmUIModule;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmLazyMenuAdapter;
 import org.tinymediamanager.ui.components.MenuScroller;
+import org.tinymediamanager.ui.components.label.TmmMenuLabel;
 import org.tinymediamanager.ui.components.tabbedpane.MainTabbedPane;
 import org.tinymediamanager.ui.dialogs.PostProcessResultDialog;
 import org.tinymediamanager.ui.movies.actions.DebugDumpMovieAction;
@@ -189,6 +190,22 @@ public class MovieUIModule extends AbstractTmmUIModule {
 
   public MovieSelectionModel getSelectionModel() {
     return selectionModel;
+  }
+
+  @Override
+  public JPopupMenu getRenameButtonMenu() {
+    if (MovieModuleManager.getInstance().getSettings().getRenamerProfiles().size() <= 1) {
+      return null;
+    }
+
+    JPopupMenu menu = new JPopupMenu(TmmResourceBundle.getString("Toolbar.rename"));
+    menu.setToolTipText(TmmResourceBundle.getString("Toolbar.rename"));
+    menu.add(new TmmMenuLabel(TmmResourceBundle.getString("tmm.renamewithprofile")));
+    menu.addSeparator();
+    for (String profile : MovieModuleManager.getInstance().getSettings().getRenamerProfiles().keySet()) {
+      menu.add(new MovieRenameWithProfileAction(profile));
+    }
+    return menu;
   }
 
   private void createActions() {

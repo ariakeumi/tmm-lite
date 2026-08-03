@@ -228,7 +228,7 @@ public class ToolbarPanel extends JPanel {
     btnUpdate.setIcons(module.getSearchButtonIcon(), module.getSearchButtonHoverIcon());
     btnSearch.setAction(module.getSearchAction());
     btnEdit.setAction(module.getEditAction());
-    btnRename.setAction(module.getRenameAction());
+    btnRename.setAction(new ToolbarPopupAction(module.getRenameAction(), module::getRenameButtonMenu));
 
     menuUpdate.setPopupMenu(module.getUpdateMenu());
     menuSearch.setPopupMenu(module.getSearchMenu());

@@ -63,7 +63,7 @@ public class TablePopupListener extends MouseAdapter {
         table.getSelectionModel().setSelectionInterval(row, row);
       }
 
-      popup.show(e.getComponent(), e.getX(), e.getY());
+      popup.show(e.getComponent(), e.getX() + 5, e.getY() + 5);
     }
   }
 }

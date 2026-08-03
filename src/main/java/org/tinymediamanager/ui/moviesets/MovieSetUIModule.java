@@ -68,6 +68,7 @@ import org.tinymediamanager.ui.moviesets.actions.MovieSetReadMovieNfoAction;
 import org.tinymediamanager.ui.moviesets.actions.MovieSetRemoveAction;
 import org.tinymediamanager.ui.moviesets.actions.MovieSetRemoveMovieFromSetAction;
 import org.tinymediamanager.ui.moviesets.actions.MovieSetRenameAction;
+import org.tinymediamanager.ui.moviesets.actions.MovieSetRenameWithProfileAction;
 import org.tinymediamanager.ui.moviesets.actions.MovieSetRewriteNfoAction;
 import org.tinymediamanager.ui.moviesets.actions.MovieSetScrapeMissingMoviesAction;
 import org.tinymediamanager.ui.moviesets.actions.MovieSetSearchAction;
@@ -219,6 +220,22 @@ public class MovieSetUIModule extends AbstractTmmUIModule {
     searchAction = createAndRegisterAction(MovieSetSearchAction.class);
     editAction = createAndRegisterAction(MovieSetEditAction.class);
     renameAction = createAndRegisterAction(MovieSetRenameAction.class);
+  }
+
+  @Override
+  public JPopupMenu getRenameButtonMenu() {
+    if (MovieModuleManager.getInstance().getSettings().getRenamerProfiles().size() <= 1) {
+      return null;
+    }
+
+    JPopupMenu menu = new JPopupMenu(TmmResourceBundle.getString("Toolbar.rename"));
+    menu.setToolTipText(TmmResourceBundle.getString("Toolbar.rename"));
+    menu.add(new TmmMenuLabel(TmmResourceBundle.getString("tmm.renamewithprofile")));
+    menu.addSeparator();
+    for (String profile : MovieModuleManager.getInstance().getSettings().getRenamerProfiles().keySet()) {
+      menu.add(new MovieSetRenameWithProfileAction(profile));
+    }
+    return menu;
   }
 
   private void createPopupMenu() {

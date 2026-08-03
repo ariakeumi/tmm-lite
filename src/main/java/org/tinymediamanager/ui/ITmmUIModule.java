@@ -143,6 +143,14 @@ public interface ITmmUIModule {
   JPopupMenu getRenameMenu();
 
   /**
+   * get the popup menu to be shown when clicking the rename button in the toolbar. This should return the available renamer profiles when there is
+   * more than one, so the user can choose a profile. Return null to trigger the default rename action directly.
+   *
+   * @return the popup menu with the renamer profiles, or null
+   */
+  JPopupMenu getRenameButtonMenu();
+
+  /**
    * get the settings node for the settings dialog
    * 
    * @return the settings node

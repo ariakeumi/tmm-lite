@@ -125,6 +125,11 @@ public abstract class AbstractTmmUIModule implements ITmmUIModule {
   }
 
   @Override
+  public JPopupMenu getRenameButtonMenu() {
+    return null;
+  }
+
+  @Override
   public Icon getSearchButtonIcon() {
     return IconManager.TOOLBAR_REFRESH;
   }
