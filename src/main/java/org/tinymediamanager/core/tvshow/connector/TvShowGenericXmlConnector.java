@@ -43,7 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.CertificationStyle;
-import org.tinymediamanager.core.DateField;
 import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.Message;
 import org.tinymediamanager.core.MessageManager;
@@ -789,14 +788,11 @@ public abstract class TvShowGenericXmlConnector implements ITvShowConnector {
     }
 
     Element dateadded = document.createElement("dateadded");
+    Date date = null;
 
-    DateField dateField = settings.getNfoDateAddedField();
-
-    switch (dateField) {
+    switch (settings.getNfoDateAddedField()) {
       case DATE_ADDED:
-        if (tvShow.getDateAdded() != null) {
-          dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(tvShow.getDateAdded()));
-        }
+        date = tvShow.getDateAdded();
         break;
 
       case FILE_CREATION_DATE:
@@ -805,8 +801,8 @@ public abstract class TvShowGenericXmlConnector implements ITvShowConnector {
             .filter(mf -> mf.getType() == MediaFileType.VIDEO && mf.getDateCreated() != null)
             .min(Comparator.comparing(MediaFile::getDateCreated))
             .orElse(null);
-        if (mainMediaFile != null && mainMediaFile.getDateCreated() != null) {
-          dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(mainMediaFile.getDateCreated()));
+        if (mainMediaFile != null) {
+          date = mainMediaFile.getDateCreated();
         }
         break;
 
@@ -817,21 +813,22 @@ public abstract class TvShowGenericXmlConnector implements ITvShowConnector {
             .min(Comparator.comparing(MediaFile::getDateLastModified))
             .orElse(null);
         if (mainMediaFile != null && mainMediaFile.getDateLastModified() != null) {
-          dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(mainMediaFile.getDateLastModified()));
+          date = mainMediaFile.getDateLastModified();
         }
         break;
 
       case RELEASE_DATE:
-        if (tvShow.getFirstAired() != null) {
-          dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(tvShow.getFirstAired()));
-        }
-        else {
-          // fall back to date added
-          if (tvShow.getDateAdded() != null) {
-            dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(tvShow.getDateAdded()));
-          }
-        }
+        date = tvShow.getFirstAired();
         break;
+    }
+
+    if (date == null) {
+      // fall back
+      date = tvShow.getDateAdded();
+    }
+
+    if (date != null) {
+      dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date));
     }
 
     root.appendChild(dateadded);

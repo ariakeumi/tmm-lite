@@ -571,39 +571,41 @@ public abstract class TvShowEpisodeGenericXmlConnector implements ITvShowEpisode
     }
 
     Element dateadded = document.createElement("dateadded");
+    Date date = null;
+
     switch (settings.getNfoDateAddedField()) {
       case DATE_ADDED:
-        if (episode.getDateAdded() != null) {
-          dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(episode.getDateAdded()));
-        }
+        date = episode.getDateAdded();
         break;
 
       case FILE_CREATION_DATE:
         MediaFile mainMediaFile = episode.getMainFile();
-        if (mainMediaFile != null && mainMediaFile.getDateCreated() != null) {
-          dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(mainMediaFile.getDateCreated()));
+        if (mainMediaFile != null) {
+          date = mainMediaFile.getDateCreated();
         }
         break;
 
       case FILE_LAST_MODIFIED_DATE:
         mainMediaFile = episode.getMainFile();
-        if (mainMediaFile != null && mainMediaFile.getDateLastModified() != null) {
-          dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(mainMediaFile.getDateLastModified()));
+        if (mainMediaFile != null) {
+          date = mainMediaFile.getDateLastModified();
         }
         break;
 
       case RELEASE_DATE:
-        if (episode.getFirstAired() != null) {
-          dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(episode.getFirstAired()));
-        }
-        else {
-          // fall back to date added
-          if (episode.getDateAdded() != null) {
-            dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(episode.getDateAdded()));
-          }
-        }
-
+        date = episode.getFirstAired();
+        break;
     }
+
+    if (date == null) {
+      // fall back
+      date = episode.getDateAdded();
+    }
+
+    if (date != null) {
+      dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date));
+    }
+
     root.appendChild(dateadded);
   }
 

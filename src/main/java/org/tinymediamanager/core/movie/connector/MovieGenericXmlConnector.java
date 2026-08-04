@@ -557,38 +557,40 @@ public abstract class MovieGenericXmlConnector implements IMovieConnector {
     }
 
     Element dateadded = document.createElement("dateadded");
+    Date date = null;
     switch (settings.getNfoDateAddedField()) {
       case DATE_ADDED:
-        if (movie.getDateAdded() != null) {
-          dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(movie.getDateAdded()));
-        }
+        date = movie.getDateAdded();
         break;
 
       case FILE_CREATION_DATE:
         MediaFile mainMediaFile = movie.getMainFile();
-        if (mainMediaFile != null && mainMediaFile.getDateCreated() != null) {
-          dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(mainMediaFile.getDateCreated()));
+        if (mainMediaFile != null) {
+          date = mainMediaFile.getDateCreated();
         }
         break;
 
       case FILE_LAST_MODIFIED_DATE:
         mainMediaFile = movie.getMainFile();
-        if (mainMediaFile != null && mainMediaFile.getDateLastModified() != null) {
-          dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(mainMediaFile.getDateLastModified()));
+        if (mainMediaFile != null) {
+          date = mainMediaFile.getDateLastModified();
         }
         break;
 
       case RELEASE_DATE:
-        if (movie.getReleaseDate() != null) {
-          dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(movie.getReleaseDate()));
-        }
-        else {
-          // fall back to date added
-          if (movie.getDateAdded() != null) {
-            dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(movie.getDateAdded()));
-          }
-        }
+        date = movie.getReleaseDate();
+        break;
     }
+
+    if (date == null) {
+      // fall back
+      date = movie.getDateAdded();
+    }
+
+    if (date != null) {
+      dateadded.setTextContent(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date));
+    }
+
     root.appendChild(dateadded);
   }
 
