@@ -2049,8 +2049,10 @@ public class MediaFileHelper {
   }
 
   private static MediaFileSubtitle gatherSubtitleInformationFromMediainfo(Map<MediaInfo.StreamKind, List<Map<String, String>>> miSnapshot, int i) {
+    String codecId = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.Text, i, "CodecID");
 
     MediaFileSubtitle stream = new MediaFileSubtitle();
+    stream.setCodecId(codecId);
     stream.id = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.Text, i, "StreamKindPos");
 
     String codec = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.Text, i, "CodecID/Hint", "Format");
@@ -2162,6 +2164,8 @@ public class MediaFileHelper {
     List<MediaFileAudioStream> audioStreams = new ArrayList<>();
 
     for (int i = 0; i < getAudioStreamCount(miSnapshot); i++) {
+      String codecId = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.Audio, i, "CodecID");
+
       // workaround for DTS & TrueHD variant detection
       // search for well known String in defined keys (changes between different MI versions!)
       String[] acSearch = new String[] { "Format", "Format_Profile", "Format_Commercial", "Format_Commercial_IfAny", "CodecID", "Codec" };
@@ -2241,7 +2245,6 @@ public class MediaFileHelper {
           }
         }
         if ("MPEG Audio".equalsIgnoreCase(audioCodec)) {
-          String codecId = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.Audio, i, "CodecID");
           if ("55".equals(codecId) || "A_MPEG/L3".equalsIgnoreCase(codecId) || "Layer 3".equalsIgnoreCase(audioProfile)) {
             audioCodec = "MP3";
           }
@@ -2283,6 +2286,7 @@ public class MediaFileHelper {
       MediaFileAudioStream stream = new MediaFileAudioStream();
       stream.id = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.Audio, i, "StreamKindPos");
       stream.setCodec(audioCodec);
+      stream.setCodecId(codecId);
 
       // AAC sometimes codes channels into Channel(s)_Original
       // and DTS-ES has an additional core channel
@@ -2585,6 +2589,7 @@ public class MediaFileHelper {
     String scanType = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.Video, 0, "ScanType");
 
     String codecId = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.Video, 0, "CodecID");
+    mediaFile.setCodecId(codecId);
 
     String videoCodec = getMediaInfoValue(miSnapshot, MediaInfo.StreamKind.Video, 0, "CodecID/Hint", "Format");
 

@@ -106,6 +106,8 @@ public class MediaStreamInfo extends AbstractModelObject {
   @JsonProperty
   protected String     codec       = "";
   @JsonProperty
+  protected String     codecId     = "";
+  @JsonProperty
   protected String     language    = "";
   @JsonProperty
   protected String     title       = "";
@@ -122,6 +124,19 @@ public class MediaStreamInfo extends AbstractModelObject {
 
   public void setCodec(String codec) {
     this.codec = codec;
+  }
+
+  /**
+   * unmodified codecId from MediaInfo
+   * 
+   * @return
+   */
+  public String getCodecId() {
+    return codecId;
+  }
+
+  public void setCodecId(String codecId) {
+    this.codecId = codecId;
   }
 
   public String getLanguage() {

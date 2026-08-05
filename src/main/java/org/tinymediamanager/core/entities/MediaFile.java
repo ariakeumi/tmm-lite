@@ -84,6 +84,8 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
   @JsonProperty
   private String                     videoCodec        = "";
   @JsonProperty
+  private String                     codecId           = "";
+  @JsonProperty
   private String                     containerFormat   = "";
   @JsonProperty
   private String                     exactVideoFormat  = "";
@@ -433,6 +435,7 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
     setOverallBitRate(0);
     setDuration(0);
     setVideoCodec("");
+    setCodecId("");
     setBitDepth(0);
     setFrameRate(0);
     setExactVideoFormat("");
@@ -860,6 +863,19 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
     String oldValue = this.videoCodec;
     this.videoCodec = newValue;
     firePropertyChange("videoCodec", oldValue, newValue);
+  }
+
+  /**
+   * unmodified MediaInfo codecId
+   * 
+   * @return
+   */
+  public String getCodecId() {
+    return codecId;
+  }
+
+  public void setCodecId(String codecId) {
+    this.codecId = codecId;
   }
 
   /**
