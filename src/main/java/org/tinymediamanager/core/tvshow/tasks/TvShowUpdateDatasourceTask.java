@@ -509,7 +509,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
             continue;
           }
 
-          if (dataSources.contains(tvShow.getPathNIO().getParent())) {
+          if (dataSources.contains(Path.of(tvShow.getDataSource()))) {
             gatherMediaInformationForUngatheredMediaFiles(tvShow);
           }
         }
