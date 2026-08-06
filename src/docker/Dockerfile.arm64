@@ -31,4 +31,4 @@ LABEL "org.opencontainers.image.source "="${project.scm.url}"
 ADD tinyMediaManager /app
 
 WORKDIR /app
-CMD ["/app/tinyMediaManager-arm", "-Dtmm.contentfolder=/data"]
+CMD ["/app/tinyMediaManager", "-Dtmm.contentfolder=/data"]
