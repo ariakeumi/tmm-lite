@@ -16,6 +16,7 @@ x [UI] Display a dialog with all available renamer profiles when multiple profil
 x [Trakt.tv] added new authentication method
 x [Trakt.tv] fixed TV show watched sync #3326
 x [NFO] write runtime for disc/iso movies again #3329
+x [Docker] fix ARM build
 
 
 Version 5.3.0
