@@ -3,7 +3,7 @@ stages:
 
 variables:
   IMAGE_NAME: tinymediamanager/tinymediamanager
-  TMM_DOCKER_VERSION: "5.3.1"
+  TMM_DOCKER_VERSION: "5.3.2"
   TMM_DOCKER_ARCHIVE_BASE_URL: "https://release.tinymediamanager.org/v5/dist"
   TMM_DOCKER_PUSH_LATEST: "true"
   TMM_DOCKER_PROJECT_ARTIFACT_ID: "tinyMediaManager"
