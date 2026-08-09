@@ -55,7 +55,10 @@ test:jdk25:
       when: never
     - if: $CI_COMMIT_BRANCH == "main"
       when: never
+    - if: $CI_COMMIT_TAG  # do not run when pushing tags
+      when: never
     - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
   tags:
     - tmm # force running on own runners
   script:
@@ -125,19 +128,6 @@ sonarqube-qa:
     reports:
       codequality:
         - target/code-quality.json
-
-
-##########################################
-# RELEASE
-##########################################
-deploy:RELEASE:
-  stage: deploy
-  only:
-    - main@tinyMediaManager/tinyMediaManager
-  when: manual
-  trigger:
-    include: .ci/deploy_release.yml
-    strategy: depend
 
 deploy:DOCKER_REMOTE:
   stage: deploy
