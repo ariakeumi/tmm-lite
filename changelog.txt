@@ -2,6 +2,7 @@ Version 5.3.1
 =======================
 + [UI] enabled to open the editor for locked entries in read only mode
 + [UI] enabled to copy tokens/examples for all JMTE explorer sections
++ [UI] added the time in the date picker for the date added field in the editors #3338
 ---
 x [Movies, TV shows] fixed parsing of TMDB id from mediainfo data #3325
 x [Movies] when running update data sources for a single folder, also make sure to gather mediainfo for new movies found #3269
