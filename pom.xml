@@ -1179,7 +1179,7 @@
                                 </goals>
                                 <configuration>
                                     <!-- create SBOM with Linux LF line endings, so file is binary same on windows build -->
-                                    <target>
+                                    <target if="!offline">
                                         <fixcrlf srcdir="${project.build.outputDirectory}/META-INF/sbom"
                                             includes="application.cdx.json"
                                             eol="lf"
