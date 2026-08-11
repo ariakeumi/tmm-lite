@@ -157,10 +157,30 @@ public abstract class UpgradeTasks {
         properties.putProperty("movieset.movietrailer.table.visibleColumns", property);
       }
 
-      property = properties.getProperty("tvshow.trailerTable.table.visibleColumns");
+      property = properties.getProperty("tvshow.trailerTable.visibleColumns");
       if (property != null && !property.startsWith("download")) {
         property = "download:31," + property;
-        properties.putProperty("tvshow.trailerTable.table.visibleColumns", property);
+        properties.putProperty("tvshow.trailerTable.visibleColumns", property);
+      }
+    }
+
+    if (StrgUtils.compareVersion(v, "5.3.2") < 0) {
+      // show trailer language column per default
+      TmmProperties properties = TmmProperties.getInstance();
+      String property = properties.getProperty("movie.movietrailer.table.visibleColumns");
+      if (property != null && !property.contains("language")) {
+        property = "language:70," + property;
+        properties.putProperty("movie.movietrailer.table.visibleColumns", property);
+      }
+      property = properties.getProperty("movieset.movietrailer.table.visibleColumns");
+      if (property != null && !property.contains("language")) {
+        property = "language:70," + property;
+        properties.putProperty("movieset.movietrailer.table.visibleColumns", property);
+      }
+      property = properties.getProperty("tvshow.trailerTable.visibleColumns");
+      if (property != null && !property.contains("language")) {
+        property = "language:70," + property;
+        properties.putProperty("tvshow.trailerTable.visibleColumns", property);
       }
     }
   }

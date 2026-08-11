@@ -25,6 +25,7 @@ import javax.swing.SwingUtilities;
 import org.apache.commons.lang3.StringUtils;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.entities.MediaTrailer;
+import org.tinymediamanager.ui.components.combobox.LanguageComboBox;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -34,13 +35,14 @@ import net.miginfocom.swing.MigLayout;
  * @author Manuel Laggner
  */
 public class TrailerEditorPanel extends AbstractModalInputPanel {
-  private final MediaTrailer mediaTrailer;
+  private final MediaTrailer     mediaTrailer;
 
-  private final JTextField   tfName;
-  private final JTextField   tfSource;
-  private final JTextField   tfQuality;
-  private final JTextField   tfUrl;
-  private final JTextField   tfId;
+  private final JTextField       tfName;
+  private final JTextField       tfSource;
+  private final JTextField       tfQuality;
+  private final LanguageComboBox cbLanguage;
+  private final JTextField       tfUrl;
+  private final JTextField       tfId;
 
   public TrailerEditorPanel(MediaTrailer mediaTrailer) {
     super();
@@ -48,7 +50,7 @@ public class TrailerEditorPanel extends AbstractModalInputPanel {
     this.mediaTrailer = mediaTrailer;
 
     {
-      setLayout(new MigLayout("", "[][800lp,grow]", "[][][][]"));
+      setLayout(new MigLayout("", "[][800lp,grow]", "[][][][][]"));
       {
         JLabel nameT = new JLabel(TmmResourceBundle.getString("metatag.name"));
         add(nameT, "cell 0 0,alignx trailing");
@@ -72,26 +74,34 @@ public class TrailerEditorPanel extends AbstractModalInputPanel {
         add(tfQuality, "cell 1 2");
       }
       {
+        JLabel lblLanguageT = new JLabel(TmmResourceBundle.getString("metatag.language"));
+        add(lblLanguageT, "cell 0 3,alignx trailing");
+
+        cbLanguage = new LanguageComboBox();
+        add(cbLanguage, "cell 1 3");
+      }
+      {
         JLabel lblUrlT = new JLabel(TmmResourceBundle.getString("metatag.url"));
-        add(lblUrlT, "cell 0 3");
+        add(lblUrlT, "cell 0 4");
 
         tfUrl = new JTextField();
         tfUrl.setColumns(10);
-        add(tfUrl, "cell 1 3,growx,wmin 0");
+        add(tfUrl, "cell 1 4,growx,wmin 0");
       }
       {
         JLabel lblIdT = new JLabel(TmmResourceBundle.getString("metatag.id"));
-        add(lblIdT, "cell 0 4");
+        add(lblIdT, "cell 0 5");
 
         tfId = new JTextField();
         tfId.setColumns(10);
-        add(tfId, "cell 1 4,growx,wmin 0");
+        add(tfId, "cell 1 5,growx,wmin 0");
       }
     }
 
     tfName.setText(mediaTrailer.getName());
     tfSource.setText(mediaTrailer.getProvider());
     tfQuality.setText(mediaTrailer.getQuality());
+    cbLanguage.setSelectedLanguage(mediaTrailer.getLanguage());
     tfUrl.setText(mediaTrailer.getUrl());
     tfId.setText(mediaTrailer.getId());
 
@@ -114,6 +124,7 @@ public class TrailerEditorPanel extends AbstractModalInputPanel {
     mediaTrailer.setName(tfName.getText());
     mediaTrailer.setProvider(tfSource.getText());
     mediaTrailer.setQuality(tfQuality.getText());
+    mediaTrailer.setLanguage(cbLanguage.getSelectedLanguage());
     mediaTrailer.setUrl(tfUrl.getText());
     mediaTrailer.setId(tfId.getText());
     mediaTrailer.setDate(new Date());

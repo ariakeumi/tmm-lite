@@ -47,6 +47,8 @@ public class MediaTrailer extends AbstractModelObject implements Comparable<Medi
   @JsonProperty
   private String              quality   = "";
   @JsonProperty
+  private String              language  = "";
+  @JsonProperty
   private String              provider  = "";
   @JsonProperty
   private Boolean             inNfo     = Boolean.FALSE;
@@ -91,6 +93,16 @@ public class MediaTrailer extends AbstractModelObject implements Comparable<Medi
     String oldValue = this.quality;
     this.quality = StrgUtils.getNonNullString(newValue);
     firePropertyChange("quality", oldValue, newValue);
+  }
+
+  public String getLanguage() {
+    return language;
+  }
+
+  public void setLanguage(String language) {
+    String oldValue = this.language;
+    this.language = StrgUtils.getNonNullString(language);
+    firePropertyChange("language", oldValue, language);
   }
 
   public String getScrapedBy() {

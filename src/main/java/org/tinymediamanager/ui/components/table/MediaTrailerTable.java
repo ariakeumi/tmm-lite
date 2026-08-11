@@ -329,6 +329,14 @@ public class MediaTrailerTable extends TmmEditorTable {
       col.setColumnComparator(stringComparator);
       addColumn(col);
 
+      /*
+       * language
+       */
+      col = new Column(TmmResourceBundle.getString("metatag.language"), "language", MediaTrailer::getLanguage, String.class);
+      col.setColumnResizeable(false);
+      col.setColumnComparator(stringComparator);
+      addColumn(col);
+
       if (!editable) {
         /*
          * format

@@ -76,7 +76,6 @@ import org.tinymediamanager.core.MediaAiredStatus;
 import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.TmmDateFormat;
 import org.tinymediamanager.core.TrailerQuality;
-import org.tinymediamanager.core.TrailerSources;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.bus.Event;
 import org.tinymediamanager.core.bus.EventBus;
@@ -96,6 +95,7 @@ import org.tinymediamanager.core.tvshow.TvShowMediaFileComparator;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
 import org.tinymediamanager.core.tvshow.TvShowRenamer;
 import org.tinymediamanager.core.tvshow.TvShowScraperMetadataConfig;
+import org.tinymediamanager.core.tvshow.TvShowSettings;
 import org.tinymediamanager.core.tvshow.connector.ITvShowConnector;
 import org.tinymediamanager.core.tvshow.connector.TvShowToEmbyConnector;
 import org.tinymediamanager.core.tvshow.connector.TvShowToJellyfinConnector;
@@ -2057,50 +2057,47 @@ public class TvShow extends MediaEntity implements IMediaInformation {
     List<MediaTrailer> newItems = new ArrayList<>();
 
     // set preferred trailer
-    if (TvShowModuleManager.getInstance().getSettings().isUseTrailerPreference()) {
-      TrailerQuality desiredQuality = TvShowModuleManager.getInstance().getSettings().getTrailerQuality();
-      TrailerSources desiredSource = TvShowModuleManager.getInstance().getSettings().getTrailerSource();
+    TvShowSettings settings = TvShowModuleManager.getInstance().getSettings();
+    if (settings.isUseTrailerPreference()) {
+      TrailerQuality desiredQuality = settings.getTrailerQuality();
 
-      // search for quality and provider
-      for (MediaTrailer trailer : trailers) {
-        if (desiredQuality.containsQuality(trailer.getQuality()) && desiredSource.containsSource(trailer.getProvider())) {
-          trailer.setInNfo(Boolean.TRUE);
-          preferredTrailer = trailer;
-          break;
+      String language = null;
+      try {
+        Locale locale = settings.getTrailerLanguage().toLocale();
+        if (locale != null) {
+          language = locale.getISO3Language();
         }
       }
+      catch (Exception e) {
+        LOGGER.debug("No valid language chosen for trailer download - '{}'", e.getMessage());
+      }
 
-      // search for quality
-      if (preferredTrailer == null) {
+      if (StringUtils.isNotBlank(language)) {
+        // search for language and quality
         for (MediaTrailer trailer : trailers) {
-          if (desiredQuality.containsQuality(trailer.getQuality())) {
+          if (language.equals(trailer.getLanguage())) {
+            // language match
+
+            // YouTube probably offers all desired qualities (at least for newer trailers)
+            if ("youtube".equalsIgnoreCase(trailer.getProvider()) || desiredQuality.containsQuality(trailer.getQuality())) {
+              trailer.setInNfo(Boolean.TRUE);
+              preferredTrailer = trailer;
+              break;
+            }
+          }
+        }
+      }
+      else {
+        // only search for quality
+        for (MediaTrailer trailer : trailers) {
+          // YouTube probably offers all desired qualities (at least for newer trailers)
+          if ("youtube".equalsIgnoreCase(trailer.getProvider()) || desiredQuality.containsQuality(trailer.getQuality())) {
             trailer.setInNfo(Boolean.TRUE);
             preferredTrailer = trailer;
             break;
           }
         }
       }
-
-      // if not yet one has been found; sort by quality descending and take the first one which is lower or equal to the desired quality
-      if (preferredTrailer == null) {
-        List<MediaTrailer> sortedTrailers = new ArrayList<>(trailers);
-        sortedTrailers.sort(TRAILER_QUALITY_COMPARATOR);
-        for (MediaTrailer trailer : sortedTrailers) {
-          if (desiredQuality.ordinal() >= TrailerQuality.getTrailerQuality(trailer.getQuality()).ordinal()) {
-            trailer.setInNfo(Boolean.TRUE);
-            preferredTrailer = trailer;
-            break;
-          }
-        }
-      }
-    } // end if MovieModuleManager.getInstance().getSettings().isUseTrailerPreference()
-
-    // if not yet one has been found; sort by quality descending and take the first one
-    if (preferredTrailer == null && !trailers.isEmpty()) {
-      List<MediaTrailer> sortedTrailers = new ArrayList<>(trailers);
-      sortedTrailers.sort(TRAILER_QUALITY_COMPARATOR);
-      preferredTrailer = sortedTrailers.get(0);
-      preferredTrailer.setInNfo(Boolean.TRUE);
     }
 
     // add trailers
@@ -2589,6 +2586,7 @@ public class TvShow extends MediaEntity implements IMediaInformation {
       mt.setName(mf.getFilename());
       mt.setProvider("downloaded");
       mt.setQuality(mf.getVideoFormat());
+      // mt.setLanguage(mf.getAudioLanguage()); // skip, because most of the trailers have a wrong language info in their streams
       mt.setInNfo(false);
       mt.setUrl(mf.getFile().toUri().toString());
       trailer.add(0, mt);

@@ -41,7 +41,6 @@ import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.PostProcess;
 import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.TrailerQuality;
-import org.tinymediamanager.core.TrailerSources;
 import org.tinymediamanager.core.movie.connector.MovieConnectors;
 import org.tinymediamanager.core.movie.connector.MovieSetConnectors;
 import org.tinymediamanager.core.movie.filenaming.MovieBannerNaming;
@@ -208,8 +207,8 @@ public final class MovieSettings extends AbstractSettings {
   boolean                                   useYtDlp;
   boolean                                   useTrailerPreference;
   boolean                                   automaticTrailerDownload;
+  MediaLanguages                            trailerLanguage;
   TrailerQuality                            trailerQuality;
-  TrailerSources                            trailerSource;
 
   // subtitle scraper
   MediaLanguages                            subtitleScraperLanguage;
@@ -354,8 +353,8 @@ public final class MovieSettings extends AbstractSettings {
     setUseYtDlp(true);
     setUseTrailerPreference(true);
     setAutomaticTrailerDownload(false);
+    setTrailerLanguage(ml);
     setTrailerQuality(TrailerQuality.HD_720);
-    setTrailerSource(TrailerSources.YOUTUBE);
 
     // subtitle scraper
     setSubtitleScraperLanguage(ml);
@@ -1547,6 +1546,16 @@ public final class MovieSettings extends AbstractSettings {
     firePropertyChange("automaticTrailerDownload", oldValue, newValue);
   }
 
+  public MediaLanguages getTrailerLanguage() {
+    return trailerLanguage;
+  }
+
+  public void setTrailerLanguage(MediaLanguages newValue) {
+    MediaLanguages oldValue = this.trailerLanguage;
+    this.trailerLanguage = newValue;
+    firePropertyChange("trailerLanguage", oldValue, newValue);
+  }
+
   public TrailerQuality getTrailerQuality() {
     return trailerQuality;
   }
@@ -1555,16 +1564,6 @@ public final class MovieSettings extends AbstractSettings {
     TrailerQuality oldValue = this.trailerQuality;
     this.trailerQuality = newValue;
     firePropertyChange("trailerQuality", oldValue, newValue);
-  }
-
-  public TrailerSources getTrailerSource() {
-    return trailerSource;
-  }
-
-  public void setTrailerSource(TrailerSources newValue) {
-    TrailerSources oldValue = this.trailerSource;
-    this.trailerSource = newValue;
-    firePropertyChange("trailerSource", oldValue, newValue);
   }
 
   public void setSyncTrakt(boolean newValue) {

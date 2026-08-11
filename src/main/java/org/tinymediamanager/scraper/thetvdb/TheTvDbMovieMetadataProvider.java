@@ -15,6 +15,8 @@
  */
 package org.tinymediamanager.scraper.thetvdb;
 
+import static org.tinymediamanager.scraper.util.LanguageUtils.parseLanguageFromString;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -512,12 +514,7 @@ public final class TheTvDbMovieMetadataProvider extends TheTvDbMetadataProvider 
         t.setProvider("youtube");
       }
       t.setScrapedBy(getProviderInfo().getId());
-      if (Boolean.TRUE.equals(getProviderInfo().getConfig().getValueAsBool("scrapeLanguageNames"))) {
-        t.setQuality(LanguageUtils.getLocalizedLanguageNameFromLocalizedString(options.getLanguage().toLocale(), trailer.language));
-      }
-      else {
-        t.setQuality(trailer.language);
-      }
+      t.setLanguage(parseLanguageFromString(trailer.language));
       md.addTrailer(t);
     }
 

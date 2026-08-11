@@ -33,8 +33,14 @@ import ca.odell.glazedlists.GlazedLists;
  * @author Manuel Laggner
  */
 public class AutocompleteComboBox<E> extends JComboBox<E> {
-  private final EventList<E>     items;
   private AutocompleteSupport<E> autoCompleteSupport;
+
+  protected final EventList<E>   items;
+
+  protected AutocompleteComboBox() {
+    super();
+    this.items = new BasicEventList<>();
+  }
 
   public AutocompleteComboBox(Collection<E> items) {
     super();
@@ -49,7 +55,7 @@ public class AutocompleteComboBox<E> extends JComboBox<E> {
     init();
   }
 
-  private void init() {
+  protected void init() {
     setEditable(true);
     this.items.sort((o1, o2) -> o1.toString().compareToIgnoreCase(o2.toString()));
     this.autoCompleteSupport = AutocompleteSupport.install(this, items);

@@ -19,6 +19,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,16 +28,17 @@ import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.MediaFileHelper;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.TrailerQuality;
-import org.tinymediamanager.core.TrailerSources;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.entities.MediaEntity;
 import org.tinymediamanager.core.entities.MediaTrailer;
 import org.tinymediamanager.core.movie.MovieModuleManager;
+import org.tinymediamanager.core.movie.MovieSettings;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.movie.filenaming.MovieTrailerNaming;
 import org.tinymediamanager.core.tasks.TrailerDownloadTask;
 import org.tinymediamanager.core.tasks.YtDownloadTask;
 import org.tinymediamanager.core.threading.TmmTask;
+import org.tinymediamanager.scraper.entities.MediaLanguages;
 
 /**
  * The class {@link MovieTrailerDownloadTask} is used to download the "best" trailer for a movie
@@ -49,7 +51,7 @@ public class MovieTrailerDownloadTask extends TmmTask {
   private final Movie                    movie;
   private final List<MovieTrailerNaming> trailernames = new ArrayList<>();
   private final TrailerQuality           desiredQuality;
-  private final TrailerSources           desiredSource;
+  private final MediaLanguages           desiredLanguage;
 
   private TmmTask                        task;
 
@@ -58,17 +60,19 @@ public class MovieTrailerDownloadTask extends TmmTask {
 
     this.movie = movie;
 
+    MovieSettings settings = MovieModuleManager.getInstance().getSettings();
+
     // store the trailer settings at the start of this task (to do not suffer from changes while the task is running)
     if (movie.isMultiMovieDir()) {
       // in a MMD we can only use this naming
       trailernames.add(MovieTrailerNaming.FILENAME_TRAILER);
     }
     else {
-      trailernames.addAll(MovieModuleManager.getInstance().getSettings().getTrailerFilenames());
+      trailernames.addAll(settings.getTrailerFilenames());
     }
 
-    desiredSource = MovieModuleManager.getInstance().getSettings().getTrailerSource();
-    desiredQuality = MovieModuleManager.getInstance().getSettings().getTrailerQuality();
+    desiredQuality = settings.getTrailerQuality();
+    desiredLanguage = settings.getTrailerLanguage();
   }
 
   @Override
@@ -76,29 +80,39 @@ public class MovieTrailerDownloadTask extends TmmTask {
     Set<MediaTrailer> trailers = new LinkedHashSet<>();
 
     // prepare the list of desired trailers
-    // search for quality and provider
-    for (MediaTrailer trailer : movie.getTrailer()) {
-      if (desiredSource.containsSource(trailer.getProvider())) {
-        if (desiredSource == TrailerSources.YOUTUBE) {
-          // for YouTube, we do not need to check the quality, because we can download all qualities
-          trailers.add(trailer);
+    // search for language and quality
+    String language = null;
+    try {
+      Locale locale = desiredLanguage.toLocale();
+      if (locale != null) {
+        language = locale.getISO3Language();
+      }
+    }
+    catch (Exception e) {
+      LOGGER.debug("No valid language chosen for trailer download - '{}'", e.getMessage());
+    }
+    if (StringUtils.isNotBlank(language)) {
+      // search for language and quality
+      for (MediaTrailer trailer : movie.getTrailer()) {
+        if (language.equals(trailer.getLanguage())) {
+          // language match
+
+          // YouTube probably offers all desired qualities (at least for newer trailers)
+          if ("youtube".equalsIgnoreCase(trailer.getProvider()) || desiredQuality.containsQuality(trailer.getQuality())) {
+            trailers.add(trailer);
+          }
         }
-        else if (desiredQuality.containsQuality(trailer.getQuality())) {
-          // for other providers we check the quality, because we can only download the given quality
+      }
+    }
+    else {
+      // only search for quality
+      for (MediaTrailer trailer : movie.getTrailer()) {
+        // YouTube probably offers all desired qualities (at least for newer trailers)
+        if ("youtube".equalsIgnoreCase(trailer.getProvider()) || desiredQuality.containsQuality(trailer.getQuality())) {
           trailers.add(trailer);
         }
       }
     }
-
-    // search for quality
-    for (MediaTrailer trailer : movie.getTrailer()) {
-      if (desiredQuality.containsQuality(trailer.getQuality())) {
-        trailers.add(trailer);
-      }
-    }
-
-    // add the rest
-    trailers.addAll(movie.getTrailer());
 
     // remove invalid MediaTrailers
     trailers.removeIf(trailer -> {

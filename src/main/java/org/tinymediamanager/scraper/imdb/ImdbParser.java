@@ -16,6 +16,7 @@
 package org.tinymediamanager.scraper.imdb;
 
 import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.THUMB;
+import static org.tinymediamanager.scraper.util.LanguageUtils.parseLanguageFromString;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -948,6 +949,7 @@ abstract class ImdbParser {
           trailer.setDate(video.createdDate);
           trailer.setName(video.name.value);
           trailer.setQuality(vidurl.displayName.value); // SD, 480p, AUTO, ...
+          trailer.setLanguage(parseLanguageFromString(vidurl.displayName.language));
           // trailer.setUrl(vid.url); // IMDB urls exipre - just set ID
           md.addTrailer(trailer);
         }
@@ -1401,6 +1403,7 @@ abstract class ImdbParser {
             trailer.setDate(video.createdDate);
             trailer.setName(video.name.value);
             trailer.setQuality(vidurl.displayName.value); // SD, 480p, AUTO, ...
+            trailer.setLanguage(parseLanguageFromString(vidurl.displayName.language));
             // trailer.setUrl(vid.url); // IMDB urls exipre - just set ID
             md.addTrailer(trailer);
           }

@@ -40,7 +40,6 @@ import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.PostProcess;
 import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.TrailerQuality;
-import org.tinymediamanager.core.TrailerSources;
 import org.tinymediamanager.core.tvshow.connector.TvShowConnectors;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowBannerNaming;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowCharacterartNaming;
@@ -213,7 +212,7 @@ public final class TvShowSettings extends AbstractSettings {
   boolean                                        useTrailerPreference;
   boolean                                        automaticTrailerDownload;
   TrailerQuality                                 trailerQuality;
-  TrailerSources                                 trailerSource;
+  MediaLanguages                                 trailerLanguage;
 
   // subtitle scraper
   MediaLanguages                                 subtitleScraperLanguage;
@@ -336,7 +335,7 @@ public final class TvShowSettings extends AbstractSettings {
     setUseTrailerPreference(true);
     setAutomaticTrailerDownload(false);
     setTrailerQuality(TrailerQuality.HD_720);
-    setTrailerSource(TrailerSources.YOUTUBE);
+    setTrailerLanguage(ml);
 
     // subtitle scraper
     setSubtitleScraperLanguage(ml);
@@ -715,14 +714,14 @@ public final class TvShowSettings extends AbstractSettings {
     firePropertyChange("trailerQuality", oldValue, newValue);
   }
 
-  public TrailerSources getTrailerSource() {
-    return trailerSource;
+  public MediaLanguages getTrailerLanguage() {
+    return trailerLanguage;
   }
 
-  public void setTrailerSource(TrailerSources newValue) {
-    TrailerSources oldValue = this.trailerSource;
-    this.trailerSource = newValue;
-    firePropertyChange("trailerSource", oldValue, newValue);
+  public void setTrailerLanguage(MediaLanguages newValue) {
+    MediaLanguages oldValue = this.trailerLanguage;
+    this.trailerLanguage = newValue;
+    firePropertyChange("trailerLanguage", oldValue, newValue);
   }
 
   public void addTvShowTrailerScraper(String newValue) {

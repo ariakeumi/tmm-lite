@@ -16,6 +16,7 @@
 package org.tinymediamanager.scraper.tmdb;
 
 import static org.tinymediamanager.scraper.tmdb.TmdbMetadataProvider.getRequestLanguage;
+import static org.tinymediamanager.scraper.util.LanguageUtils.parseLanguageFromString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -121,8 +122,9 @@ class TmdbTrailerProvider {
 
       MediaTrailer trailer = new MediaTrailer();
       trailer.setName(video.name);
-      trailer.setQuality(video.size + "p");
       trailer.setProvider(video.site);
+      trailer.setQuality(video.size + "p");
+      trailer.setLanguage(parseLanguageFromString(video.iso_639_1 + "-" + video.iso_3166_1));
 
       // do not use apple trailers anymore - closed since 2023-09-01
       if ("Apple".equalsIgnoreCase(trailer.getProvider())) {

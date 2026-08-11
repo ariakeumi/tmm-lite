@@ -38,10 +38,10 @@ import org.jdesktop.beansbinding.Property;
 import org.tinymediamanager.addon.YtDlpAddon;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.TrailerQuality;
-import org.tinymediamanager.core.TrailerSources;
 import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.MovieSettings;
 import org.tinymediamanager.core.movie.filenaming.MovieTrailerNaming;
+import org.tinymediamanager.scraper.entities.MediaLanguages;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.components.button.DocsButton;
 import org.tinymediamanager.ui.components.label.TmmLabel;
@@ -60,8 +60,8 @@ class MovieTrailerOptionsSettingsPanel extends JPanel {
 
   private final ButtonGroup         trailerFilenameButtonGroup = new ButtonGroup();
 
-  private JComboBox<TrailerSources> cbTrailerSource;
   private JComboBox<TrailerQuality> cbTrailerQuality;
+  private JComboBox<MediaLanguages> cbTrailerLanguage;
   private JCheckBox                 checkBox;
   private JCheckBox                 chckbxAutomaticTrailerDownload;
   private JRadioButton              rbTrailerFilename1;
@@ -71,6 +71,8 @@ class MovieTrailerOptionsSettingsPanel extends JPanel {
   private JLabel                    lblAutomaticTrailerDownloadHint;
   private JCheckBox                 chckbxTrailerDiscKodiStyle;
   private JCheckBox                 chckbxYtDlp;
+  private JLabel                    lblTrailerQuality;
+  private JLabel                    lblTrailerLanguage;
 
   MovieTrailerOptionsSettingsPanel() {
     checkBoxListener = e -> checkChanges();
@@ -160,19 +162,18 @@ class MovieTrailerOptionsSettingsPanel extends JPanel {
         checkBox = new JCheckBox(TmmResourceBundle.getString("Settings.trailer.preferred"));
         panelOptions.add(checkBox, "cell 1 1 2 1");
 
-        JLabel lblTrailerSource = new JLabel(TmmResourceBundle.getString("Settings.trailer.source"));
-        panelOptions.add(lblTrailerSource, "cell 2 2");
-
-        cbTrailerSource = new JComboBox();
-        cbTrailerSource.setModel(new DefaultComboBoxModel<>(TrailerSources.getActiveTrailerSources()));
-        panelOptions.add(cbTrailerSource, "cell 2 2");
-
-        JLabel lblTrailerQuality = new JLabel(TmmResourceBundle.getString("Settings.trailer.quality"));
-        panelOptions.add(lblTrailerQuality, "cell 2 3");
+        lblTrailerQuality = new JLabel(TmmResourceBundle.getString("Settings.trailer.quality"));
+        panelOptions.add(lblTrailerQuality, "cell 2 2");
 
         cbTrailerQuality = new JComboBox();
         cbTrailerQuality.setModel(new DefaultComboBoxModel<>(TrailerQuality.values()));
-        panelOptions.add(cbTrailerQuality, "cell 2 3");
+        panelOptions.add(cbTrailerQuality, "cell 2 2");
+
+        lblTrailerLanguage = new JLabel(TmmResourceBundle.getString("Settings.preferredLanguage"));
+        panelOptions.add(lblTrailerLanguage, "cell 2 3");
+
+        cbTrailerLanguage = new JComboBox(MediaLanguages.valuesSorted());
+        panelOptions.add(cbTrailerLanguage, "cell 2 3");
 
         chckbxAutomaticTrailerDownload = new JCheckBox(TmmResourceBundle.getString("Settings.trailer.automaticdownload"));
         panelOptions.add(chckbxAutomaticTrailerDownload, "cell 2 4");
@@ -211,12 +212,6 @@ class MovieTrailerOptionsSettingsPanel extends JPanel {
   }
 
   protected void initDataBindings() {
-    BeanProperty<MovieSettings, TrailerSources> movieSettingsBeanProperty = BeanProperty.create("trailerSource");
-    BeanProperty<JComboBox<TrailerSources>, Object> jComboBoxBeanProperty = BeanProperty.create("selectedItem");
-    AutoBinding<MovieSettings, TrailerSources, JComboBox<TrailerSources>, Object> autoBinding_1 = Bindings
-        .createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty, cbTrailerSource, jComboBoxBeanProperty);
-    autoBinding_1.bind();
-    //
     Property movieSettingsBeanProperty_1 = BeanProperty.create("trailerQuality");
     Property jComboBoxBeanProperty_1 = BeanProperty.create("selectedItem");
     AutoBinding autoBinding_2 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty_1, cbTrailerQuality,
@@ -253,5 +248,26 @@ class MovieTrailerOptionsSettingsPanel extends JPanel {
     AutoBinding autoBinding_8 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty_5, chckbxYtDlp,
         jCheckBoxBeanProperty);
     autoBinding_8.bind();
+    //
+    AutoBinding autoBinding = Bindings.createAutoBinding(UpdateStrategy.READ, checkBox, jCheckBoxBeanProperty, cbTrailerQuality,
+        jCheckBoxBeanProperty_1);
+    autoBinding.bind();
+    //
+    Property movieSettingsBeanProperty = BeanProperty.create("trailerLanguage");
+    AutoBinding autoBinding_1 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty, cbTrailerLanguage,
+        jComboBoxBeanProperty_1);
+    autoBinding_1.bind();
+    //
+    AutoBinding autoBinding_9 = Bindings.createAutoBinding(UpdateStrategy.READ, checkBox, jCheckBoxBeanProperty, lblTrailerQuality,
+        jCheckBoxBeanProperty_1);
+    autoBinding_9.bind();
+    //
+    AutoBinding autoBinding_10 = Bindings.createAutoBinding(UpdateStrategy.READ, checkBox, jCheckBoxBeanProperty, lblTrailerLanguage,
+        jCheckBoxBeanProperty_1);
+    autoBinding_10.bind();
+    //
+    AutoBinding autoBinding_11 = Bindings.createAutoBinding(UpdateStrategy.READ, checkBox, jCheckBoxBeanProperty, cbTrailerLanguage,
+        jCheckBoxBeanProperty_1);
+    autoBinding_11.bind();
   }
 }

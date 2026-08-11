@@ -17,6 +17,7 @@ package org.tinymediamanager.scraper.thetvdb;
 
 import static org.tinymediamanager.scraper.MediaMetadata.TVDB;
 import static org.tinymediamanager.scraper.entities.MediaEpisodeGroup.EpisodeGroupType.AIRED;
+import static org.tinymediamanager.scraper.util.LanguageUtils.parseLanguageFromString;
 
 import java.text.ParseException;
 import java.time.LocalDate;
@@ -402,12 +403,7 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
         t.setProvider("youtube");
       }
       t.setScrapedBy(getProviderInfo().getId());
-      if (getProviderInfo().getConfig().getValueAsBool("scrapeLanguageNames")) {
-        t.setQuality(LanguageUtils.getLocalizedLanguageNameFromLocalizedString(options.getLanguage().toLocale(), trailer.language));
-      }
-      else {
-        t.setQuality(trailer.language);
-      }
+      t.setLanguage(parseLanguageFromString(trailer.language));
       md.addTrailer(t);
     }
 
@@ -1214,12 +1210,7 @@ public final class TheTvDbTvShowMetadataProvider extends TheTvDbMetadataProvider
           t.setProvider("youtube");
         }
         t.setScrapedBy(getProviderInfo().getId());
-        if (getProviderInfo().getConfig().getValueAsBool("scrapeLanguageNames")) {
-          t.setQuality(LanguageUtils.getLocalizedLanguageNameFromLocalizedString(options.getLanguage().toLocale(), trailer.language));
-        }
-        else {
-          t.setQuality(trailer.language);
-        }
+        t.setLanguage(parseLanguageFromString(trailer.language));
         trailers.add(t);
       }
       return trailers;

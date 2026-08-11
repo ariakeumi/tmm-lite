@@ -229,30 +229,36 @@ public class LanguageUtils {
   }
 
   /**
-   * Get the ISO 639-2/B 3 letter code
+   * Get the ISO 639-2/B 3-letter code
    * 
    * @param locale
    *          the locale to get the code for
-   * @return the 3 letter code
+   * @return the 3-letter code
    * @since 2.0
    */
   public static String getIso3BLanguage(Locale locale) {
+    if (locale == null) {
+      return "";
+    }
+
     if (ISO_639_2B_EXCEPTIONS.containsKey(locale)) {
       return ISO_639_2B_EXCEPTIONS.get(locale);
     }
+
     // special handling for pt-BR since Java handles this is por instead of pob
     if ("pt-BR".equals(locale.toLanguageTag())) {
       return "pob";
     }
+
     return locale.getISO3Language();
   }
 
   /**
-   * Get the ISO 639-2/B 3 letter code
+   * Get the ISO 639-2/B 3-letter code
    * 
    * @param language
-   *          the 2 letter ISO code to get the 3 letter code for
-   * @return the 3 letter code
+   *          the 2-letter ISO code to get the 3-letter code for
+   * @return the 3-letter code
    * @since 2.0
    */
   public static String getIso3BLanguage(String language) {
