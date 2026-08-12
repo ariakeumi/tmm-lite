@@ -87,6 +87,12 @@ public class TmmRangeSliderUI extends FlatSliderUI {
 
   protected void adjustSnapHighValue() {
     int sliderValue = ((RangeSlider) slider).getHighValue();
+    // do not snap the high value away from the slider maximum, otherwise a dynamically raised
+    // maximum (e.g. artwork height 1086) would be pulled back to the nearest labeled tick (1080)
+    if (sliderValue >= slider.getMaximum()) {
+      return;
+    }
+
     int snappedValue = snapToNearestLabeledTick(sliderValue);
 
     if (snappedValue != sliderValue) {
@@ -96,6 +102,11 @@ public class TmmRangeSliderUI extends FlatSliderUI {
 
   protected void adjustSnapLowValue() {
     int sliderValue = ((RangeSlider) slider).getLowValue();
+    // do not snap the low value away from the slider minimum
+    if (sliderValue <= slider.getMinimum()) {
+      return;
+    }
+
     int snappedValue = snapToNearestLabeledTick(sliderValue);
 
     if (snappedValue != sliderValue) {
@@ -265,6 +276,16 @@ public class TmmRangeSliderUI extends FlatSliderUI {
 
       thumbRect.x = trackRect.x;
       thumbRect.y = valuePosition - (thumbRect.height / 2);
+    }
+  }
+
+  @Override
+  protected void calculateTrackBuffer() {
+    if (slider.getOrientation() == JSlider.HORIZONTAL) {
+      trackBuffer = thumbRect.width / 2;
+    }
+    else {
+      trackBuffer = thumbRect.height / 2;
     }
   }
 

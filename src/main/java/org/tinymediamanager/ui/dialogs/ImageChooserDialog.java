@@ -1061,8 +1061,9 @@ public class ImageChooserDialog extends TmmDialog {
     int suggestedWidthMax = getSuggestedMax(true);
     int targetWidthMax = Math.max(suggestedWidthMax, maxWidth);
     if (widthSlider.getMaximum() != targetWidthMax) {
-      widthSlider.setMaximum(targetWidthMax);
-      widthSlider.setHighValue(targetWidthMax);
+      int newWidth = roundHighValue(targetWidthMax);
+      widthSlider.setMaximum(newWidth); // enable the next tick to be print
+      widthSlider.setHighValue(newWidth);
     }
 
     int maxHeight = 0;
@@ -1075,13 +1076,24 @@ public class ImageChooserDialog extends TmmDialog {
     int suggestedHeightMax = getSuggestedMax(false);
     int targetHeightMax = Math.max(suggestedHeightMax, maxHeight);
     if (heightSlider.getMaximum() != targetHeightMax) {
-      heightSlider.setMaximum(targetHeightMax);
-      heightSlider.setHighValue(targetHeightMax);
+      int newHeight = roundHighValue(targetHeightMax);
+      heightSlider.setMaximum(newHeight); // enable the next tick to be print
+      heightSlider.setHighValue(newHeight);
     }
 
     // reconfigure ticks when range changes
     configureSliderTicks(widthSlider, true);
     configureSliderTicks(heightSlider, false);
+  }
+
+  private int roundHighValue(int value) {
+    if (value <= 0) {
+      return 0;
+    }
+
+    // multiply by 1.05 and round up to the next 100
+    int rounded = (int) Math.ceil(value * 1.05 / 100.0) * 100;
+    return rounded;
   }
 
   private void updateLanguageCombobox() {
