@@ -21,6 +21,9 @@ import java.nio.file.Path;
 
 import javax.swing.SwingUtilities;
 
+import org.tinymediamanager.core.Message;
+import org.tinymediamanager.core.Message.MessageLevel;
+import org.tinymediamanager.core.MessageManager;
 import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
@@ -47,9 +50,13 @@ public class TvShowAddDatasourceAction extends TmmAction {
       String path = TmmProperties.getInstance().getProperty("tvshow.datasource.path");
       Path file = TmmUIHelper.selectDirectory(TmmResourceBundle.getString("Settings.tvshowdatasource.folderchooser"), path);
       if (file != null && Files.isDirectory(file)) {
-        TvShowModuleManager.getInstance().getSettings().addTvShowDataSources(file.toAbsolutePath().toString());
-        TvShowModuleManager.getInstance().getSettings().saveSettings();
-        TmmProperties.getInstance().putProperty("tvshow.datasource.path", file.toAbsolutePath().toString());
+        if (TvShowModuleManager.getInstance().getSettings().addTvShowDataSources(file.toAbsolutePath().toString())) {
+          TvShowModuleManager.getInstance().getSettings().saveSettings();
+          TmmProperties.getInstance().putProperty("tvshow.datasource.path", file.toAbsolutePath().toString());
+        }
+        else {
+          MessageManager.getInstance().pushMessage(new Message(MessageLevel.ERROR, "update.datasource", "Settings.datasource.nested"));
+        }
       }
     });
   }

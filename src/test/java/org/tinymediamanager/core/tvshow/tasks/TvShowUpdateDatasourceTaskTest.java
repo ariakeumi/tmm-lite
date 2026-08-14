@@ -18,6 +18,7 @@ package org.tinymediamanager.core.tvshow.tasks;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +31,7 @@ import org.tinymediamanager.core.TmmModuleManager;
 import org.tinymediamanager.core.tvshow.BasicTvShowTest;
 import org.tinymediamanager.core.tvshow.TvShowList;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
+import org.tinymediamanager.core.tvshow.TvShowSettings;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.core.tvshow.entities.TvShowSeason;
@@ -73,6 +75,46 @@ public class TvShowUpdateDatasourceTaskTest extends BasicTvShowTest {
     TvShowList tvShowList = TvShowModuleManager.getInstance().getTvShowList();
     assertThat(tvShowList.getTvShows()).hasSize(1);
     assertThat(tvShowList.getTvShows().get(0).getTitle()).isEqualTo("Breaking Bad");
+  }
+
+  @Test
+  public void udsNestedDatasource() throws Exception {
+    TvShowSettings settings = TvShowModuleManager.getInstance().getSettings();
+    TvShowList tvShowList = TvShowModuleManager.getInstance().getTvShowList();
+
+    Path parentDs = getWorkFolder().resolve("testtvshows").toAbsolutePath();
+    Path nestedDs = parentDs.resolve("Breaking Bad");
+
+    // adding a nested data source via the settings API must be rejected
+    assertThat(settings.addTvShowDataSources(nestedDs.toString())).isFalse();
+    assertThat(settings.getTvShowDataSource()).doesNotContain(nestedDs.toString());
+
+    // simulate an already broken setup (nested data source added before the guard existed)
+    settings.setTvShowDataSources(List.of(parentDs.toString(), nestedDs.toString()));
+
+    // and a bogus show which has been created by the nested data source on a previous run
+    TvShow bogusShow = new TvShow();
+    bogusShow.setDataSource(nestedDs.toString());
+    bogusShow.setPath(nestedDs.resolve("Season 01").toString());
+    bogusShow.setTitle("Season 01");
+    tvShowList.addTvShow(bogusShow);
+
+    TvShowUpdateDatasourceTask task = new TvShowUpdateDatasourceTask();
+    task.run();
+
+    // the nested data source must not create bogus TV shows from its season folders
+    assertThat(tvShowList.getTvShowByPath(nestedDs.resolve("Season 01"))).isNull();
+    assertThat(tvShowList.getTvShowByPath(nestedDs.resolve("Season 02"))).isNull();
+
+    // the bogus show from a previous run must have been removed
+    assertThat(tvShowList.getTvShows()).noneMatch(tvShow -> nestedDs.toString().equals(tvShow.getDataSource()));
+
+    // the real TV show must still be present (found via the parent data source)
+    TvShow show = tvShowList.getTvShowByPath(nestedDs);
+    assertThat(show).isNotNull();
+    assertThat(show.getTitle()).isEqualTo("Breaking Bad");
+    assertThat(show.getEpisodes().size()).isEqualTo(62);
+    assertThat(show.getSeasons().size()).isEqualTo(5);
   }
 
   private void check() throws Exception {

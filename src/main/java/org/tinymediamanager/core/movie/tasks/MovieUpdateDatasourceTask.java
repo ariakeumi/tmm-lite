@@ -115,41 +115,42 @@ import org.tinymediamanager.thirdparty.trakttv.MovieSyncTraktTvTask;
  * @author Myron Boyle
  */
 public class MovieUpdateDatasourceTask extends TmmThreadPool {
-  private static final Logger                              LOGGER           = LoggerFactory.getLogger(MovieUpdateDatasourceTask.class);
+  private static final Logger                              LOGGER            = LoggerFactory.getLogger(MovieUpdateDatasourceTask.class);
 
-  private static long                                      preDir           = 0;
-  private static long                                      postDir          = 0;
-  private static long                                      visFile          = 0;
-  private static long                                      preDirAll        = 0;
-  private static long                                      postDirAll       = 0;
-  private static long                                      visFileAll       = 0;
+  private static long                                      preDir            = 0;
+  private static long                                      postDir           = 0;
+  private static long                                      visFile           = 0;
+  private static long                                      preDirAll         = 0;
+  private static long                                      postDirAll        = 0;
+  private static long                                      visFileAll        = 0;
 
   // skip well-known, but unneeded folders (UPPERCASE)
-  private static final List<String>                        SKIP_FOLDERS     = Arrays.asList(".", "..", "CERTIFICATE", "$RECYCLE.BIN", "RECYCLER",
+  private static final List<String>                        SKIP_FOLDERS      = Arrays.asList(".", "..", "CERTIFICATE", "$RECYCLE.BIN", "RECYCLER",
       "SYSTEM VOLUME INFORMATION", "@EADIR", "ADV_OBJ", "PLEX VERSIONS", "LOST.DIR");
 
   // skip folders starting with a SINGLE "." or "._" (exception for movie ".45")
-  private static final String                              SKIP_REGEX       = "(?i)^[.@](?!45|buelos)[\\w@]+.*";
+  private static final String                              SKIP_REGEX        = "(?i)^[.@](?!45|buelos)[\\w@]+.*";
   // MMD detected as single movie in a structured folder such as /A/, /2010/ or decade
-  public static final String                               FOLDER_STRUCTURE = "(?i)^(\\w|\\d{4}|\\d{4}s|\\d{4}\\-\\d{4})$";
-  private static final Pattern                             VIDEO_3D_PATTERN = Pattern.compile("(?i)[ .,_\\(\\[-]3D[ .,_\\)\\]-]?");
+  public static final String                               FOLDER_STRUCTURE  = "(?i)^(\\w|\\d{4}|\\d{4}s|\\d{4}\\-\\d{4})$";
+  private static final Pattern                             VIDEO_3D_PATTERN  = Pattern.compile("(?i)[ .,_\\(\\[-]3D[ .,_\\)\\]-]?");
 
   private final MovieList                                  movieList;
   private final MovieSettings                              settings;
 
-  private final List<Path>                                 dataSources      = new ArrayList<>();
-  private final List<Path>                                 foldersToUpdate  = new ArrayList<>();
+  private final List<Path>                                 dataSources       = new ArrayList<>();
+  private final List<Path>                                 foldersToUpdate   = new ArrayList<>();
+  private final Set<Path>                                  nestedDataSources = new HashSet<>();
 
-  private final List<Pattern>                              skipFolders      = new ArrayList<>();
-  private final Set<Path>                                  filesFound       = new HashSet<>();
-  private final ReentrantReadWriteLock                     fileLock         = new ReentrantReadWriteLock();
-  private final List<Runnable>                             miTasks          = Collections.synchronizedList(new ArrayList<>());
-  private final List<Path>                                 existingMovies   = new ArrayList<>();
-  private final List<MediaFile>                            imageFiles       = new ArrayList<>();
+  private final List<Pattern>                              skipFolders       = new ArrayList<>();
+  private final Set<Path>                                  filesFound        = new HashSet<>();
+  private final ReentrantReadWriteLock                     fileLock          = new ReentrantReadWriteLock();
+  private final List<Runnable>                             miTasks           = Collections.synchronizedList(new ArrayList<>());
+  private final List<Path>                                 existingMovies    = new ArrayList<>();
+  private final List<MediaFile>                            imageFiles        = new ArrayList<>();
   /**
    * Lightweight filesystem attribute cache collected during recursive walks to reduce repeated network I/O on remote datasources.
    */
-  private final ConcurrentMap<String, BasicFileAttributes> fsAttrCache      = new ConcurrentHashMap<>();
+  private final ConcurrentMap<String, BasicFileAttributes> fsAttrCache       = new ConcurrentHashMap<>();
 
   public MovieUpdateDatasourceTask() {
     super(TmmResourceBundle.getString("update.datasource"));
@@ -254,6 +255,25 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
       }
       // not matching any condition -> silently skip this path
     }
+
+    // detect nested data sources and skip them to avoid duplicate movies
+    // a nested data source is a subfolder of another data source; it would be mistaken for a movie
+    // folder and its contents would be treated as bogus movies
+    Set<Path> nestedToSkip = new HashSet<>();
+    for (Path ds : dataSources) {
+      for (Path other : dataSources) {
+        if (ds.startsWith(other) && !ds.equals(other)) {
+          nestedToSkip.add(ds);
+          break;
+        }
+      }
+    }
+
+    for (Path ds : nestedToSkip) {
+      LOGGER.warn("Data source '{}' is nested inside another data source - skipping to avoid duplicate movies", ds);
+      dataSources.remove(ds);
+      nestedDataSources.add(ds);
+    }
   }
 
   @Override
@@ -290,6 +310,34 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
 
       if (!foldersToUpdate.isEmpty()) {
         updateMovies();
+      }
+
+      // remove movies which have been created by now-skipped nested data sources
+      if (!nestedDataSources.isEmpty()) {
+        List<Movie> moviesToRemove = new ArrayList<>();
+        for (Movie movie : new ArrayList<>(movieList.getMovies())) {
+          Path movieDs = Paths.get(movie.getDataSource()).normalize().toAbsolutePath();
+          if (!nestedDataSources.contains(movieDs)) {
+            continue;
+          }
+
+          if (movie.isLocked()) {
+            LOGGER.warn("Movie '{}' was created by the nested data source '{}', but is locked - leaving it untouched", movie.getPath(),
+                movie.getDataSource());
+            continue;
+          }
+
+          LOGGER.warn("Removing movie '{}' created by the nested data source '{}'", movie.getPath(), movie.getDataSource());
+          moviesToRemove.add(movie);
+        }
+
+        movieList.removeMovies(moviesToRemove);
+
+        if (!moviesToRemove.isEmpty()) {
+          MessageManager.getInstance()
+              .pushMessage(new Message(MessageLevel.WARN, "update.datasource", "update.datasource.nested.removed",
+                  new String[] { String.valueOf(moviesToRemove.size()) }));
+        }
       }
 
       if (!imageFiles.isEmpty()) {

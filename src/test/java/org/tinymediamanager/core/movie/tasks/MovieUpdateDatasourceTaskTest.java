@@ -31,6 +31,7 @@ import org.tinymediamanager.core.movie.BasicMovieTest;
 import org.tinymediamanager.core.movie.MovieComparator;
 import org.tinymediamanager.core.movie.MovieList;
 import org.tinymediamanager.core.movie.MovieModuleManager;
+import org.tinymediamanager.core.movie.MovieSettings;
 import org.tinymediamanager.core.movie.entities.Movie;
 
 /**
@@ -81,6 +82,39 @@ public class MovieUpdateDatasourceTaskTest extends BasicMovieTest {
 
     MovieList movieList = MovieModuleManager.getInstance().getMovieList();
     assertThat(movieList.getMovies()).hasSize(4);
+  }
+
+  @Test
+  public void udsNestedDatasource() throws Exception {
+    MovieSettings settings = MovieModuleManager.getInstance().getSettings();
+    MovieList movieList = MovieModuleManager.getInstance().getMovieList();
+
+    Path parentDs = getWorkFolder().resolve("testmovies").toAbsolutePath();
+    Path nestedDs = parentDs.resolve("Harry Potter");
+
+    // adding a nested data source via the settings API must be rejected
+    assertThat(settings.addMovieDataSources(nestedDs.toString())).isFalse();
+    assertThat(settings.getMovieDataSource()).doesNotContain(nestedDs.toString());
+
+    // simulate an already broken setup (nested data source added before the guard existed)
+    settings.setMovieDataSources(List.of(parentDs.toString(), nestedDs.toString()));
+
+    // and a bogus movie which has been created by the nested data source on a previous run
+    Movie bogusMovie = new Movie();
+    bogusMovie.setDataSource(nestedDs.toString());
+    bogusMovie.setPath(nestedDs.resolve("Nonexistent Movie").toString());
+    bogusMovie.setTitle("Nonexistent Movie");
+    movieList.addMovie(bogusMovie);
+
+    MovieUpdateDatasourceTask task = new MovieUpdateDatasourceTask();
+    task.run();
+
+    // the bogus movie from a previous run must have been removed
+    assertThat(movieList.getMovies()).noneMatch(movie -> nestedDs.toString().equals(movie.getDataSource()));
+
+    // the movies found via the parent data source must still be present
+    assertThat(movieList.findFirstByPath(nestedDs.resolve("HP7 Deathly Hallows Part 1 (2010)"))).isNotNull();
+    assertThat(movieList.findFirstByPath(nestedDs.resolve("HP7 Deathly Hallows Part 2"))).isNotNull();
   }
 
   private void showEntries() throws Exception {

@@ -16,6 +16,8 @@
 package org.tinymediamanager.core.tvshow;
 
 import java.beans.PropertyChangeListener;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -586,12 +588,29 @@ public final class TvShowSettings extends AbstractSettings {
     firePropertyChange(Constants.DATA_SOURCE, null, tvShowDataSources);
   }
 
-  public void addTvShowDataSources(String path) {
+  public boolean addTvShowDataSources(String path) {
+    if (StringUtils.isBlank(path)) {
+      return false;
+    }
+
+    Path newDatasource = Paths.get(path).normalize().toAbsolutePath();
+    for (String ds : tvShowDataSources) {
+      if (StringUtils.isBlank(ds)) {
+        continue;
+      }
+
+      Path existingDatasource = Paths.get(ds).normalize().toAbsolutePath();
+      if (newDatasource.startsWith(existingDatasource) || existingDatasource.startsWith(newDatasource)) {
+        return false;
+      }
+    }
+
     if (!tvShowDataSources.contains(path)) {
       tvShowDataSources.add(path);
       firePropertyChange(TV_SHOW_DATA_SOURCE, null, tvShowDataSources);
       firePropertyChange(Constants.DATA_SOURCE, null, tvShowDataSources);
     }
+    return true;
   }
 
   public void removeTvShowDataSources(String path) {

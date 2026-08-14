@@ -18,6 +18,8 @@ package org.tinymediamanager.core.movie;
 import static org.tinymediamanager.core.movie.MovieRenamerProfile.DEFAULT_RENAMER_PROFILE;
 
 import java.beans.PropertyChangeListener;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -598,12 +600,29 @@ public final class MovieSettings extends AbstractSettings {
     firePropertyChange(Constants.DATA_SOURCE, null, movieDataSources);
   }
 
-  public void addMovieDataSources(String path) {
+  public boolean addMovieDataSources(String path) {
+    if (StringUtils.isBlank(path)) {
+      return false;
+    }
+
+    Path newDatasource = Paths.get(path).normalize().toAbsolutePath();
+    for (String ds : movieDataSources) {
+      if (StringUtils.isBlank(ds)) {
+        continue;
+      }
+
+      Path existingDatasource = Paths.get(ds).normalize().toAbsolutePath();
+      if (newDatasource.startsWith(existingDatasource) || existingDatasource.startsWith(newDatasource)) {
+        return false;
+      }
+    }
+
     if (!movieDataSources.contains(path)) {
       movieDataSources.add(path);
       firePropertyChange(MOVIE_DATA_SOURCE, null, movieDataSources);
       firePropertyChange(Constants.DATA_SOURCE, null, movieDataSources);
     }
+    return true;
   }
 
   public void removeMovieDataSources(String path) {

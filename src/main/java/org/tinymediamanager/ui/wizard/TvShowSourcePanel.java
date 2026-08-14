@@ -91,8 +91,12 @@ class TvShowSourcePanel extends JPanel {
       String path = TmmProperties.getInstance().getProperty("tvshow.datasource.path");
       Path file = TmmUIHelper.selectDirectory(TmmResourceBundle.getString("Settings.tvshowdatasource.folderchooser"), path);
       if (file != null && Files.isDirectory(file)) {
-        settings.addTvShowDataSources(file.toAbsolutePath().toString());
-        TmmProperties.getInstance().putProperty("tvshow.datasource.path", file.toAbsolutePath().toString());
+        if (settings.addTvShowDataSources(file.toAbsolutePath().toString())) {
+          TmmProperties.getInstance().putProperty("tvshow.datasource.path", file.toAbsolutePath().toString());
+        }
+        else {
+          JOptionPane.showMessageDialog(this, TmmResourceBundle.getString("Settings.datasource.nested"));
+        }
       }
     });
 

@@ -116,9 +116,13 @@ class MovieDatasourceSettingsPanel extends JPanel {
       String path = TmmProperties.getInstance().getProperty("movie.datasource.path");
       Path file = TmmUIHelper.selectDirectory(TmmResourceBundle.getString("Settings.datasource.folderchooser"), path);
       if (file != null && Files.isDirectory(file)) {
-        settings.addMovieDataSources(file.toAbsolutePath().toString());
-        TmmProperties.getInstance().putProperty("movie.datasource.path", file.toAbsolutePath().toString());
-        panelDatasources.revalidate();
+        if (settings.addMovieDataSources(file.toAbsolutePath().toString())) {
+          TmmProperties.getInstance().putProperty("movie.datasource.path", file.toAbsolutePath().toString());
+          panelDatasources.revalidate();
+        }
+        else {
+          TmmToastManager.showErrorToast(this, TmmResourceBundle.getString("Settings.datasource.nested"));
+        }
       }
     });
 

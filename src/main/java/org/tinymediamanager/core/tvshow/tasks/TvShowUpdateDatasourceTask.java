@@ -110,29 +110,30 @@ import org.tinymediamanager.thirdparty.trakttv.TvShowSyncTraktTvTask;
  */
 
 public class TvShowUpdateDatasourceTask extends TmmThreadPool {
-  private static final Logger                    LOGGER          = LoggerFactory.getLogger(TvShowUpdateDatasourceTask.class);
+  private static final Logger                    LOGGER            = LoggerFactory.getLogger(TvShowUpdateDatasourceTask.class);
 
   // skip well-known, but unneeded folders (UPPERCASE)
-  private static final List<String>              SKIP_FOLDERS    = Arrays.asList(".", "..", "CERTIFICATE", "$RECYCLE.BIN", "RECYCLER",
+  private static final List<String>              SKIP_FOLDERS      = Arrays.asList(".", "..", "CERTIFICATE", "$RECYCLE.BIN", "RECYCLER",
       "SYSTEM VOLUME INFORMATION", "@EADIR", "ADV_OBJ", "EXTRATHUMB", "PLEX VERSIONS");
 
   // skip folders starting with a SINGLE "." or "._"
-  private static final String                    SKIP_REGEX      = "^[.][\\w@]+.*";
+  private static final String                    SKIP_REGEX        = "^[.][\\w@]+.*";
 
-  private static long                            preDir          = 0;
-  private static long                            postDir         = 0;
-  private static long                            visFile         = 0;
+  private static long                            preDir            = 0;
+  private static long                            postDir           = 0;
+  private static long                            visFile           = 0;
 
   private final TvShowList                       tvShowList;
   private final TvShowSettings                   settings;
 
-  private final List<Path>                       dataSources     = new ArrayList<>();
-  private final List<Path>                       foldersToUpdate = new ArrayList<>();
+  private final List<Path>                       dataSources       = new ArrayList<>();
+  private final List<Path>                       foldersToUpdate   = new ArrayList<>();
+  private final Set<Path>                        nestedDataSources = new HashSet<>();
 
-  private final List<Pattern>                    skipFolders     = new ArrayList<>();
-  private final Set<Path>                        filesFound      = new HashSet<>();
-  private final Map<String, BasicFileAttributes> fileAttributes  = new HashMap<>();
-  private final ReentrantReadWriteLock           fileLock        = new ReentrantReadWriteLock();
+  private final List<Pattern>                    skipFolders       = new ArrayList<>();
+  private final Set<Path>                        filesFound        = new HashSet<>();
+  private final Map<String, BasicFileAttributes> fileAttributes    = new HashMap<>();
+  private final ReentrantReadWriteLock           fileLock          = new ReentrantReadWriteLock();
 
   /**
    * Instantiates a new scrape task - to update a single datasource
@@ -235,6 +236,25 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
         }
       }
       // not matching either condition -> silently skip this path
+    }
+
+    // detect nested data sources and skip them to avoid duplicate TV shows
+    // a nested data source is a subfolder of another data source; it would be mistaken for a TV show
+    // folder and its season folders would be treated as bogus TV shows
+    Set<Path> nestedToSkip = new HashSet<>();
+    for (Path ds : dataSources) {
+      for (Path other : dataSources) {
+        if (ds.startsWith(other) && !ds.equals(other)) {
+          nestedToSkip.add(ds);
+          break;
+        }
+      }
+    }
+
+    for (Path ds : nestedToSkip) {
+      LOGGER.warn("Data source '{}' is nested inside another data source - skipping to avoid duplicate TV shows", ds);
+      dataSources.remove(ds);
+      nestedDataSources.add(ds);
     }
   }
 
@@ -388,6 +408,37 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
             break;
           }
         } // end foreach datasource
+      }
+
+      // remove TV shows which have been created by now-skipped nested data sources
+      // (their season folders have been mistaken for TV shows on previous runs)
+      if (!nestedDataSources.isEmpty()) {
+        List<TvShow> showsToRemove = new ArrayList<>();
+        for (TvShow tvShow : new ArrayList<>(tvShowList.getTvShows())) {
+          Path tvShowDs = Paths.get(tvShow.getDataSource()).normalize().toAbsolutePath();
+          if (!nestedDataSources.contains(tvShowDs)) {
+            continue;
+          }
+
+          if (tvShow.isLocked()) {
+            LOGGER.warn("TV show '{}' was created by the nested data source '{}', but is locked - leaving it untouched", tvShow.getPath(),
+                tvShow.getDataSource());
+            continue;
+          }
+
+          LOGGER.warn("Removing TV show '{}' created by the nested data source '{}'", tvShow.getPath(), tvShow.getDataSource());
+          showsToRemove.add(tvShow);
+        }
+
+        for (TvShow tvShow : showsToRemove) {
+          tvShowList.removeTvShow(tvShow);
+        }
+
+        if (!showsToRemove.isEmpty()) {
+          MessageManager.getInstance()
+              .pushMessage(new Message(MessageLevel.WARN, "update.datasource", "update.datasource.nested.removed",
+                  new String[] { String.valueOf(showsToRemove.size()) }));
+        }
       }
 
       if (!foldersToUpdate.isEmpty()) { // for each selected show
