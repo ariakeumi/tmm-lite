@@ -29,6 +29,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,12 +44,14 @@ import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.entities.MediaEntity;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.entities.MediaRating;
+import org.tinymediamanager.core.entities.MediaTrailer;
 import org.tinymediamanager.core.entities.Person;
 import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.scraper.MediaMetadata;
 import org.tinymediamanager.scraper.entities.MediaEpisodeGroup;
 import org.tinymediamanager.scraper.entities.MediaEpisodeNumber;
+import org.tinymediamanager.scraper.util.LanguageUtils;
 import org.tinymediamanager.scraper.util.MetadataUtil;
 import org.tinymediamanager.scraper.util.StrgUtils;
 import org.tinymediamanager.ui.TmmUILayoutStore;
@@ -256,6 +259,30 @@ public abstract class UpgradeTasks {
     MediaRating rating = ratingMap.remove(oldId);
     if (rating != null) {
       ratingMap.putIfAbsent(newId, new MediaRating(newId, rating.getRating(), rating.getVotes(), rating.getMaxValue()));
+      registerForSaving(entity);
+    }
+  }
+
+  protected void upgradeTrailerLanguage(MediaEntity entity, MediaTrailer trailer) {
+    // we stored the language tag in the quality field for TVDB in the past...
+    if (!"tvdb".equalsIgnoreCase(trailer.getScrapedBy()) || StringUtils.isBlank(trailer.getQuality())) {
+      return;
+    }
+
+    // avoid false positives
+    switch (trailer.getQuality().toUpperCase(Locale.ROOT)) {
+      case "SD", "480P", "720P", "1080P", "4K", "UNKNOWN":
+        return;
+
+      default:
+        break;
+    }
+
+    // move the language tag from the quality field to the new language field
+    String languageInQuality = LanguageUtils.parseLanguageFromString(trailer.getQuality());
+    if (StringUtils.isNotBlank(languageInQuality)) {
+      trailer.setLanguage(languageInQuality);
+      trailer.setQuality("");
       registerForSaving(entity);
     }
   }

@@ -26,6 +26,7 @@ import org.tinymediamanager.UpgradeTasks;
 import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.entities.MediaEntity;
 import org.tinymediamanager.core.entities.MediaFile;
+import org.tinymediamanager.core.entities.MediaTrailer;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.movie.entities.MovieSet;
 
@@ -174,6 +175,16 @@ public class MovieUpgradeTasks extends UpgradeTasks {
         convertRating("popcorn", "tomatometeravgcritics", movie);
       }
       module.setDbVersion(5203);
+    }
+
+    if (module.getDbVersion() < 5204) {
+      LOGGER.info("performing upgrade to ver: {}", 5204);
+      for (Movie movie : movieList.getMovies()) {
+        for (MediaTrailer trailer : movie.getTrailer()) {
+          upgradeTrailerLanguage(movie, trailer);
+        }
+      }
+      module.setDbVersion(5204);
     }
 
     saveAll();

@@ -29,6 +29,7 @@ import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.entities.MediaEntity;
 import org.tinymediamanager.core.entities.MediaFile;
+import org.tinymediamanager.core.entities.MediaTrailer;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.core.tvshow.entities.TvShowSeason;
@@ -383,6 +384,16 @@ public class TvShowUpgradeTasks extends UpgradeTasks {
         }
       }
       module.setDbVersion(5203);
+    }
+
+    if (module.getDbVersion() < 5204) {
+      LOGGER.info("performing upgrade to ver: {}", 5204);
+      for (TvShow tvShow : tvShowList.getTvShows()) {
+        for (MediaTrailer trailer : tvShow.getTrailer()) {
+          upgradeTrailerLanguage(tvShow, trailer);
+        }
+      }
+      module.setDbVersion(5204);
     }
 
     saveAll();
