@@ -17,9 +17,9 @@ package org.tinymediamanager.thirdparty.simkl;
 
 import org.tinymediamanager.thirdparty.simkl.model.SimklAccessTokenResponse;
 import org.tinymediamanager.thirdparty.simkl.model.SimklActivities;
+import org.tinymediamanager.thirdparty.simkl.model.SimklAllItemsResponse;
 import org.tinymediamanager.thirdparty.simkl.model.SimklMoviesResponse;
 import org.tinymediamanager.thirdparty.simkl.model.SimklPinCodeResponse;
-import org.tinymediamanager.thirdparty.simkl.model.SimklShowsResponse;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -50,8 +50,8 @@ interface SimklApi {
   @GET("sync/all-items/movies")
   Call<SimklMoviesResponse> getMovies(@Query("date_from") String dateFrom, @Query("extended") String extended);
 
-  @GET("sync/all-items/shows")
-  Call<SimklShowsResponse> getShows(@Query("date_from") String dateFrom, @Query("extended") String extended,
+  @GET("sync/all-items")
+  Call<SimklAllItemsResponse> getAllItems(@Query("date_from") String dateFrom, @Query("extended") String extended,
       @Query("episode_watched_at") String episodeWatchedAt, @Query("include_all_episodes") String includeAllEpisodes,
       @Query("episode_tvdb_id") String episodeTvdbId);
 

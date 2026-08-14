@@ -13,28 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.tinymediamanager.thirdparty.simkl;
+package org.tinymediamanager.thirdparty.simkl.model;
 
 import java.util.List;
 
-import org.tinymediamanager.thirdparty.simkl.model.SimklMovieItem;
-import org.tinymediamanager.thirdparty.simkl.model.SimklShowItem;
-
 /**
- * The persisted sync state for the incremental Simkl.com sync (watermarks and locally cached data/deltas).<br>
- * Stored as JSON in the {@link org.tinymediamanager.core.TmmStore}.
+ * The response of the <code>/sync/all-items</code> endpoint - contains movies, TV shows and anime in separate lists.
  *
  * @author Manuel Laggner
  */
-public class SimklSyncState {
-  public String               moviesWatermark;
-  public String               moviesRemovedFromList;
+public class SimklAllItemsResponse {
   public List<SimklMovieItem> movies;
-
-  public String               showsWatermark;
-  public String               showsRemovedFromList;
   public List<SimklShowItem>  shows;
-
-  public String               animeWatermark;
-  public String               animeRemovedFromList;
+  public List<SimklShowItem>  anime;
 }

@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
@@ -34,6 +35,7 @@ import org.tinymediamanager.core.tvshow.entities.TvShowSeason;
 import org.tinymediamanager.scraper.MediaMetadata;
 import org.tinymediamanager.scraper.util.MediaIdUtil;
 import org.tinymediamanager.thirdparty.simkl.model.SimklActivities;
+import org.tinymediamanager.thirdparty.simkl.model.SimklAllItemsResponse;
 import org.tinymediamanager.thirdparty.simkl.model.SimklEpisode;
 import org.tinymediamanager.thirdparty.simkl.model.SimklIds;
 import org.tinymediamanager.thirdparty.simkl.model.SimklSeason;
@@ -56,15 +58,53 @@ class SimklTvShow {
   }
 
   /**
-   * Fetch all shows from Simkl.com with full episode data, to determine the watched state.
+   * Fetch all shows (TV shows and anime) from Simkl.com with full episode data, to determine the watched state.
    */
   private List<SimklShowItem> fetchWatchedShows() throws IOException {
-    SimklShowsResponse response = simkl.executeCall(simkl.getApi().getShows(null, "full", "yes", "yes", "yes"));
-    if (response == null || response.shows == null) {
-      return new ArrayList<>();
+    SimklAllItemsResponse response = simkl.executeCall(simkl.getApi().getAllItems(null, "full", "yes", "yes", "yes"));
+    return mergeShowsAndAnime(response);
+  }
+
+  /**
+   * Merge the TV shows and anime lists of an all-items response into a single list of {@link SimklShowItem}s.
+   */
+  private List<SimklShowItem> mergeShowsAndAnime(SimklAllItemsResponse response) {
+    List<SimklShowItem> items = new ArrayList<>();
+    if (response == null) {
+      return items;
     }
-    response.shows.forEach(SimklShowItem::normalize);
-    return response.shows;
+    if (response.shows != null) {
+      response.shows.forEach(SimklShowItem::normalize);
+      items.addAll(response.shows);
+    }
+    if (response.anime != null) {
+      response.anime.forEach(SimklShowItem::normalize);
+      items.addAll(response.anime);
+    }
+    return items;
+  }
+
+  /**
+   * Compare two activity watermarks, treating blank values as equal.
+   */
+  private static boolean watermarkEquals(String a, String b) {
+    if (StringUtils.isBlank(a) && StringUtils.isBlank(b)) {
+      return true;
+    }
+    return Strings.CS.equals(a, b);
+  }
+
+  /**
+   * Return the earliest (non-blank) of two ISO-8601 activity watermarks. Returns the other value if one is blank, or {@code null} if both are blank.
+   */
+  private static String earliestWatermark(String a, String b) {
+    if (StringUtils.isBlank(a)) {
+      return b;
+    }
+    if (StringUtils.isBlank(b)) {
+      return a;
+    }
+    return a.compareTo(b) <= 0 ? a : b;
   }
 
   /**
@@ -78,20 +118,23 @@ class SimklTvShow {
     List<SimklShowItem> simklShows;
     try {
       // Phase 1 - initial sync (no watermark/cache stored yet): full pull, no activities handling
-      if (StringUtils.isBlank(state.showsWatermark) || state.shows == null) {
+      if (state.shows == null || (StringUtils.isBlank(state.showsWatermark) && StringUtils.isBlank(state.animeWatermark))) {
         LOGGER.debug("Performing initial Simkl.com TV show sync (full pull)");
         simklShows = new ArrayList<>(fetchWatchedShows());
         state.shows = new ArrayList<>(simklShows);
 
-        // seed the bootstrap watermark from /sync/activities, so the next sync can run incrementally
+        // seed the bootstrap watermarks from /sync/activities, so the next sync can run incrementally
         try {
           SimklActivities activities = simkl.executeCall(simkl.getApi().getActivities());
           if (activities != null && activities.tv_shows != null && StringUtils.isNotBlank(activities.tv_shows.all)) {
             state.showsWatermark = activities.tv_shows.all;
           }
+          if (activities != null && activities.anime != null && StringUtils.isNotBlank(activities.anime.all)) {
+            state.animeWatermark = activities.anime.all;
+          }
         }
         catch (Exception e) {
-          LOGGER.warn("Could not seed the Simkl.com TV show watermark - '{}'", e.getMessage());
+          LOGGER.warn("Could not seed the Simkl.com TV show watermarks - '{}'", e.getMessage());
         }
 
         simkl.saveSyncState(state);
@@ -100,29 +143,40 @@ class SimklTvShow {
         // Phase 2 - incremental: gate on /sync/activities and only fetch a delta if something changed
         SimklActivities activities = simkl.executeCall(simkl.getApi().getActivities());
         simklShows = new ArrayList<>(state.shows);
-        String currentWatermark = activities.tv_shows.all;
-        if (StringUtils.isBlank(currentWatermark) || currentWatermark.equals(state.showsWatermark)) {
+
+        String currentShowsWatermark = activities.tv_shows != null ? activities.tv_shows.all : null;
+        String currentAnimeWatermark = activities.anime != null ? activities.anime.all : null;
+
+        if (watermarkEquals(currentShowsWatermark, state.showsWatermark) && watermarkEquals(currentAnimeWatermark, state.animeWatermark)) {
           LOGGER.debug("No Simkl.com TV show changes detected - reusing cached data");
         }
         else {
-          LOGGER.debug("Simkl.com TV show data changed - fetching delta since '{}'", state.showsWatermark);
-          List<SimklShowItem> delta = fetchShowsSince(state.showsWatermark);
+          String dateFrom = earliestWatermark(state.showsWatermark, state.animeWatermark);
+          LOGGER.debug("Simkl.com TV show data changed - fetching delta since '{}'", dateFrom);
+          List<SimklShowItem> delta = fetchShowsSince(dateFrom);
           mergeShows(simklShows, delta);
           state.shows = new ArrayList<>(simklShows);
         }
 
         // reconcile removals
-        String removed = activities.tv_shows.removed_from_list;
-        if (StringUtils.isNotBlank(removed) && !removed.equals(state.showsRemovedFromList)) {
+        String showsRemoved = activities.tv_shows != null ? activities.tv_shows.removed_from_list : null;
+        String animeRemoved = activities.anime != null ? activities.anime.removed_from_list : null;
+        boolean removedChanged = (StringUtils.isNotBlank(showsRemoved) && !showsRemoved.equals(state.showsRemovedFromList))
+            || (StringUtils.isNotBlank(animeRemoved) && !animeRemoved.equals(state.animeRemovedFromList));
+        if (removedChanged) {
           LOGGER.debug("Simkl.com TV show removals detected - reconciling cache");
           pruneRemovedShows(simklShows);
           state.shows = new ArrayList<>(simklShows);
-          state.showsRemovedFromList = removed;
+          state.showsRemovedFromList = showsRemoved;
+          state.animeRemovedFromList = animeRemoved;
         }
 
-        // persist the new watermark + cache
-        if (StringUtils.isNotBlank(activities.tv_shows.all)) {
-          state.showsWatermark = activities.tv_shows.all;
+        // persist the new watermarks + cache
+        if (StringUtils.isNotBlank(currentShowsWatermark)) {
+          state.showsWatermark = currentShowsWatermark;
+        }
+        if (StringUtils.isNotBlank(currentAnimeWatermark)) {
+          state.animeWatermark = currentAnimeWatermark;
         }
         simkl.saveSyncState(state);
       }
@@ -204,12 +258,8 @@ class SimklTvShow {
    * Fetch the TV show delta (all statuses) modified since the given watermark.
    */
   private List<SimklShowItem> fetchShowsSince(String dateFrom) throws IOException {
-    SimklShowsResponse response = simkl.executeCall(simkl.getApi().getShows(dateFrom, "full", "yes", "yes", "yes"));
-    if (response == null || response.shows == null) {
-      return new ArrayList<>();
-    }
-    response.shows.forEach(SimklShowItem::normalize);
-    return response.shows;
+    SimklAllItemsResponse response = simkl.executeCall(simkl.getApi().getAllItems(dateFrom, "full", "yes", "yes", "yes"));
+    return mergeShowsAndAnime(response);
   }
 
   /**
@@ -236,14 +286,11 @@ class SimklTvShow {
    * Prune shows that have been removed from the user's Simkl.com library from the cache.
    */
   private void pruneRemovedShows(List<SimklShowItem> cache) throws IOException {
-    SimklShowsResponse response = simkl.executeCall(simkl.getApi().getShows(null, "simkl_ids_only", null, null, null));
-    if (response == null || response.shows == null) {
-      return;
-    }
-    response.shows.forEach(SimklShowItem::normalize);
+    SimklAllItemsResponse response = simkl.executeCall(simkl.getApi().getAllItems(null, "simkl_ids_only", null, null, null));
+    List<SimklShowItem> currentItems = mergeShowsAndAnime(response);
 
     Set<Integer> currentIds = new HashSet<>();
-    for (SimklShowItem item : response.shows) {
+    for (SimklShowItem item : currentItems) {
       if (item.ids != null && item.ids.simkl != null) {
         currentIds.add(item.ids.simkl);
       }
@@ -501,6 +548,8 @@ class SimklTvShow {
     state.shows = null;
     state.showsWatermark = null;
     state.showsRemovedFromList = null;
+    state.animeWatermark = null;
+    state.animeRemovedFromList = null;
     simkl.saveSyncState(state);
   }
 
