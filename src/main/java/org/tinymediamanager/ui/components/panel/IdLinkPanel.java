@@ -89,6 +89,7 @@ public class IdLinkPanel extends JPanel {
       case "wikidata" -> "Wikidata:";
       case "trakt" -> "Trakt.tv:";
       case "tmdbset" -> "TMDB " + TmmResourceBundle.getString("metatag.movieset") + ":";
+      case "simkl" -> "Simkl:";
       default -> key + ":";
     };
   }
@@ -195,7 +196,7 @@ public class IdLinkPanel extends JPanel {
           url = "https://thetvdb.com/dereferrer/movie/" + id;
           break;
 
-        case "simkl":
+        case MediaMetadata.SIMKL:
           url = "https://simkl.com/movies/" + id;
           break;
 
@@ -225,7 +226,7 @@ public class IdLinkPanel extends JPanel {
           url = "https://www.thesportsdb.com/league/" + id;
           break;
 
-        case "simkl":
+        case MediaMetadata.SIMKL:
           url = "https://simkl.com/tv/" + id; // anime gets redirected to /anime automatically
           break;
 

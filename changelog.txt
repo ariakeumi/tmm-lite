@@ -1,5 +1,6 @@
 Version 5.3.2
 =======================
++ [Simkl.com] added support for syncing watched status with Simkl.com
 + [Trailer] added language information for trailers and improved trailer handling to enhance automatic trailer selection #3343
 ---
 x [UI] some minor fixes for the range slider in the image chooser

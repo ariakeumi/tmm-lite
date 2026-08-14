@@ -39,9 +39,11 @@ import org.tinymediamanager.core.threading.NullTasksMenu;
 import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.license.License;
 import org.tinymediamanager.thirdparty.KodiRPC;
+import org.tinymediamanager.thirdparty.simkl.Simkl;
 import org.tinymediamanager.ui.AbstractTmmUIModule;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmLazyMenuAdapter;
+import org.tinymediamanager.ui.actions.ClearSimklSyncStateAction;
 import org.tinymediamanager.ui.components.MenuScroller;
 import org.tinymediamanager.ui.components.label.TmmMenuLabel;
 import org.tinymediamanager.ui.components.tabbedpane.MainTabbedPane;
@@ -82,13 +84,16 @@ import org.tinymediamanager.ui.movies.actions.MovieResetNewFlagAction;
 import org.tinymediamanager.ui.movies.actions.MovieRewriteNfoAction;
 import org.tinymediamanager.ui.movies.actions.MovieSelectedScrapeAction;
 import org.tinymediamanager.ui.movies.actions.MovieSelectedScrapeMetadataAction;
+import org.tinymediamanager.ui.movies.actions.MovieSimklRemoveFromWatchedAction;
 import org.tinymediamanager.ui.movies.actions.MovieSingleScrapeAction;
 import org.tinymediamanager.ui.movies.actions.MovieSubtitleDownloadAction;
 import org.tinymediamanager.ui.movies.actions.MovieSubtitleSearchAction;
 import org.tinymediamanager.ui.movies.actions.MovieSyncSelectedCollectionTraktTvAction;
 import org.tinymediamanager.ui.movies.actions.MovieSyncSelectedRatingTraktTvAction;
 import org.tinymediamanager.ui.movies.actions.MovieSyncSelectedTraktTvAction;
+import org.tinymediamanager.ui.movies.actions.MovieSyncSelectedWatchedSimklAction;
 import org.tinymediamanager.ui.movies.actions.MovieSyncSelectedWatchedTraktTvAction;
+import org.tinymediamanager.ui.movies.actions.MovieSyncSimklAction;
 import org.tinymediamanager.ui.movies.actions.MovieSyncTraktTvAction;
 import org.tinymediamanager.ui.movies.actions.MovieToggleWatchedFlagAction;
 import org.tinymediamanager.ui.movies.actions.MovieTrailerDownloadAction;
@@ -299,6 +304,16 @@ public class MovieUIModule extends AbstractTmmUIModule {
     traktMenu.add(createAndRegisterAction(MovieTraktTvRemoveFromWatchedAction.class));
     editPopupMenu.add(traktMenu);
 
+    JMenu simklMenu = new JMenu("Simkl.com");
+    simklMenu.setIcon(IconManager.MENU);
+    simklMenu.add(createAndRegisterAction(MovieSyncSimklAction.class));
+    simklMenu.add(createAndRegisterAction(MovieSyncSelectedWatchedSimklAction.class));
+    simklMenu.addSeparator();
+    simklMenu.add(createAndRegisterAction(MovieSimklRemoveFromWatchedAction.class));
+    simklMenu.addSeparator();
+    simklMenu.add(createAndRegisterAction(ClearSimklSyncStateAction.class));
+    editPopupMenu.add(simklMenu);
+
     editPopupMenu.addSeparator();
     editPopupMenu.add(createAndRegisterAction(MovieExportAction.class));
     editPopupMenu.add(createAndRegisterAction(MovieCopyToAction.class));
@@ -448,6 +463,16 @@ public class MovieUIModule extends AbstractTmmUIModule {
     traktMenu.add(createAndRegisterAction(MovieTraktTvRemoveFromWatchedAction.class));
     popupMenu.add(traktMenu);
 
+    JMenu simklMenu = new JMenu("Simkl.com");
+    simklMenu.setIcon(IconManager.MENU);
+    simklMenu.add(createAndRegisterAction(MovieSyncSimklAction.class));
+    simklMenu.add(createAndRegisterAction(MovieSyncSelectedWatchedSimklAction.class));
+    simklMenu.addSeparator();
+    simklMenu.add(createAndRegisterAction(MovieSimklRemoveFromWatchedAction.class));
+    simklMenu.addSeparator();
+    simklMenu.add(createAndRegisterAction(ClearSimklSyncStateAction.class));
+    popupMenu.add(simklMenu);
+
     JMenu kodiRPCMenu = KodiRPCMenu.createMenuKodiMenuRightClickMovies();
     popupMenu.add(kodiRPCMenu);
 
@@ -486,6 +511,13 @@ public class MovieUIModule extends AbstractTmmUIModule {
         }
         else {
           traktMenu.setEnabled(false);
+        }
+
+        if (Simkl.getInstance().isFeatureEnabled() && StringUtils.isNotBlank(Simkl.getInstance().getAccessToken())) {
+          simklMenu.setEnabled(true);
+        }
+        else {
+          simklMenu.setEnabled(false);
         }
 
         // Post-processing

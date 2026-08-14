@@ -285,6 +285,7 @@ public class TmmHttpLoggingInterceptor implements Interceptor {
         .replaceAll("apikey=\\w+", "apikey=<API_KEY>")
         .replaceAll("json/\\d\\d+/", "json/<API_KEY>/") // TSDB
         .replaceAll("client=\\w+", "client=<API_KEY>")
+        .replaceAll("client_id=\\w+", "client_id=<API_KEY>")
         .replaceAll("clientver=\\w+", "clientver=<API_KEY>");
   }
 }

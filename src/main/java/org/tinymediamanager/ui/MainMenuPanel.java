@@ -58,6 +58,7 @@ import org.tinymediamanager.ui.actions.CleanupImageCacheAction;
 import org.tinymediamanager.ui.actions.ClearDatabaseAction;
 import org.tinymediamanager.ui.actions.ClearHttpCacheAction;
 import org.tinymediamanager.ui.actions.ClearImageCacheAction;
+import org.tinymediamanager.ui.actions.ClearSimklSyncStateAction;
 import org.tinymediamanager.ui.actions.CloseTmmAction;
 import org.tinymediamanager.ui.actions.CreateDesktopFileAction;
 import org.tinymediamanager.ui.actions.DeleteTrashAction;
@@ -342,6 +343,8 @@ public class MainMenuPanel extends JPanel {
     menuHousekeeping.add(new ClearImageCacheAction());
     menuHousekeeping.add(new RebuildImageCacheAction());
     menuHousekeeping.add(new ClearHttpCacheAction());
+    menuHousekeeping.addSeparator();
+    menuHousekeeping.add(new ClearSimklSyncStateAction());
 
     menu.add(menuHousekeeping);
     menu.add(new ClearDatabaseAction());

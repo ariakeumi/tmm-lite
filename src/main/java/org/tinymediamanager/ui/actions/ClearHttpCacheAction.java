@@ -33,7 +33,7 @@ public class ClearHttpCacheAction extends TmmAction {
 
   public ClearHttpCacheAction() {
     putValue(NAME, TmmResourceBundle.getString("tmm.clearhttpcache"));
-    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("tmm.clearhttpcache"));
+    putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("tmm.clearhttpcache.desc"));
   }
 
   @Override

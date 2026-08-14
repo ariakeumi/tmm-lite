@@ -42,6 +42,7 @@ import org.tinymediamanager.core.DateField;
 import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.license.License;
+import org.tinymediamanager.thirdparty.simkl.Simkl;
 import org.tinymediamanager.thirdparty.trakttv.TraktTv;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmFontHelper;
@@ -71,6 +72,10 @@ class ExternalServicesSettingsPanel extends JPanel {
   private JTextField          tfMdbListApiKey;
   private JComboBox           cbTraktDate;
 
+  private JButton             btnGetSimklPin;
+  private JButton             btnTestSimklConnection;
+  private JLabel              lblSimklStatus;
+
   ExternalServicesSettingsPanel() {
     // UI init
     initComponents();
@@ -98,6 +103,28 @@ class ExternalServicesSettingsPanel extends JPanel {
       }
     });
     btnTestTraktConnection.setEnabled(License.getInstance().isValidLicense());
+
+    // data init
+    if (License.getInstance().isValidLicense() && StringUtils.isNotBlank(Simkl.getInstance().getAccessToken())) {
+      lblSimklStatus.setText(TmmResourceBundle.getString("Settings.simkl.status.good"));
+    }
+    else {
+      lblSimklStatus.setText(TmmResourceBundle.getString("Settings.simkl.status.bad"));
+    }
+
+    btnGetSimklPin.addActionListener(e -> getSimklPin());
+    btnGetSimklPin.setEnabled(License.getInstance().isValidLicense());
+    btnTestSimklConnection.addActionListener(e -> {
+      if (Simkl.getInstance().testConnection()) {
+        TmmToastManager.showSuccessToast(this, TmmResourceBundle.getString("Settings.simkl"),
+            TmmResourceBundle.getString("Settings.simkl.testconnection.good"));
+      }
+      else {
+        TmmToastManager.showErrorToast(this, TmmResourceBundle.getString("Settings.simkl"),
+            TmmResourceBundle.getString("Settings.simkl.testconnection.bad"));
+      }
+    });
+    btnTestSimklConnection.setEnabled(License.getInstance().isValidLicense());
   }
 
   private void getTraktPin() {
@@ -195,8 +222,111 @@ class ExternalServicesSettingsPanel extends JPanel {
     }
   }
 
+  private void getSimklPin() {
+    Simkl simkl = Simkl.getInstance();
+
+    String verificationUrl = "";
+    String userCode = "";
+    long pollIntervalMs = 2000;
+
+    // request a PIN code
+    try {
+      Map<String, String> response = simkl.getPinCode();
+      userCode = response.get("user_code");
+      verificationUrl = response.get("verification_uri");
+      String intervalStr = response.get("interval");
+      if (StringUtils.isNotBlank(intervalStr)) {
+        try {
+          pollIntervalMs = Math.max(1000, Long.parseLong(intervalStr) * 1000L);
+        }
+        catch (NumberFormatException ignored) {
+          // fall back to the default poll interval
+        }
+      }
+      if (StringUtils.isNoneBlank(userCode, verificationUrl)) {
+        TmmUIHelper.browseUrl(verificationUrl + "/" + userCode);
+      }
+      else {
+        throw new Exception("No verification url and user code received");
+      }
+    }
+    catch (Exception ex) {
+      // browser could not be opened, show a dialog box
+      TmmToastManager.showErrorToast(this, TmmResourceBundle.getString("Settings.simkl"), TmmResourceBundle.getString("Settings.simkl.getpin.error"));
+      LOGGER.error("Error occurred while trying to get Simkl access code - '{}'", ex.getMessage());
+      return;
+    }
+
+    String url = verificationUrl + "/" + userCode;
+    String accessToken = "";
+
+    int retryCount = 0;
+    while (retryCount < 5) {
+      JPanel panel = new JPanel(new BorderLayout());
+      panel.add(new JLabel(TmmResourceBundle.getString("Settings.simkl.getpin.desc")), BorderLayout.NORTH);
+      LinkLabel linkLabel = new LinkLabel(url);
+      linkLabel.addActionListener(e -> {
+        try {
+          TmmUIHelper.browseUrl(url);
+        }
+        catch (Exception ignored) {
+          // ignored
+        }
+      });
+      linkLabel.setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
+
+      panel.add(linkLabel, BorderLayout.CENTER);
+      panel.add(new JLabel(TmmResourceBundle.getString("Settings.simkl.getpin.desc2")), BorderLayout.SOUTH);
+
+      int answer = JOptionPane.showConfirmDialog(MainWindow.getFrame(), panel, TmmResourceBundle.getString("Settings.simkl"),
+          JOptionPane.OK_CANCEL_OPTION);
+
+      // user clicked abort
+      if (answer == JOptionPane.OK_OPTION) {
+        // try to get access token
+        try {
+          accessToken = simkl.pollForToken(userCode);
+
+          if (StringUtils.isNotBlank(accessToken)) {
+            break;
+          }
+
+          retryCount++;
+          TmmToastManager.showErrorToast(this, TmmResourceBundle.getString("Settings.simkl"),
+              TmmResourceBundle.getString("Settings.simkl.getpin.error"));
+          try {
+            Thread.sleep(pollIntervalMs);
+          }
+          catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            break;
+          }
+        }
+        catch (Exception ignored) {
+          // ignored
+        }
+      }
+      else if (answer == JOptionPane.CANCEL_OPTION) {
+        lblSimklStatus.setText(null);
+        return;
+      }
+    }
+
+    if (StringUtils.isNotBlank(accessToken)) {
+      simkl.setAccessToken(accessToken);
+      lblSimklStatus.setText(TmmResourceBundle.getString("Settings.simkl.status.good"));
+      TmmToastManager.showSuccessToast(this, TmmResourceBundle.getString("Settings.simkl"),
+          TmmResourceBundle.getString("Settings.simkl.getpin.success"));
+    }
+    else {
+      JOptionPane.showMessageDialog(MainWindow.getFrame(), TmmResourceBundle.getString("Settings.simkl.getpin.problem"),
+          TmmResourceBundle.getString("Settings.simkl.getpin"), JOptionPane.ERROR_MESSAGE);
+      lblSimklStatus.setText(TmmResourceBundle.getString("Settings.simkl.status.bad"));
+    }
+  }
+
   private void initComponents() {
-    setLayout(new MigLayout("", "[grow]", "[][15lp!][]"));
+    setLayout(new MigLayout("", "[grow]", "[][15lp!][][15lp!][]"));
     {
       JPanel panelTrakt = new JPanel();
       panelTrakt.setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][][10lp!][]")); // 16lp ~ width of the
@@ -229,12 +359,37 @@ class ExternalServicesSettingsPanel extends JPanel {
       panelTrakt.add(cbTraktDate, "cell 1 3 2 1");
     }
     {
+      JPanel panelSimkl = new JPanel();
+      panelSimkl.setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][]"));
+
+      JLabel lblSimklT = new TmmLabel(TmmResourceBundle.getString("Settings.simkl"), H3);
+
+      if (!License.getInstance().isValidLicense()) {
+        lblSimklT.setText("*PRO* " + lblSimklT.getText());
+      }
+
+      CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelSimkl, lblSimklT, true);
+      collapsiblePanel.addExtraTitleComponent(new DocsButton("/settings#simkl"));
+      add(collapsiblePanel, "cell 0 2,growx, wmin 0");
+      {
+        lblSimklStatus = new JLabel("");
+        panelSimkl.add(lblSimklStatus, "cell 1 0 2 1");
+      }
+      {
+        btnGetSimklPin = new JButton(TmmResourceBundle.getString("Settings.simkl.getpin"));
+        panelSimkl.add(btnGetSimklPin, "cell 1 1 2 1");
+
+        btnTestSimklConnection = new JButton(TmmResourceBundle.getString("Settings.simkl.testconnection"));
+        panelSimkl.add(btnTestSimklConnection, "cell 1 1 2 1");
+      }
+    }
+    {
       JPanel panelMdbList = new JPanel();
       panelMdbList.setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[]"));
       JLabel lblMdbListT = new TmmLabel(TmmResourceBundle.getString("Settings.external.rating.mdblist"), H3);
 
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelMdbList, lblMdbListT, true);
-      add(collapsiblePanel, "cell 0 2,growx, wmin 0");
+      add(collapsiblePanel, "cell 0 4,growx, wmin 0");
       {
         JLabel lblMdbListApiKeyT = new JLabel(TmmResourceBundle.getString("Settings.api.key"));
         panelMdbList.add(lblMdbListApiKeyT, "cell 1 0 2 1");

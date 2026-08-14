@@ -61,6 +61,7 @@ public class MediaMetadata {
   public static final String                               METACRITIC_USER     = "metacriticuser";
   public static final String                               MY_ANIME_LIST       = "myanimelist";
   public static final String                               ROGER_EBERT         = "rogerebert";
+  public static final String                               SIMKL               = "simkl";
   public static final String                               TMDB                = "tmdb";
   public static final String                               TMDB_SET            = "tmdbSet";
   public static final String                               TRAKT_TV            = "trakt";

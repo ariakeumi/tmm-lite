@@ -195,6 +195,9 @@ public class MovieInformationPanel extends InformationPanel {
       if (MediaMetadata.TMDB_SET.equals(key)) {
         panelOtherIds.add(new IdLinkPanel(key, movie));
       }
+      else if (MediaMetadata.SIMKL.equals(key)) {
+        panelOtherIds.add(new IdLinkPanel(key, movie));
+      }
     }
     panelOtherIds.invalidate();
     panelOtherIds.repaint();

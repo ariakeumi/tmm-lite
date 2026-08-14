@@ -191,6 +191,9 @@ public class TvShowInformationPanel extends InformationPanel {
       if (MediaMetadata.TMDB.equals(key)) {
         panelOtherIds.add(new IdLinkPanel(key, tvShow));
       }
+      else if (MediaMetadata.SIMKL.equals(key)) {
+        panelOtherIds.add(new IdLinkPanel(key, tvShow));
+      }
     }
     panelOtherIds.invalidate();
     panelOtherIds.repaint();
