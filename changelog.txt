@@ -4,6 +4,7 @@ Version 5.3.2
 + [Trailer] added language information for trailers and improved trailer handling to enhance automatic trailer selection #3343
 ---
 x [UI] some minor fixes for the range slider in the image chooser
+x [UI] removed completeness indicators for missing episodes
 
 
 Version 5.3.1
