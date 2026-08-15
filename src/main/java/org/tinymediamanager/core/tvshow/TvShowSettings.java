@@ -60,6 +60,7 @@ import org.tinymediamanager.core.tvshow.filenaming.TvShowSeasonFanartNaming;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowSeasonNfoNaming;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowSeasonPosterNaming;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowSeasonThumbNaming;
+import org.tinymediamanager.core.tvshow.filenaming.TvShowSquareartNaming;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowThumbNaming;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowTrailerNaming;
 import org.tinymediamanager.scraper.MediaMetadata;
@@ -111,6 +112,7 @@ public final class TvShowSettings extends AbstractSettings {
   static final String                            CLEARLOGO_FILENAME             = "clearlogoFilename";
   static final String                            CHARACTERART_FILENAME          = "characterartFilename";
   static final String                            KEYART_FILENAME                = "keyartFilename";
+  static final String                            SQUAREART_FILENAME             = "squareartFilename";
   static final String                            SEASON_NFO_FILENAME            = "seasonNfoFilename";
   static final String                            SEASON_POSTER_FILENAME         = "seasonPosterFilename";
   static final String                            SEASON_FANART_FILENAME         = "seasonFanartFilename";
@@ -143,6 +145,7 @@ public final class TvShowSettings extends AbstractSettings {
   final List<TvShowClearlogoNaming>              clearlogoFilenames             = new ArrayList<>();
   final List<TvShowCharacterartNaming>           characterartFilenames          = new ArrayList<>();
   final List<TvShowKeyartNaming>                 keyartFilenames                = new ArrayList<>();
+  final List<TvShowSquareartNaming>              squareartFilenames             = new ArrayList<>();
   final List<TvShowSeasonNfoNaming>              seasonNfoFilenames             = new ArrayList<>();
   final List<TvShowSeasonPosterNaming>           seasonPosterFilenames          = new ArrayList<>();
   final List<TvShowSeasonFanartNaming>           seasonFanartFilenames          = new ArrayList<>();
@@ -411,6 +414,9 @@ public final class TvShowSettings extends AbstractSettings {
 
     clearKeyartFilenames();
     addKeyartFilename(TvShowKeyartNaming.KEYART);
+
+    clearSquareartFilenames();
+    addSquareartFilename(TvShowSquareartNaming.SQUAREART);
 
     clearTrailerFilenames();
     addTrailerFilename(TvShowTrailerNaming.TVSHOW_TRAILER);
@@ -1463,6 +1469,22 @@ public final class TvShowSettings extends AbstractSettings {
 
   public List<TvShowKeyartNaming> getKeyartFilenames() {
     return keyartFilenames;
+  }
+
+  public void addSquareartFilename(TvShowSquareartNaming filename) {
+    if (!squareartFilenames.contains(filename)) {
+      squareartFilenames.add(filename);
+      firePropertyChange(SQUAREART_FILENAME, null, squareartFilenames);
+    }
+  }
+
+  public void clearSquareartFilenames() {
+    squareartFilenames.clear();
+    firePropertyChange(SQUAREART_FILENAME, null, squareartFilenames);
+  }
+
+  public List<TvShowSquareartNaming> getSquareartFilenames() {
+    return Collections.unmodifiableList(this.squareartFilenames);
   }
 
   public void addClearlogoFilename(TvShowClearlogoNaming filename) {

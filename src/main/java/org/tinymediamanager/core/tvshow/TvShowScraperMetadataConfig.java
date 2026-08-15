@@ -68,6 +68,7 @@ public enum TvShowScraperMetadataConfig implements ScraperMetadataConfig {
   DISCART(Type.ARTWORK, "mediafiletype.disc"),
   KEYART(Type.ARTWORK),
   CHARACTERART(Type.ARTWORK),
+  SQUAREART(Type.ARTWORK),
   EXTRAFANART(Type.ARTWORK),
 
   SEASON_POSTER(Type.ARTWORK),

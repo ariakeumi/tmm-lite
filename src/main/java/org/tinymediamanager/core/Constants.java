@@ -98,6 +98,7 @@ public final class Constants {
   public static final String SEASON_THUMB           = "seasonThumb";
   public static final String SORT_TITLE             = "sortTitle";
   public static final String SPOKEN_LANGUAGES       = "spokenLanguages";
+  public static final String SQUAREART              = "squareart";
   public static final String STATUS                 = "status";
   public static final String SUBTITLES              = "subtitles";
   public static final String SUBTITLES_COUNT        = "countSubtitles";

@@ -122,6 +122,7 @@ public class MediaFileHelper {
   public static final Pattern      DISCART_PATTERN;
   public static final Pattern      CLEARART_PATTERN;
   public static final Pattern      KEYART_PATTERN;
+  public static final Pattern      SQUAREART_PATTERN;
 
   public static final String       VIDEO_FORMAT_96P   = "96p";
   public static final String       VIDEO_FORMAT_120P  = "120p";
@@ -197,6 +198,7 @@ public class MediaFileHelper {
     DISCART_PATTERN = Pattern.compile("^" + opt_delim + "(discart|disc)\\.(" + extensions + ")$", Pattern.CASE_INSENSITIVE);
     CLEARART_PATTERN = Pattern.compile("^" + opt_delim + "(clearart)\\.(" + extensions + ")$", Pattern.CASE_INSENSITIVE);
     KEYART_PATTERN = Pattern.compile("^" + opt_delim + "(keyart)\\.(" + extensions + ")$", Pattern.CASE_INSENSITIVE);
+    SQUAREART_PATTERN = Pattern.compile("^" + opt_delim + "(square|squareart|backgroundsquare)\\.(" + extensions + ")$", Pattern.CASE_INSENSITIVE);
   }
 
   private MediaFileHelper() {
@@ -485,6 +487,12 @@ public class MediaFileHelper {
     matcher = MediaFileHelper.KEYART_PATTERN.matcher(filename);
     if (matcher.matches()) {
       return MediaFileType.KEYART;
+    }
+
+    // squareart.* / square.* / backgroundSquare.*
+    matcher = MediaFileHelper.SQUAREART_PATTERN.matcher(filename);
+    if (matcher.matches()) {
+      return MediaFileType.SQUAREART;
     }
 
     // folder style as last chance
@@ -2843,6 +2851,7 @@ public class MediaFileHelper {
       case DISC:
       case EXTRATHUMB:
       case KEYART:
+      case SQUAREART:
         gatherImageInformation(mediaFile, miSnapshot);
         break;
 

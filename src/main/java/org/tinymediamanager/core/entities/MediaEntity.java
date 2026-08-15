@@ -40,6 +40,7 @@ import static org.tinymediamanager.core.Constants.PLOT;
 import static org.tinymediamanager.core.Constants.POSTER;
 import static org.tinymediamanager.core.Constants.PRODUCTION_COMPANY;
 import static org.tinymediamanager.core.Constants.RATING;
+import static org.tinymediamanager.core.Constants.SQUAREART;
 import static org.tinymediamanager.core.Constants.TAGS;
 import static org.tinymediamanager.core.Constants.TAGS_AS_STRING;
 import static org.tinymediamanager.core.Constants.THUMB;
@@ -615,6 +616,7 @@ public abstract class MediaEntity extends AbstractModelObject implements IPrinta
       case CLEARLOGO:
       case CHARACTERART:
       case KEYART:
+      case SQUAREART:
       case SEASON_BANNER:
       case SEASON_FANART:
       case SEASON_POSTER:
@@ -1061,6 +1063,11 @@ public abstract class MediaEntity extends AbstractModelObject implements IPrinta
         firePropertyChange(HAS_IMAGES, false, true);
         break;
 
+      case SQUAREART:
+        firePropertyChange(SQUAREART, null, mediaFile.getPath());
+        firePropertyChange(HAS_IMAGES, false, true);
+        break;
+
       default:
         break;
     }
@@ -1125,6 +1132,11 @@ public abstract class MediaEntity extends AbstractModelObject implements IPrinta
 
       case KEYART:
         firePropertyChange(KEYART, null, "");
+        firePropertyChange(HAS_IMAGES, false, true);
+        break;
+
+      case SQUAREART:
+        firePropertyChange(SQUAREART, null, "");
         firePropertyChange(HAS_IMAGES, false, true);
         break;
 

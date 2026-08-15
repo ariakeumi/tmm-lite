@@ -24,6 +24,7 @@ import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkTyp
 import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.CLEARLOGO;
 import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.KEYART;
 import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.POSTER;
+import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.SQUAREART;
 import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.THUMB;
 
 import java.awt.BorderLayout;
@@ -760,6 +761,10 @@ public class TvShowChooserDialog extends TmmDialog implements ActionListener {
                   && (overwrite || StringUtils.isBlank(tvShowToScrape.getArtworkFilename(MediaFileType.KEYART)))) {
                 chooseArtwork(artwork, MediaFileType.KEYART);
               }
+              if (tvShowScraperMetadataConfig.contains(TvShowScraperMetadataConfig.SQUAREART)
+                  && (overwrite || StringUtils.isBlank(tvShowToScrape.getArtworkFilename(MediaFileType.SQUAREART)))) {
+                chooseArtwork(artwork, MediaFileType.SQUAREART);
+              }
 
               // season artwork
               for (TvShowSeason season : tvShowToScrape.getSeasons().stream().sorted(Comparator.comparingInt(TvShowSeason::getSeason)).toList()) {
@@ -884,6 +889,13 @@ public class TvShowChooserDialog extends TmmDialog implements ActionListener {
           return;
         }
         imageType = KEYART;
+        break;
+
+      case SQUAREART:
+        if (TvShowModuleManager.getInstance().getSettings().getSquareartFilenames().isEmpty()) {
+          return;
+        }
+        imageType = SQUAREART;
         break;
 
       default:

@@ -36,6 +36,7 @@ public class Images {
   public List<Image> moviebackground = new ArrayList<>();
   public List<Image> moviebanner     = new ArrayList<>();
   public List<Image> moviethumb      = new ArrayList<>();
+  public List<Image> moviesquare     = new ArrayList<>();
 
   // tv shows
   public List<Image> clearlogo       = new ArrayList<>();
@@ -50,4 +51,5 @@ public class Images {
   public List<Image> seasonthumb     = new ArrayList<>();
   public List<Image> seasonbanner    = new ArrayList<>();
   public List<Image> characterart    = new ArrayList<>();
+  public List<Image> tvsquare        = new ArrayList<>();
 }

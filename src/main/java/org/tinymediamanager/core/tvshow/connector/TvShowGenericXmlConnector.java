@@ -467,6 +467,7 @@ public abstract class TvShowGenericXmlConnector implements ITvShowConnector {
       addThumb(MediaFileType.CLEARLOGO, "clearlogo");
       addThumb(MediaFileType.THUMB, "landscape");
       addThumb(MediaFileType.KEYART, "keyart");
+      addThumb(MediaFileType.SQUAREART, "squareart");
       addThumb(MediaFileType.LOGO, "logo");
       addThumb(MediaFileType.CHARACTERART, "characterart");
       addThumb(MediaFileType.DISC, "discart");

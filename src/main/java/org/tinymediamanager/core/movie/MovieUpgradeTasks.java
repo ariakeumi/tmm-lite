@@ -17,6 +17,7 @@ package org.tinymediamanager.core.movie;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,7 @@ import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.entities.MediaTrailer;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.movie.entities.MovieSet;
+import org.tinymediamanager.core.movie.filenaming.MovieSquareartNaming;
 
 /**
  * the class {@link MovieUpgradeTasks} is used to perform actions on {@link Movie}s and {@link MovieSet}s
@@ -64,6 +66,22 @@ public class MovieUpgradeTasks extends UpgradeTasks {
       settings.setEnglishTitle(true);
 
       settings.setVersion(5201);
+    }
+
+    if (settings.getVersion() < 5202) {
+      LOGGER.info("performing upgrade to ver: {}", 5202);
+      // activate squareart for existing users
+      List<MovieScraperMetadataConfig> metadataConfig = new ArrayList<>(settings.getScraperMetadataConfig());
+      if (!metadataConfig.contains(MovieScraperMetadataConfig.SQUAREART)) {
+        metadataConfig.add(MovieScraperMetadataConfig.SQUAREART);
+        settings.setScraperMetadataConfig(metadataConfig);
+      }
+
+      if (settings.getSquareartFilenames().isEmpty()) {
+        settings.addSquareartFilename(MovieSquareartNaming.FILENAME_SQUAREART);
+      }
+
+      settings.setVersion(5202);
     }
 
     settings.saveSettings();

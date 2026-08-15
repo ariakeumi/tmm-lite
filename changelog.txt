@@ -1,6 +1,7 @@
 Version 5.3.2
 =======================
 + [Simkl.com] added support for syncing watched status with Simkl.com
++ [Movies, TV shows] added squareart artwork type #3217
 + [Trailer] added language information for trailers and improved trailer handling to enhance automatic trailer selection #3343
 ---
 x [Movies, TV shows] added a guard to prevent adding/processing nested data sources

@@ -109,6 +109,7 @@ public class MovieNfoParser {
   public List<String>         thumbs              = new ArrayList<>();
   public List<String>         keyarts             = new ArrayList<>();
   public List<String>         logos               = new ArrayList<>();
+  public List<String>         squarearts          = new ArrayList<>();
   public List<String>         fanarts             = new ArrayList<>();
   public List<MediaGenres>    genres              = new ArrayList<>();
   public List<String>         countries           = new ArrayList<>();
@@ -704,6 +705,10 @@ public class MovieNfoParser {
 
           case "keyart":
             keyarts.add(element.ownText());
+            break;
+
+          case "squareart":
+            squarearts.add(element.ownText());
             break;
 
           case "logo":
@@ -1896,6 +1901,10 @@ public class MovieNfoParser {
 
     if (!keyarts.isEmpty()) {
       movie.setArtworkUrl(keyarts.get(0), MediaFileType.KEYART);
+    }
+
+    if (!squarearts.isEmpty()) {
+      movie.setArtworkUrl(squarearts.get(0), MediaFileType.SQUAREART);
     }
 
     if (!logos.isEmpty()) {

@@ -575,6 +575,10 @@ public class TvShowRenamer {
         filenamings = TvShowModuleManager.getInstance().getSettings().getKeyartFilenames();
         break;
 
+      case SQUAREART:
+        filenamings = TvShowModuleManager.getInstance().getSettings().getSquareartFilenames();
+        break;
+
       case TRAILER:
         filenamings = TvShowModuleManager.getInstance().getSettings().getTrailerFilenames();
         break;

@@ -62,6 +62,7 @@ import org.tinymediamanager.core.movie.filenaming.MovieSetFanartNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieSetNfoNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieSetPosterNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieSetThumbNaming;
+import org.tinymediamanager.core.movie.filenaming.MovieSquareartNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieThumbNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieTrailerNaming;
 import org.tinymediamanager.scraper.MediaMetadata;
@@ -105,6 +106,7 @@ public final class MovieSettings extends AbstractSettings {
   static final String                       CLEARLOGO_FILENAME             = "clearlogoFilename";
   static final String                       DISCART_FILENAME               = "discartFilename";
   static final String                       KEYART_FILENAME                = "keyartFilename";
+  static final String                       SQUAREART_FILENAME             = "squareartFilename";
   static final String                       MOVIE_SET_POSTER_FILENAME      = "movieSetPosterFilename";
   static final String                       MOVIE_SET_FANART_FILENAME      = "movieSetFanartFilename";
   static final String                       MOVIE_SET_BANNER_FILENAME      = "movieSetBannerFilename";
@@ -138,6 +140,7 @@ public final class MovieSettings extends AbstractSettings {
   final List<MovieClearlogoNaming>          clearlogoFilenames             = new ArrayList<>();
   final List<MovieDiscartNaming>            discartFilenames               = new ArrayList<>();
   final List<MovieKeyartNaming>             keyartFilenames                = new ArrayList<>();
+  final List<MovieSquareartNaming>          squareartFilenames             = new ArrayList<>();
 
   final List<MovieTrailerNaming>            trailerFilenames               = new ArrayList<>();
   final List<String>                        badWords                       = ObservableCollections.observableList(new ArrayList<>());
@@ -432,6 +435,9 @@ public final class MovieSettings extends AbstractSettings {
 
     clearKeyartFilenames();
     addKeyartFilename(MovieKeyartNaming.FILENAME_KEYART);
+
+    clearSquareartFilenames();
+    addSquareartFilename(MovieSquareartNaming.FILENAME_SQUAREART);
 
     clearMovieSetNfoFilenames();
     addMovieSetNfoFilename(MovieSetNfoNaming.KODI_NFO);
@@ -960,6 +966,22 @@ public final class MovieSettings extends AbstractSettings {
 
   public List<MovieKeyartNaming> getKeyartFilenames() {
     return keyartFilenames;
+  }
+
+  public void addSquareartFilename(MovieSquareartNaming filename) {
+    if (!squareartFilenames.contains(filename)) {
+      squareartFilenames.add(filename);
+      firePropertyChange(SQUAREART_FILENAME, null, squareartFilenames);
+    }
+  }
+
+  public void clearSquareartFilenames() {
+    squareartFilenames.clear();
+    firePropertyChange(SQUAREART_FILENAME, null, squareartFilenames);
+  }
+
+  public List<MovieSquareartNaming> getSquareartFilenames() {
+    return new ArrayList<>(this.squareartFilenames);
   }
 
   public PosterSizes getImagePosterSize() {

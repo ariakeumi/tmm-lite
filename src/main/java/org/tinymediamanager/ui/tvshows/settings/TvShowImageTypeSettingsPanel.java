@@ -43,6 +43,7 @@ import org.tinymediamanager.core.tvshow.filenaming.TvShowSeasonBannerNaming;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowSeasonFanartNaming;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowSeasonPosterNaming;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowSeasonThumbNaming;
+import org.tinymediamanager.core.tvshow.filenaming.TvShowSquareartNaming;
 import org.tinymediamanager.core.tvshow.filenaming.TvShowThumbNaming;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.components.button.DocsButton;
@@ -93,6 +94,9 @@ class TvShowImageTypeSettingsPanel extends JPanel {
   private JCheckBox            chckbxSeasonThumb3;
   private JCheckBox            chckbxSeasonThumb4;
   private JCheckBox            chckbxKeyart1;
+  private JCheckBox            chckbxSquareart1;
+  private JCheckBox            chckbxSquareart2;
+  private JCheckBox            chckbxSquareart3;
   private JCheckBox            chckbxDiscart1;
   private JCheckBox            chckbxDiscart2;
   private JCheckBox            chckbxSeasonFanart7;
@@ -142,7 +146,7 @@ class TvShowImageTypeSettingsPanel extends JPanel {
 
       JPanel panelColumn1 = new JPanel();
       panelRow.add(panelColumn1);
-      panelColumn1.setLayout(new MigLayout("", "[300lp,grow][25lp!]", "[][][][]"));
+      panelColumn1.setLayout(new MigLayout("", "[300lp,grow][25lp!]", "[][][][][]"));
 
       JPanel panelColumn2 = new JPanel();
       panelRow.add(panelColumn2);
@@ -199,6 +203,21 @@ class TvShowImageTypeSettingsPanel extends JPanel {
         panelThumb.add(chckbxThumb2, "cell 0 1");
 
         panelColumn1.add(panelThumb, "cell 0 3,growx");
+      }
+      {
+        JPanel panelSquareart = new JPanel();
+        panelColumn1.add(panelSquareart, "cell 0 4,growx");
+        panelSquareart.setBorder(new TitledBorder(TmmResourceBundle.getString("mediafiletype.squareart")));
+        panelSquareart.setLayout(new MigLayout("", "[grow]", "[][][]"));
+
+        chckbxSquareart1 = new JCheckBox("squareart.*");
+        panelSquareart.add(chckbxSquareart1, "cell 0 0");
+
+        chckbxSquareart2 = new JCheckBox("square.*");
+        panelSquareart.add(chckbxSquareart2, "cell 0 1");
+
+        chckbxSquareart3 = new JCheckBox("backgroundSquare.*");
+        panelSquareart.add(chckbxSquareart3, "cell 0 2");
       }
 
       {
@@ -472,6 +491,11 @@ class TvShowImageTypeSettingsPanel extends JPanel {
     chckbxKeyart1.removeItemListener(checkBoxListener);
     clearSelection(chckbxKeyart1);
 
+    chckbxSquareart1.removeItemListener(checkBoxListener);
+    chckbxSquareart2.removeItemListener(checkBoxListener);
+    chckbxSquareart3.removeItemListener(checkBoxListener);
+    clearSelection(chckbxSquareart1, chckbxSquareart2, chckbxSquareart3);
+
     chckbxSeasonPoster1.removeItemListener(checkBoxListener);
     chckbxSeasonPoster2.removeItemListener(checkBoxListener);
     chckbxSeasonPoster3.removeItemListener(checkBoxListener);
@@ -606,6 +630,22 @@ class TvShowImageTypeSettingsPanel extends JPanel {
       switch (keyartNaming) {
         case KEYART:
           chckbxKeyart1.setSelected(true);
+          break;
+      }
+    }
+
+    for (TvShowSquareartNaming squareartNaming : settings.getSquareartFilenames()) {
+      switch (squareartNaming) {
+        case SQUAREART:
+          chckbxSquareart1.setSelected(true);
+          break;
+
+        case SQUARE:
+          chckbxSquareart2.setSelected(true);
+          break;
+
+        case BACKGROUND_SQUARE:
+          chckbxSquareart3.setSelected(true);
           break;
       }
     }
@@ -764,6 +804,10 @@ class TvShowImageTypeSettingsPanel extends JPanel {
 
     chckbxKeyart1.addItemListener(checkBoxListener);
 
+    chckbxSquareart1.addItemListener(checkBoxListener);
+    chckbxSquareart2.addItemListener(checkBoxListener);
+    chckbxSquareart3.addItemListener(checkBoxListener);
+
     chckbxSeasonPoster1.addItemListener(checkBoxListener);
     chckbxSeasonPoster2.addItemListener(checkBoxListener);
     chckbxSeasonPoster3.addItemListener(checkBoxListener);
@@ -871,6 +915,17 @@ class TvShowImageTypeSettingsPanel extends JPanel {
     settings.clearKeyartFilenames();
     if (chckbxKeyart1.isSelected()) {
       settings.addKeyartFilename(TvShowKeyartNaming.KEYART);
+    }
+
+    settings.clearSquareartFilenames();
+    if (chckbxSquareart1.isSelected()) {
+      settings.addSquareartFilename(TvShowSquareartNaming.SQUAREART);
+    }
+    if (chckbxSquareart2.isSelected()) {
+      settings.addSquareartFilename(TvShowSquareartNaming.SQUARE);
+    }
+    if (chckbxSquareart3.isSelected()) {
+      settings.addSquareartFilename(TvShowSquareartNaming.BACKGROUND_SQUARE);
     }
 
     settings.clearSeasonPosterFilenames();

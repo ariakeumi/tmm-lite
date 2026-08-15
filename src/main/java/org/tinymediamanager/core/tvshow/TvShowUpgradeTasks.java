@@ -33,6 +33,7 @@ import org.tinymediamanager.core.entities.MediaTrailer;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.core.tvshow.entities.TvShowSeason;
+import org.tinymediamanager.core.tvshow.filenaming.TvShowSquareartNaming;
 import org.tinymediamanager.scraper.entities.MediaEpisodeGroup;
 
 /**
@@ -89,6 +90,22 @@ public class TvShowUpgradeTasks extends UpgradeTasks {
       }
 
       settings.setVersion(5202);
+    }
+
+    if (settings.getVersion() < 5203) {
+      LOGGER.info("performing upgrade to ver: {}", 5203);
+      // activate squareart for existing users
+      List<TvShowScraperMetadataConfig> showScraperMetadataConfig = new ArrayList<>(settings.getTvShowScraperMetadataConfig());
+      if (!showScraperMetadataConfig.contains(TvShowScraperMetadataConfig.SQUAREART)) {
+        showScraperMetadataConfig.add(TvShowScraperMetadataConfig.SQUAREART);
+        settings.setTvShowScraperMetadataConfig(showScraperMetadataConfig);
+      }
+
+      if (settings.getSquareartFilenames().isEmpty()) {
+        settings.addSquareartFilename(TvShowSquareartNaming.SQUAREART);
+      }
+
+      settings.setVersion(5203);
     }
 
     settings.saveSettings();

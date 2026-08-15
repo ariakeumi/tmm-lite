@@ -2898,6 +2898,7 @@ public class Movie extends MediaEntity implements IMediaInformation {
       case CLEARLOGO -> MovieArtworkHelper.getArtworkFiles(this, MediaFileType.CLEARLOGO);
       case DISCART -> MovieArtworkHelper.getArtworkFiles(this, MediaFileType.DISC);
       case KEYART -> MovieArtworkHelper.getArtworkFiles(this, MediaFileType.KEYART);
+      case SQUAREART -> MovieArtworkHelper.getArtworkFiles(this, MediaFileType.SQUAREART);
       case EXTRAFANART -> MovieArtworkHelper.getArtworkFiles(this, MediaFileType.EXTRAFANART);
       case EXTRATHUMB -> MovieArtworkHelper.getArtworkFiles(this, MediaFileType.EXTRATHUMB);
     };

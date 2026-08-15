@@ -361,6 +361,10 @@ public class ImageChooserDialog extends TmmDialog {
       case KEYART:
         setTitle(TmmResourceBundle.getString("image.choose.keyart"));
         break;
+
+      case SQUAREART:
+        setTitle(TmmResourceBundle.getString("image.choose.squareart"));
+        break;
     }
 
     /* UI components */
@@ -812,6 +816,7 @@ public class ImageChooserDialog extends TmmDialog {
 
       case POSTER:
       case KEYART:
+      case SQUAREART:
       default:
         size = ImageUtils.calculateSize(150, 250, originalImage.getWidth(), originalImage.getHeight(), true);
         break;
@@ -1389,6 +1394,10 @@ public class ImageChooserDialog extends TmmDialog {
             art = new MediaArtwork("", MediaArtworkType.KEYART);
             break;
 
+          case SQUAREART:
+            art = new MediaArtwork("", MediaArtworkType.SQUAREART);
+            break;
+
           default:
             return;
         }
@@ -1815,6 +1824,10 @@ public class ImageChooserDialog extends TmmDialog {
                 options.setArtworkType(MediaArtworkType.KEYART);
                 break;
 
+              case SQUAREART:
+                options.setArtworkType(MediaArtworkType.SQUAREART);
+                break;
+
               case THUMB:
                 options.setArtworkType(MediaArtworkType.THUMB);
                 break;
@@ -2140,6 +2153,10 @@ public class ImageChooserDialog extends TmmDialog {
       case KEYART:
         // TMDb posters: typically 500x750, 1000x1500, 2000x3000
         return isWidth ? new int[] { 500, 1000, 2000 } : new int[] { 750, 1500, 3000 };
+
+      case SQUAREART:
+        // square art: typically 500x500, 1000x1000
+        return isWidth ? new int[] { 500, 1000, 2000 } : new int[] { 500, 1000, 2000 };
 
       case BACKGROUND:
       case SEASON_FANART:

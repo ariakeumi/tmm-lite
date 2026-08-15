@@ -25,6 +25,7 @@ import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkTyp
 import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.SEASON_FANART;
 import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.SEASON_POSTER;
 import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.SEASON_THUMB;
+import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.SQUAREART;
 import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.THUMB;
 
 import java.io.IOException;
@@ -133,6 +134,10 @@ public class TvShowArtworkHelper {
           fileNamings.addAll(TvShowModuleManager.getInstance().getSettings().getKeyartFilenames());
           break;
 
+        case SQUAREART:
+          fileNamings.addAll(TvShowModuleManager.getInstance().getSettings().getSquareartFilenames());
+          break;
+
         default:
           return;
       }
@@ -214,6 +219,11 @@ public class TvShowArtworkHelper {
     // keyart
     if (!hasArtwork(tvShow, MediaFileType.KEYART)) {
       setBestArtwork(tvShow, artwork, KEYART, false);
+    }
+
+    // squareart
+    if (!hasArtwork(tvShow, MediaFileType.SQUAREART)) {
+      setBestArtwork(tvShow, artwork, SQUAREART, false);
     }
 
     for (TvShowSeason season : tvShow.getSeasons()) {
@@ -687,6 +697,10 @@ public class TvShowArtworkHelper {
         && !hasArtwork(tvShow, MediaFileType.KEYART)) {
       return true;
     }
+    if (config.contains(TvShowScraperMetadataConfig.SQUAREART) && !TvShowModuleManager.getInstance().getSettings().getSquareartFilenames().isEmpty()
+        && !hasArtwork(tvShow, MediaFileType.SQUAREART)) {
+      return true;
+    }
     if (config.contains(TvShowScraperMetadataConfig.EXTRAFANART) && TvShowModuleManager.getInstance().getSettings().isImageExtraFanart()
         && !TvShowModuleManager.getInstance().getSettings().getExtraFanartFilenames().isEmpty() && !hasArtwork(tvShow, MediaFileType.EXTRAFANART)) {
       return true;
@@ -940,6 +954,12 @@ public class TvShowArtworkHelper {
     // keyart
     if (config.contains(TvShowScraperMetadataConfig.KEYART) && (overwrite || StringUtils.isBlank(tvShow.getArtworkFilename(MediaFileType.KEYART)))) {
       setBestArtwork(tvShow, artwork, KEYART, overwrite);
+    }
+
+    // squareart
+    if (config.contains(TvShowScraperMetadataConfig.SQUAREART)
+        && (overwrite || StringUtils.isBlank(tvShow.getArtworkFilename(MediaFileType.SQUAREART)))) {
+      setBestArtwork(tvShow, artwork, SQUAREART, overwrite);
     }
 
     boolean seasonArtworkWritten = false;

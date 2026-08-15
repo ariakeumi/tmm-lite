@@ -101,6 +101,7 @@ public class MovieToKodiConnector extends MovieGenericXmlConnector {
       addThumb(MediaFileType.DISC, "discart");
       addThumb(MediaFileType.THUMB, "landscape");
       addThumb(MediaFileType.KEYART, "keyart");
+      addThumb(MediaFileType.SQUAREART, "squareart");
       addThumb(MediaFileType.LOGO, "logo");
     }
   }

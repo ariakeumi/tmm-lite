@@ -81,6 +81,7 @@ import org.tinymediamanager.core.movie.filenaming.MovieFanartNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieKeyartNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieNfoNaming;
 import org.tinymediamanager.core.movie.filenaming.MoviePosterNaming;
+import org.tinymediamanager.core.movie.filenaming.MovieSquareartNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieThumbNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieTrailerNaming;
 import org.tinymediamanager.core.movie.jmte.MovieNamedFirstCharacterRenderer;
@@ -392,6 +393,7 @@ public class MovieRenamer {
     mfs.add(movie.getNewestMediaFilesOfType(MediaFileType.CLEARLOGO));
     mfs.add(movie.getNewestMediaFilesOfType(MediaFileType.DISC));
     mfs.add(movie.getNewestMediaFilesOfType(MediaFileType.KEYART));
+    mfs.add(movie.getNewestMediaFilesOfType(MediaFileType.SQUAREART));
     mfs.removeAll(Collections.singleton(null)); // remove all NULL ones!
     for (MediaFile mf : mfs) {
       LOGGER.trace("Rename 1:N {} - {}", mf.getType(), mf.getFileAsPath());
@@ -474,7 +476,7 @@ public class MovieRenamer {
     // ######################################################################
     mfs = new ArrayList<>(movie.getMediaFilesExceptType(MediaFileType.VIDEO, MediaFileType.NFO, MediaFileType.POSTER, MediaFileType.FANART,
         MediaFileType.BANNER, MediaFileType.CLEARART, MediaFileType.THUMB, MediaFileType.LOGO, MediaFileType.CLEARLOGO, MediaFileType.DISC,
-        MediaFileType.KEYART, MediaFileType.SUBTITLE));
+        MediaFileType.KEYART, MediaFileType.SQUAREART, MediaFileType.SUBTITLE));
     mfs.removeAll(Collections.singleton(null)); // remove all NULL ones!
     for (MediaFile other : mfs) {
       LOGGER.trace("Rename 1:1 {} - {}", other.getType(), other.getFileAsPath());
@@ -1300,6 +1302,17 @@ public class MovieRenamer {
             MediaFile key = new MediaFile(mf);
             key.setFile(newMovieDir.resolve(newKeyartName));
             newFiles.add(key);
+          }
+        }
+        break;
+
+      case SQUAREART:
+        for (MovieSquareartNaming name : MovieArtworkHelper.getSquareartNamesForMovie(movie)) {
+          String newSquareartName = name.getFilename(newFilename, getArtworkExtension(mf));
+          if (StringUtils.isNotBlank(newSquareartName)) {
+            MediaFile square = new MediaFile(mf);
+            square.setFile(newMovieDir.resolve(newSquareartName));
+            newFiles.add(square);
           }
         }
         break;

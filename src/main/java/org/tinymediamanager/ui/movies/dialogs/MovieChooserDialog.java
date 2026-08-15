@@ -23,6 +23,7 @@ import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkTyp
 import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.DISC;
 import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.KEYART;
 import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.POSTER;
+import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.SQUAREART;
 import static org.tinymediamanager.scraper.entities.MediaArtwork.MediaArtworkType.THUMB;
 
 import java.awt.BorderLayout;
@@ -644,6 +645,10 @@ public class MovieChooserDialog extends TmmDialog implements ActionListener {
                   && (overwrite || StringUtils.isBlank(movieToScrape.getArtworkFilename(MediaFileType.KEYART)))) {
                 chooseArtwork(artwork, MediaFileType.KEYART);
               }
+              if (scraperConfig.contains(MovieScraperMetadataConfig.SQUAREART)
+                  && (overwrite || StringUtils.isBlank(movieToScrape.getArtworkFilename(MediaFileType.SQUAREART)))) {
+                chooseArtwork(artwork, MediaFileType.SQUAREART);
+              }
 
               movieToScrape.saveToDb();
               movieToScrape.writeNFO(); // rewrite NFO to get the urls into the NFO
@@ -747,6 +752,13 @@ public class MovieChooserDialog extends TmmDialog implements ActionListener {
           return;
         }
         imageType = KEYART;
+        break;
+
+      case SQUAREART:
+        if (MovieModuleManager.getInstance().getSettings().getSquareartFilenames().isEmpty()) {
+          return;
+        }
+        imageType = SQUAREART;
         break;
 
       default:

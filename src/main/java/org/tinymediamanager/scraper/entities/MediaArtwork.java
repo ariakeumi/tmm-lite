@@ -60,6 +60,7 @@ public class MediaArtwork {
     @Deprecated
     LOGO,
     CLEARLOGO,
+    SQUAREART,
     ALL
     // @formatter:on
   }

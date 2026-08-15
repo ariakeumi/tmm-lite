@@ -494,4 +494,46 @@ public class MediaFileTypeTests {
       Assert.assertFalse("Expected NOT to match KEYART, but was " + mf.getType() + ": " + name, mf.getType() == MediaFileType.KEYART);
     }
   }
+
+  @Test
+  public void testPositiveSquareart() {
+    List<String> positives = Arrays.asList(
+        // direct base cases (square, squareart, backgroundSquare) + allowed extensions
+        "squareart.jpg", "square.png", "backgroundSquare.jpg",
+        // case-insensitive
+        "SQUAREART.PNG", "Square.JpG", "BACKGROUNDSQUARE.gif",
+        // single separator before keyword
+        "foo_squareart.jpeg", "foo-squareart.webp", "foo.squareart.bmp", "foo.square.tbn", "foo.backgroundSquare.jpg",
+        // multiple prefix segments with mixed separators
+        "multi.part-name_squareart.png", "with space_squareart.jpg", "123_squareart.gif");
+    for (String name : positives) {
+      MediaFile mf = new MediaFile(Path.of(name));
+      Assert.assertTrue("Expected to match SQUAREART, but was " + mf.getType() + ": " + name, mf.getType() == MediaFileType.SQUAREART);
+    }
+  }
+
+  @Test
+  public void testNegativeSquareart() {
+    List<String> negatives = Arrays.asList(
+        // missing separator before keyword
+        "mysquareart.jpg",
+        // extra character appended to keyword
+        "squareartx.jpg",
+        // missing dot before extension
+        "squareartjpg",
+        // invalid extension
+        "squareart.txt",
+        // leading dot before keyword (no valid prefix+separator)
+        ".square.jpg",
+        // trailing space after extension
+        "square.jpg ",
+        // space used as separator immediately before keyword
+        "pre square.jpg",
+        // missing extension
+        "backgroundSquare");
+    for (String name : negatives) {
+      MediaFile mf = new MediaFile(Path.of(name));
+      Assert.assertFalse("Expected NOT to match SQUAREART, but was " + mf.getType() + ": " + name, mf.getType() == MediaFileType.SQUAREART);
+    }
+  }
 }

@@ -43,6 +43,7 @@ import org.tinymediamanager.core.movie.filenaming.MovieExtraFanartNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieFanartNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieKeyartNaming;
 import org.tinymediamanager.core.movie.filenaming.MoviePosterNaming;
+import org.tinymediamanager.core.movie.filenaming.MovieSquareartNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieThumbNaming;
 import org.tinymediamanager.core.movie.tasks.MovieExtraImageFetcherTask;
 import org.tinymediamanager.core.tasks.MediaEntityImageFetcherTask;
@@ -196,6 +197,12 @@ public class MovieArtworkHelper {
             }
             break;
 
+          case SQUAREART:
+            if (!MovieModuleManager.getInstance().getSettings().getSquareartFilenames().isEmpty() || force) {
+              download = true;
+            }
+            break;
+
           case EXTRAFANART:
             if (MovieModuleManager.getInstance().getSettings().isImageExtraFanart() || force) {
               download = true;
@@ -271,6 +278,12 @@ public class MovieArtworkHelper {
     // keyart
     if (metadataConfig.contains(MovieScraperMetadataConfig.KEYART) && !hasArtwork(movie, MediaFileType.KEYART)) {
       setBestArtwork(movie, artwork, MediaArtworkType.KEYART, !MovieModuleManager.getInstance().getSettings().getKeyartFilenames().isEmpty(), false);
+    }
+
+    // squareart
+    if (metadataConfig.contains(MovieScraperMetadataConfig.SQUAREART) && !hasArtwork(movie, MediaFileType.SQUAREART)) {
+      setBestArtwork(movie, artwork, MediaArtworkType.SQUAREART, !MovieModuleManager.getInstance().getSettings().getSquareartFilenames().isEmpty(),
+          false);
     }
 
     // extrathumbs
@@ -372,6 +385,10 @@ public class MovieArtworkHelper {
     }
     if (config.contains(MovieScraperMetadataConfig.KEYART) && !MovieModuleManager.getInstance().getSettings().getKeyartFilenames().isEmpty()
         && !hasArtwork(movie, MediaFileType.KEYART)) {
+      return true;
+    }
+    if (config.contains(MovieScraperMetadataConfig.SQUAREART) && !MovieModuleManager.getInstance().getSettings().getSquareartFilenames().isEmpty()
+        && !hasArtwork(movie, MediaFileType.SQUAREART)) {
       return true;
     }
     if (config.contains(MovieScraperMetadataConfig.EXTRAFANART) && MovieModuleManager.getInstance().getSettings().isImageExtraFanart()
@@ -686,6 +703,52 @@ public class MovieArtworkHelper {
       keyartnames.addAll(MovieModuleManager.getInstance().getSettings().getKeyartFilenames());
     }
     return keyartnames;
+  }
+
+  /**
+   * Squareart format is not empty, so we want at least one ;)<br>
+   * Idea is, to check whether the preferred format is set in settings<br>
+   * and if not, take some default (since we want squarearts)
+   *
+   * @param movie
+   *          the movie to get the squareart names for
+   * @return list of MovieSquareartNaming (can be empty!)
+   */
+  public static List<MovieSquareartNaming> getSquareartNamesForMovie(Movie movie) {
+    List<MovieSquareartNaming> squareartnames = new ArrayList<>();
+    if (MovieModuleManager.getInstance().getSettings().getSquareartFilenames().isEmpty()) {
+      return squareartnames;
+    }
+
+    if (movie.isMultiMovieDir()) {
+      if (MovieModuleManager.getInstance().getSettings().getSquareartFilenames().contains(MovieSquareartNaming.FILENAME_SQUAREART)) {
+        squareartnames.add(MovieSquareartNaming.FILENAME_SQUAREART);
+      }
+      else if (MovieModuleManager.getInstance().getSettings().getSquareartFilenames().contains(MovieSquareartNaming.FILENAME_SQUARE)) {
+        squareartnames.add(MovieSquareartNaming.FILENAME_SQUARE);
+      }
+      if (squareartnames.isEmpty() && !MovieModuleManager.getInstance().getSettings().getSquareartFilenames().isEmpty()) {
+        squareartnames.add(MovieSquareartNaming.FILENAME_SQUAREART);
+      }
+    }
+    else if (movie.isDisc()) {
+      if (MovieModuleManager.getInstance().getSettings().getSquareartFilenames().contains(MovieSquareartNaming.SQUAREART)) {
+        squareartnames.add(MovieSquareartNaming.SQUAREART);
+      }
+      else if (MovieModuleManager.getInstance().getSettings().getSquareartFilenames().contains(MovieSquareartNaming.SQUARE)) {
+        squareartnames.add(MovieSquareartNaming.SQUARE);
+      }
+      else if (MovieModuleManager.getInstance().getSettings().getSquareartFilenames().contains(MovieSquareartNaming.BACKGROUND_SQUARE)) {
+        squareartnames.add(MovieSquareartNaming.BACKGROUND_SQUARE);
+      }
+      if (squareartnames.isEmpty() && !MovieModuleManager.getInstance().getSettings().getSquareartFilenames().isEmpty()) {
+        squareartnames.add(MovieSquareartNaming.SQUAREART);
+      }
+    }
+    else {
+      squareartnames.addAll(MovieModuleManager.getInstance().getSettings().getSquareartFilenames());
+    }
+    return squareartnames;
   }
 
   /**
@@ -1389,6 +1452,10 @@ public class MovieArtworkHelper {
 
       case KEYART:
         fileNamings.addAll(getKeyartNamesForMovie(movie));
+        break;
+
+      case SQUAREART:
+        fileNamings.addAll(getSquareartNamesForMovie(movie));
         break;
 
       default:

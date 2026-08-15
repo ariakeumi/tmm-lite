@@ -53,6 +53,7 @@ public class ITFanartTvTest extends BasicITest {
       assertThat(images.moviebanner.size()).isGreaterThan(0);
       assertThat(images.moviethumb).isNotNull();
       assertThat(images.moviethumb.size()).isGreaterThan(0);
+      assertThat(images.moviesquare).isNotNull();
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -82,6 +83,7 @@ public class ITFanartTvTest extends BasicITest {
       assertThat(images.moviebanner.size()).isGreaterThan(0);
       assertThat(images.moviethumb).isNotNull();
       assertThat(images.moviethumb.size()).isGreaterThan(0);
+      assertThat(images.moviesquare).isNotNull();
     }
     catch (Exception e) {
       e.printStackTrace();
@@ -123,6 +125,7 @@ public class ITFanartTvTest extends BasicITest {
       assertThat(images.tvbanner.size()).isGreaterThan(0);
       assertThat(images.seasonbanner).isNotNull();
       assertThat(images.seasonbanner.size()).isGreaterThan(0);
+      assertThat(images.tvsquare).isNotNull();
     }
     catch (Exception e) {
       e.printStackTrace();

@@ -36,6 +36,7 @@ import org.tinymediamanager.core.movie.filenaming.MovieDiscartNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieFanartNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieKeyartNaming;
 import org.tinymediamanager.core.movie.filenaming.MoviePosterNaming;
+import org.tinymediamanager.core.movie.filenaming.MovieSquareartNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieThumbNaming;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.components.button.DocsButton;
@@ -88,6 +89,11 @@ class MovieImageTypeSettingsPanel extends JPanel {
   private JCheckBox           chckbxDiscart3;
   private JCheckBox           chckbxKeyart1;
   private JCheckBox           chckbxKeyart2;
+  private JCheckBox           chckbxSquareart1;
+  private JCheckBox           chckbxSquareart2;
+  private JCheckBox           chckbxSquareart3;
+  private JCheckBox           chckbxSquareart4;
+  private JCheckBox           chckbxSquareart5;
 
   /**
    * Instantiates a new movie image settings panel.
@@ -162,6 +168,13 @@ class MovieImageTypeSettingsPanel extends JPanel {
     chckbxKeyart1.removeItemListener(checkBoxListener);
     chckbxKeyart2.removeItemListener(checkBoxListener);
     clearSelection(chckbxKeyart1, chckbxKeyart2);
+
+    chckbxSquareart1.removeItemListener(checkBoxListener);
+    chckbxSquareart2.removeItemListener(checkBoxListener);
+    chckbxSquareart3.removeItemListener(checkBoxListener);
+    chckbxSquareart4.removeItemListener(checkBoxListener);
+    chckbxSquareart5.removeItemListener(checkBoxListener);
+    clearSelection(chckbxSquareart1, chckbxSquareart2, chckbxSquareart3, chckbxSquareart4, chckbxSquareart5);
 
     // poster filenames
     for (MoviePosterNaming poster : settings.getPosterFilenames()) {
@@ -335,6 +348,31 @@ class MovieImageTypeSettingsPanel extends JPanel {
       }
     }
 
+    // squareart filenames
+    for (MovieSquareartNaming squareart : settings.getSquareartFilenames()) {
+      switch (squareart) {
+        case SQUAREART:
+          chckbxSquareart2.setSelected(true);
+          break;
+
+        case FILENAME_SQUAREART:
+          chckbxSquareart1.setSelected(true);
+          break;
+
+        case SQUARE:
+          chckbxSquareart3.setSelected(true);
+          break;
+
+        case FILENAME_SQUARE:
+          chckbxSquareart5.setSelected(true);
+          break;
+
+        case BACKGROUND_SQUARE:
+          chckbxSquareart4.setSelected(true);
+          break;
+      }
+    }
+
     // listen to changes of the checkboxes
     chckbxMovieFanartFilename1.addItemListener(checkBoxListener);
     chckbxMovieFanartFilename2.addItemListener(checkBoxListener);
@@ -377,6 +415,12 @@ class MovieImageTypeSettingsPanel extends JPanel {
 
     chckbxKeyart1.addItemListener(checkBoxListener);
     chckbxKeyart2.addItemListener(checkBoxListener);
+
+    chckbxSquareart1.addItemListener(checkBoxListener);
+    chckbxSquareart2.addItemListener(checkBoxListener);
+    chckbxSquareart3.addItemListener(checkBoxListener);
+    chckbxSquareart4.addItemListener(checkBoxListener);
+    chckbxSquareart5.addItemListener(checkBoxListener);
   }
 
   private void clearSelection(JCheckBox... checkBoxes) {
@@ -401,7 +445,7 @@ class MovieImageTypeSettingsPanel extends JPanel {
 
       JPanel panelColumn1 = new JPanel();
       panelRow.add(panelColumn1);
-      panelColumn1.setLayout(new MigLayout("", "[300lp,grow][25lp!]", "[][][][][]"));
+      panelColumn1.setLayout(new MigLayout("", "[300lp,grow][25lp!]", "[][][][][][]"));
 
       JPanel panelColumn2 = new JPanel();
       panelRow.add(panelColumn2);
@@ -410,19 +454,19 @@ class MovieImageTypeSettingsPanel extends JPanel {
       {
         JPanel panelPoster = new JPanel();
         panelPoster.setBorder(new TitledBorder(TmmResourceBundle.getString("mediafiletype.poster")));
-        panelPoster.setLayout(new MigLayout("", "[]", "[][][][][]"));
+        panelPoster.setLayout(new MigLayout("", "[]", "[][][][][][]"));
 
         chckbxMoviePosterFilename4 = new JCheckBox("poster.*");
         panelPoster.add(chckbxMoviePosterFilename4, "cell 0 0");
 
+        chckbxMoviePosterFilename8 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-poster.*");
+        panelPoster.add(chckbxMoviePosterFilename8, "cell 0 1");
+
         chckbxMoviePosterFilename2 = new JCheckBox("movie.*");
-        panelPoster.add(chckbxMoviePosterFilename2, "cell 0 1");
+        panelPoster.add(chckbxMoviePosterFilename2, "cell 0 2");
 
         chckbxMoviePosterFilename6 = new JCheckBox("folder.*");
-        panelPoster.add(chckbxMoviePosterFilename6, "cell 0 2");
-
-        chckbxMoviePosterFilename8 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-poster.*");
-        panelPoster.add(chckbxMoviePosterFilename8, "cell 0 3");
+        panelPoster.add(chckbxMoviePosterFilename6, "cell 0 3");
 
         chckbxMoviePosterFilename7 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + ".*");
         panelPoster.add(chckbxMoviePosterFilename7, "cell 0 4");
@@ -477,16 +521,25 @@ class MovieImageTypeSettingsPanel extends JPanel {
         panelColumn1.add(panelThumb, "cell 0 3,growx");
       }
       {
-        JPanel panelKeyart = new JPanel();
-        panelColumn1.add(panelKeyart, "cell 0 4,growx");
-        panelKeyart.setBorder(new TitledBorder(TmmResourceBundle.getString("mediafiletype.keyart")));
-        panelKeyart.setLayout(new MigLayout("", "[grow]", "[]"));
+        JPanel panelSquareart = new JPanel();
+        panelColumn1.add(panelSquareart, "cell 0 5,growx");
+        panelSquareart.setBorder(new TitledBorder(TmmResourceBundle.getString("mediafiletype.squareart")));
+        panelSquareart.setLayout(new MigLayout("", "[grow]", "[][][][][]"));
 
-        chckbxKeyart1 = new JCheckBox("keyart.*");
-        panelKeyart.add(chckbxKeyart1, "cell 0 0");
+        chckbxSquareart2 = new JCheckBox("squareart.*");
+        panelSquareart.add(chckbxSquareart2, "cell 0 0");
 
-        chckbxKeyart2 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-keyart.*");
-        panelKeyart.add(chckbxKeyart2, "cell 0 1");
+        chckbxSquareart1 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-squareart.*");
+        panelSquareart.add(chckbxSquareart1, "cell 0 1");
+
+        chckbxSquareart3 = new JCheckBox("square.*");
+        panelSquareart.add(chckbxSquareart3, "cell 0 2");
+
+        chckbxSquareart5 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-square.*");
+        panelSquareart.add(chckbxSquareart5, "cell 0 3");
+
+        chckbxSquareart4 = new JCheckBox("backgroundSquare.*");
+        panelSquareart.add(chckbxSquareart4, "cell 0 4");
       }
 
       {
@@ -531,14 +584,14 @@ class MovieImageTypeSettingsPanel extends JPanel {
         chckbxDiscart2 = new JCheckBox("disc.*");
         panelDiscart.add(chckbxDiscart2, "cell 0 0");
 
+        chckbxDiscart1 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-disc.*");
+        panelDiscart.add(chckbxDiscart1, "cell 0 1");
+
         chckbxDiscart4 = new JCheckBox("discart.*");
-        panelDiscart.add(chckbxDiscart4, "cell 0 1");
+        panelDiscart.add(chckbxDiscart4, "cell 0 2");
 
         chckbxDiscart3 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-discart.*");
-        panelDiscart.add(chckbxDiscart3, "cell 0 2");
-
-        chckbxDiscart1 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-disc.*");
-        panelDiscart.add(chckbxDiscart1, "cell 0 3");
+        panelDiscart.add(chckbxDiscart3, "cell 0 3");
 
         panelColumn2.add(panelDiscart, "cell 0 1,growx");
       }
@@ -560,6 +613,18 @@ class MovieImageTypeSettingsPanel extends JPanel {
         panelClearlogo.add(chckbxLogo1, "cell 0 3");
 
         panelColumn2.add(panelClearlogo, "cell 0 2,growx");
+      }
+      {
+        JPanel panelKeyart = new JPanel();
+        panelColumn2.add(panelKeyart, "cell 0 3,growx");
+        panelKeyart.setBorder(new TitledBorder(TmmResourceBundle.getString("mediafiletype.keyart")));
+        panelKeyart.setLayout(new MigLayout("", "[grow]", "[]"));
+
+        chckbxKeyart1 = new JCheckBox("keyart.*");
+        panelKeyart.add(chckbxKeyart1, "cell 0 0");
+
+        chckbxKeyart2 = new JCheckBox(TmmResourceBundle.getString("Settings.moviefilename") + "-keyart.*");
+        panelKeyart.add(chckbxKeyart2, "cell 0 1");
       }
 
       JTextArea tpFileNamingHint = new ReadOnlyTextArea(TmmResourceBundle.getString("Settings.naming.info"));
@@ -694,6 +759,24 @@ class MovieImageTypeSettingsPanel extends JPanel {
     }
     if (chckbxKeyart2.isSelected()) {
       settings.addKeyartFilename(MovieKeyartNaming.FILENAME_KEYART);
+    }
+
+    // set squareart filenames
+    settings.clearSquareartFilenames();
+    if (chckbxSquareart1.isSelected()) {
+      settings.addSquareartFilename(MovieSquareartNaming.FILENAME_SQUAREART);
+    }
+    if (chckbxSquareart2.isSelected()) {
+      settings.addSquareartFilename(MovieSquareartNaming.SQUAREART);
+    }
+    if (chckbxSquareart3.isSelected()) {
+      settings.addSquareartFilename(MovieSquareartNaming.SQUARE);
+    }
+    if (chckbxSquareart5.isSelected()) {
+      settings.addSquareartFilename(MovieSquareartNaming.FILENAME_SQUARE);
+    }
+    if (chckbxSquareart4.isSelected()) {
+      settings.addSquareartFilename(MovieSquareartNaming.BACKGROUND_SQUARE);
     }
   }
 }

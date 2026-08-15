@@ -35,6 +35,7 @@ import org.tinymediamanager.core.movie.filenaming.MovieSetFanartNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieSetNfoNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieSetPosterNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieSetThumbNaming;
+import org.tinymediamanager.core.movie.filenaming.MovieSquareartNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieThumbNaming;
 import org.tinymediamanager.core.movie.filenaming.MovieTrailerNaming;
 import org.tinymediamanager.scraper.MediaScraper;
@@ -343,6 +344,9 @@ public class MovieSettingsDefaults {
 
     movieSettings.keyartFilenames.clear();
     movieSettings.addKeyartFilename(MovieKeyartNaming.KEYART);
+
+    movieSettings.squareartFilenames.clear();
+    movieSettings.addSquareartFilename(MovieSquareartNaming.SQUARE);
 
     movieSettings.movieSetNfoFilenames.clear();
 

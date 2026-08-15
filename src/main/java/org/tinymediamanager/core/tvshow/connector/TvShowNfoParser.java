@@ -112,6 +112,7 @@ public class TvShowNfoParser {
   public List<String>               keyarts             = new ArrayList<>();
   public List<String>               logos               = new ArrayList<>();
   public List<String>               characterarts       = new ArrayList<>();
+  public List<String>               squarearts          = new ArrayList<>();
   public List<String>               fanarts             = new ArrayList<>();
   public List<MediaGenres>          genres              = new ArrayList<>();
   public List<String>               studios             = new ArrayList<>();
@@ -173,6 +174,7 @@ public class TvShowNfoParser {
     parseTag(TvShowNfoParser::parseKeyarts);
     parseTag(TvShowNfoParser::parseLogos);
     parseTag(TvShowNfoParser::parseCharacterarts);
+    parseTag(TvShowNfoParser::parseSquarearts);
     parseTag(TvShowNfoParser::parseFanarts);
     parseTag(TvShowNfoParser::parseSeasonArtwork);
     parseTag(TvShowNfoParser::parseSeasonNames);
@@ -800,6 +802,29 @@ public class TvShowNfoParser {
         }
         if (StringUtils.isNotBlank(element.ownText()) && element.ownText().matches("https?://.*")) {
           logos.add(element.ownText());
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * squarearts are usually inside <thumb>xxx</thumb> tag with an aspect of "squareart"
+   */
+  private Void parseSquarearts() {
+    // supportedElements.add("thumb"); //already registered with posters
+
+    // get all thumb elements
+    Elements thumb = root.select(root.tagName() + " > thumb");
+    if (!thumb.isEmpty()) {
+      for (Element element : thumb) {
+        // if there is an aspect attribute, it has to be squareart
+        if (element.hasAttr("aspect") && !element.attr("aspect").equals("squareart")) {
+          continue;
+        }
+        if (StringUtils.isNotBlank(element.ownText()) && element.ownText().matches("https?://.*")) {
+          squarearts.add(element.ownText());
         }
       }
     }
@@ -1844,6 +1869,10 @@ public class TvShowNfoParser {
 
     if (!characterarts.isEmpty()) {
       show.setArtworkUrl(characterarts.get(0), MediaFileType.CHARACTERART);
+    }
+
+    if (!squarearts.isEmpty()) {
+      show.setArtworkUrl(squarearts.get(0), MediaFileType.SQUAREART);
     }
 
     if (!fanarts.isEmpty()) {

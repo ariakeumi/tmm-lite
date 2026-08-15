@@ -177,6 +177,11 @@ abstract class FanartTvMetadataProvider implements IMediaProvider {
         artworks.addAll(prepareArtwork(images.tvposter, ImageType.TVKEYART));
         break;
 
+      case SQUAREART:
+        artworks.addAll(prepareArtwork(images.moviesquare, ImageType.MOVIESQUARE));
+        artworks.addAll(prepareArtwork(images.tvsquare, ImageType.TVSQUARE));
+        break;
+
       case ALL:
         artworks.addAll(prepareArtwork(images.movieposter, ImageType.MOVIEPOSTER));
         artworks.addAll(prepareArtwork(images.tvposter, ImageType.TVPOSTER));
@@ -206,6 +211,9 @@ abstract class FanartTvMetadataProvider implements IMediaProvider {
 
         artworks.addAll(prepareArtwork(images.movieposter, ImageType.MOVIEKEYART));
         artworks.addAll(prepareArtwork(images.tvposter, ImageType.TVKEYART));
+
+        artworks.addAll(prepareArtwork(images.moviesquare, ImageType.MOVIESQUARE));
+        artworks.addAll(prepareArtwork(images.tvsquare, ImageType.TVSQUARE));
         break;
 
       default:
@@ -278,6 +286,7 @@ abstract class FanartTvMetadataProvider implements IMediaProvider {
     MOVIEDISC(1000, 1000, MediaArtworkType.DISC, FanartSizes.MEDIUM.getOrder()),
     MOVIEKEYART(1000, 1426, MediaArtworkType.KEYART, PosterSizes.LARGE.getOrder()),
     MOVIEPOSTER(1000, 1426, MediaArtworkType.POSTER, PosterSizes.LARGE.getOrder()),
+    MOVIESQUARE(1000, 1000, MediaArtworkType.SQUAREART, FanartSizes.MEDIUM.getOrder()),
     MOVIETHUMB(1000, 562, MediaArtworkType.THUMB, ThumbSizes.BIG.getOrder()),
     SEASONBANNER(1000, 185, MediaArtworkType.SEASON_BANNER, FanartSizes.MEDIUM.getOrder()),
     SEASONPOSTER(1000, 1426, MediaArtworkType.SEASON_POSTER, MediaArtwork.PosterSizes.LARGE.getOrder()),
@@ -286,6 +295,7 @@ abstract class FanartTvMetadataProvider implements IMediaProvider {
     TVBANNER(1000, 185, MediaArtworkType.BANNER, FanartSizes.MEDIUM.getOrder()),
     TVKEYART(1000, 1426, MediaArtworkType.KEYART, PosterSizes.LARGE.getOrder()),
     TVPOSTER(1000, 1426, MediaArtworkType.POSTER, PosterSizes.LARGE.getOrder()),
+    TVSQUARE(1000, 1000, MediaArtworkType.SQUAREART, FanartSizes.MEDIUM.getOrder()),
     TVTHUMB(1000, 562, MediaArtworkType.THUMB, ThumbSizes.BIG.getOrder()),
     CLEARLOGO(400, 155, MediaArtworkType.CLEARLOGO, FanartSizes.SMALL.getOrder());
 

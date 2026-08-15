@@ -77,6 +77,7 @@ public class MediaEntityImageFetcherTask implements Runnable {
       case CLEARLOGO:
       case CHARACTERART:
       case KEYART:
+      case SQUAREART:
         break;
 
       default:

@@ -1592,6 +1592,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
           case LOGO:
           case CLEARART:
           case KEYART:
+          case SQUAREART:
             // if the artwork ends with -<type>, but does not start with the same base name, we recategorize it as graphic
             if (hasInvalidBasename(mainVideoFile, mf, mf.getType().name().toLowerCase(Locale.ROOT))) {
               mf.setType(MediaFileType.GRAPHIC);

@@ -2683,6 +2683,9 @@ public class TvShow extends MediaEntity implements IMediaInformation {
       case KEYART:
         return TvShowArtworkHelper.getArtworkFiles(this, MediaFileType.KEYART);
 
+      case SQUAREART:
+        return TvShowArtworkHelper.getArtworkFiles(this, MediaFileType.SQUAREART);
+
       case EXTRAFANART:
         return TvShowArtworkHelper.getArtworkFiles(this, MediaFileType.EXTRAFANART);
 
