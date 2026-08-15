@@ -66,7 +66,6 @@ public class MovieSettingsPanel extends JPanel {
   private JButton             btnPresetMediaPig;
   private JButton             btnPresetDefault;
   private JButton             btnPresetReadonly;
-  private JCheckBox           chckbxIncludeExternalAudioStreams;
   private JCheckBox           chckbxUseMediainfoMetadata;
 
   private JCheckBox           chckbxTraktSyncWatched;
@@ -218,7 +217,7 @@ public class MovieSettingsPanel extends JPanel {
     }
     {
       JPanel panelMisc = new JPanel();
-      panelMisc.setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][][][][][][][]")); // 16lp ~ width of the
+      panelMisc.setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][][][][][]")); // 16lp ~ width of the
 
       JLabel lblMiscT = new TmmLabel(TmmResourceBundle.getString("Settings.misc"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelMisc, lblMiscT, true);
@@ -246,9 +245,6 @@ public class MovieSettingsPanel extends JPanel {
 
         chckbxRuntimeFromMi = new JCheckBox(TmmResourceBundle.getString("Settings.runtimefrommediafile"));
         panelMisc.add(chckbxRuntimeFromMi, "cell 1 5 2 1");
-
-        chckbxIncludeExternalAudioStreams = new JCheckBox(TmmResourceBundle.getString("Settings.includeexternalstreamsinnfo"));
-        panelMisc.add(chckbxIncludeExternalAudioStreams, "cell 1 6 2 1");
       }
     }
   }
@@ -274,11 +270,6 @@ public class MovieSettingsPanel extends JPanel {
     AutoBinding autoBinding_4 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty_4, chckbxRuntimeFromMi,
         jCheckBoxBeanProperty);
     autoBinding_4.bind();
-    //
-    Property movieSettingsBeanProperty_9 = BeanProperty.create("includeExternalAudioStreams");
-    AutoBinding autoBinding_9 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty_9,
-        chckbxIncludeExternalAudioStreams, jCheckBoxBeanProperty);
-    autoBinding_9.bind();
     //
     Property movieSettingsBeanProperty_11 = BeanProperty.create("extractArtworkFromVsmeta");
     AutoBinding autoBinding_11 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty_11,

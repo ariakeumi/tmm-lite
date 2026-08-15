@@ -78,6 +78,7 @@ class MovieScraperNfoSettingsPanel extends JPanel {
   private JCheckBox                            chckbxFileinfo;
   private JCheckBox                            chckbxDateAdded;
   private JCheckBox                            chckbxArtworkUrls;
+  private JCheckBox                            chckbxIncludeExternalAudioStreams;
 
   /**
    * Instantiates a new movie scraper settings panel.
@@ -196,7 +197,7 @@ class MovieScraperNfoSettingsPanel extends JPanel {
     {
       JPanel panelNfo = new JPanel();
       // 16lp ~ width of the
-      panelNfo.setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][][][][15lp!][][][][15lp!][][][][15lp!][][][][][][]"));
+      panelNfo.setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][][][][15lp!][][][][15lp!][][][][15lp!][][][][][][][]"));
 
       JLabel lblNfoT = new TmmLabel(TmmResourceBundle.getString("Settings.nfo"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelNfo, lblNfoT, true);
@@ -284,6 +285,9 @@ class MovieScraperNfoSettingsPanel extends JPanel {
 
       cbDatefield = new JComboBox(DateField.values());
       panelNfo.add(cbDatefield, "cell 2 14");
+
+      chckbxIncludeExternalAudioStreams = new JCheckBox(TmmResourceBundle.getString("Settings.includeexternalstreamsinnfo"));
+      panelNfo.add(chckbxIncludeExternalAudioStreams, "cell 1 19 2 1");
     }
   }
 
@@ -396,5 +400,10 @@ class MovieScraperNfoSettingsPanel extends JPanel {
     AutoBinding autoBinding_12 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty_10, chckbxArtworkUrls,
         jCheckBoxBeanProperty);
     autoBinding_12.bind();
+    //
+    Property movieSettingsBeanProperty_11 = BeanProperty.create("includeExternalAudioStreams");
+    AutoBinding autoBinding_13 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty_11,
+        chckbxIncludeExternalAudioStreams, jCheckBoxBeanProperty);
+    autoBinding_13.bind();
   }
 }
