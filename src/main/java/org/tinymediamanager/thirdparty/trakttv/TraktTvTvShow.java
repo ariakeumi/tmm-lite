@@ -93,13 +93,13 @@ class TraktTvTvShow {
     Response<T> response = call.execute();
     if (!response.isSuccessful() && response.code() == 401) {
 
-      Response<AccessToken> refresh = api.refreshToken(Settings.getInstance().getTraktRefreshToken())
-          .refreshAccessToken(Settings.getInstance().getTraktRefreshToken());
+      Response<AccessToken> refresh = api.refreshToken(TraktTv.getInstance().getRefreshToken())
+          .refreshAccessToken(TraktTv.getInstance().getRefreshToken());
       if (refresh.isSuccessful() && refresh.body() != null) {
         if (StringUtils.isNoneBlank(refresh.body().access_token, refresh.body().refresh_token)) {
-          Settings.getInstance().setTraktAccessToken(refresh.body().access_token);
-          Settings.getInstance().setTraktRefreshToken(refresh.body().refresh_token);
-          api.accessToken(Settings.getInstance().getTraktAccessToken());
+          TraktTv.getInstance().setAccessToken(refresh.body().access_token);
+          TraktTv.getInstance().setRefreshToken(refresh.body().refresh_token);
+          api.accessToken(TraktTv.getInstance().getAccessToken());
         }
         response = call.clone().execute(); // retry
       }

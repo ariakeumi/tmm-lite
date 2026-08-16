@@ -32,7 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.ReleaseInfo;
-import org.tinymediamanager.core.TmmProperties;
+import org.tinymediamanager.core.TmmStore;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.license.License;
 import org.tinymediamanager.scraper.http.Url;
@@ -51,7 +51,7 @@ public class UpdateCheck {
   private boolean             forceUpdate = false;
 
   public boolean isUpdateAvailable() {
-    TmmProperties.getInstance().putProperty("lastUpdateCheck", Long.toString(new Date().getTime()));
+    TmmStore.getInstance().put("tmm.update.lastCheck", Long.toString(new Date().getTime()));
     if (ReleaseInfo.isGitBuild()) {
       return false;
     }

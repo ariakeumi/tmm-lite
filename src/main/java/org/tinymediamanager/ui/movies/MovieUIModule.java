@@ -40,6 +40,7 @@ import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.license.License;
 import org.tinymediamanager.thirdparty.KodiRPC;
 import org.tinymediamanager.thirdparty.simkl.Simkl;
+import org.tinymediamanager.thirdparty.trakttv.TraktTv;
 import org.tinymediamanager.ui.AbstractTmmUIModule;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmLazyMenuAdapter;
@@ -506,7 +507,7 @@ public class MovieUIModule extends AbstractTmmUIModule {
           kodiRPCMenu.setEnabled(false);
         }
 
-        if (License.getInstance().isValidLicense() && StringUtils.isNotBlank(Settings.getInstance().getTraktAccessToken())) {
+        if (License.getInstance().isValidLicense() && StringUtils.isNotBlank(TraktTv.getInstance().getAccessToken())) {
           traktMenu.setEnabled(true);
         }
         else {

@@ -108,6 +108,17 @@ public class TmmProperties {
   }
 
   /**
+   * remove a key from the properties file
+   *
+   * @param key
+   *          the key
+   */
+  public void removeProperty(String key) {
+    properties.remove(key);
+    dirty = true;
+  }
+
+  /**
    * get the value for the given key
    *
    * @param key

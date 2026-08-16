@@ -26,8 +26,8 @@ import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.MediaFileHelper;
 import org.tinymediamanager.core.Message;
 import org.tinymediamanager.core.MessageManager;
-import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.TmmResourceBundle;
+import org.tinymediamanager.core.TmmStore;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.entities.MediaSource;
 import org.tinymediamanager.core.movie.entities.Movie;
@@ -70,9 +70,12 @@ import retrofit2.Response;
  */
 
 public class TraktTv implements TmmFeature {
-  private static final Logger LOGGER        = LoggerFactory.getLogger(TraktTv.class);
+  private static final Logger LOGGER            = LoggerFactory.getLogger(TraktTv.class);
 
-  public static int           MAX_PAGE_SIZE = 250;
+  private static final String ACCESS_TOKEN_KEY  = "trakt.access_token.secret";
+  private static final String REFRESH_TOKEN_KEY = "trakt.refresh_token.secret";
+
+  public static int           MAX_PAGE_SIZE     = 250;
 
   private static TraktTv      instance;
 
@@ -120,6 +123,56 @@ public class TraktTv implements TmmFeature {
   private TraktTv() {
   }
 
+  /**
+   * returns the stored access token, or an empty string
+   *
+   * @return the access token
+   */
+  public String getAccessToken() {
+    String token = TmmStore.getInstance().get(ACCESS_TOKEN_KEY);
+    return StringUtils.isNotBlank(token) ? token : "";
+  }
+
+  /**
+   * stores the access token in the encrypted {@link TmmStore}
+   *
+   * @param token
+   *          the access token
+   */
+  public void setAccessToken(String token) {
+    if (StringUtils.isBlank(token)) {
+      TmmStore.getInstance().remove(ACCESS_TOKEN_KEY);
+    }
+    else {
+      TmmStore.getInstance().put(ACCESS_TOKEN_KEY, token.strip());
+    }
+  }
+
+  /**
+   * returns the stored refresh token, or an empty string
+   *
+   * @return the refresh token
+   */
+  public String getRefreshToken() {
+    String token = TmmStore.getInstance().get(REFRESH_TOKEN_KEY);
+    return StringUtils.isNotBlank(token) ? token : "";
+  }
+
+  /**
+   * stores the refresh token in the encrypted {@link TmmStore}
+   *
+   * @param token
+   *          the refresh token
+   */
+  public void setRefreshToken(String token) {
+    if (StringUtils.isBlank(token)) {
+      TmmStore.getInstance().remove(REFRESH_TOKEN_KEY);
+    }
+    else {
+      TmmStore.getInstance().put(REFRESH_TOKEN_KEY, token.strip());
+    }
+  }
+
   public Map<String, String> getDeviceCode() throws Exception {
     initAPI();
 
@@ -160,21 +213,20 @@ public class TraktTv implements TmmFeature {
    * get a new accessToken with the refreshToken
    */
   public void refreshAccessToken() throws Exception {
-    if (StringUtils.isBlank(Settings.getInstance().getTraktRefreshToken())) {
+    if (StringUtils.isBlank(getRefreshToken())) {
       throw new IOException("no trakt.tv refresh token found");
     }
 
     initAPI();
 
-    Response<AccessToken> response = api.refreshToken(Settings.getInstance().getTraktRefreshToken())
-        .refreshAccessToken(Settings.getInstance().getTraktRefreshToken());
+    Response<AccessToken> response = api.refreshToken(getRefreshToken()).refreshAccessToken(getRefreshToken());
 
     if (response.isSuccessful() && response.body() != null) {
       AccessToken accessToken = response.body();
       if (StringUtils.isNoneBlank(accessToken.access_token, accessToken.refresh_token)) {
-        Settings.getInstance().setTraktAccessToken(accessToken.access_token);
-        Settings.getInstance().setTraktRefreshToken(accessToken.refresh_token);
-        api.accessToken(Settings.getInstance().getTraktAccessToken());
+        setAccessToken(accessToken.access_token);
+        setRefreshToken(accessToken.refresh_token);
+        api.accessToken(getAccessToken());
       }
     }
     else {
@@ -199,9 +251,9 @@ public class TraktTv implements TmmFeature {
       return false;
     }
 
-    if (StringUtils.isNoneBlank(Settings.getInstance().getTraktAccessToken(), Settings.getInstance().getTraktRefreshToken())) {
+    if (StringUtils.isNoneBlank(getAccessToken(), getRefreshToken())) {
       // everything seems fine; also set the access token
-      api.accessToken(Settings.getInstance().getTraktAccessToken());
+      api.accessToken(getAccessToken());
       return true;
     }
 

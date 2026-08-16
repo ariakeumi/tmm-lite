@@ -34,7 +34,7 @@ import org.tinymediamanager.Globals;
 import org.tinymediamanager.addon.DenoAddon;
 import org.tinymediamanager.addon.YtDlpAddon;
 import org.tinymediamanager.core.Settings;
-import org.tinymediamanager.core.TmmProperties;
+import org.tinymediamanager.core.TmmStore;
 import org.tinymediamanager.core.threading.TmmTask;
 import org.tinymediamanager.core.threading.TmmTaskHandle.TaskType;
 import org.tinymediamanager.thirdparty.FFmpeg;
@@ -279,8 +279,7 @@ public class YtDlp {
     if (Paths.get(ytDlpAddon.getExecutablePath()).startsWith(Globals.ADDON_FOLDER)) {
       // we need an own logic here - just every 2 days is ok
       // (got blocked executing 3 updates in a row)
-      String lastUpdateCheck = TmmProperties.getInstance().getProperty("lastYtDlpUpdateCheck", "0");
-      long old = Long.parseLong(lastUpdateCheck);
+      long old = TmmStore.getInstance().getAsLong("tmm.ytdlp.lastCheck", 0L);
       long now = new Date().getTime();
 
       if (now > old + 2 * 1000 * 3600 * 24F) {
@@ -288,8 +287,7 @@ public class YtDlp {
           @Override
           protected void doInBackground() {
             setTaskDescription("self updating YT-DLP...");
-            TmmProperties.getInstance().putProperty("lastYtDlpUpdateCheck", Long.toString(new Date().getTime()));
-            TmmProperties.getInstance().writeProperties();
+            TmmStore.getInstance().put("tmm.ytdlp.lastCheck", Long.toString(new Date().getTime()));
             try {
               String response = executeCommand(List.of(ytDlpAddon.getExecutablePath(), "--update"));
               LOGGER.debug(response);

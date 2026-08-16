@@ -76,6 +76,7 @@ public abstract class BasicTest {
 
     ReleaseInfo.init();
     TmmModuleManager.clearInstances();
+    TmmStore.setStoreFolder(settingsFolder.toString());
     Settings.getInstance(settingsFolder.toString());
 
     try {

@@ -82,7 +82,7 @@ class ExternalServicesSettingsPanel extends JPanel {
 
     // data init
     if (License.getInstance().isValidLicense()
-        && StringUtils.isNoneBlank(Settings.getInstance().getTraktAccessToken(), Settings.getInstance().getTraktRefreshToken())) {
+        && StringUtils.isNoneBlank(TraktTv.getInstance().getAccessToken(), TraktTv.getInstance().getRefreshToken())) {
       lblTraktStatus.setText(TmmResourceBundle.getString("Settings.trakt.status.good"));
     }
     else {
@@ -128,8 +128,8 @@ class ExternalServicesSettingsPanel extends JPanel {
   }
 
   private void getTraktPin() {
-    settings.setTraktAccessToken("");
-    settings.setTraktRefreshToken("");
+    TraktTv.getInstance().setAccessToken("");
+    TraktTv.getInstance().setRefreshToken("");
 
     TraktTv traktTv = TraktTv.getInstance();
 
@@ -209,8 +209,8 @@ class ExternalServicesSettingsPanel extends JPanel {
     }
 
     if (StringUtils.isNoneBlank(accessToken, refreshToken)) {
-      settings.setTraktAccessToken(accessToken);
-      settings.setTraktRefreshToken(refreshToken);
+      TraktTv.getInstance().setAccessToken(accessToken);
+      TraktTv.getInstance().setRefreshToken(refreshToken);
       lblTraktStatus.setText(TmmResourceBundle.getString("Settings.trakt.status.good"));
       TmmToastManager.showSuccessToast(this, TmmResourceBundle.getString("Settings.trakttv"),
           TmmResourceBundle.getString("Settings.trakt.getpin.success"));

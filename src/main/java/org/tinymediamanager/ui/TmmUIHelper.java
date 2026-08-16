@@ -57,8 +57,8 @@ import org.tinymediamanager.ReleaseInfo;
 import org.tinymediamanager.core.Message;
 import org.tinymediamanager.core.MessageManager;
 import org.tinymediamanager.core.Settings;
-import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
+import org.tinymediamanager.core.TmmStore;
 import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.thirdparty.TinyFileDialogs;
 import org.tinymediamanager.ui.components.label.ImageLabel;
@@ -674,10 +674,8 @@ public class TmmUIHelper {
     }
 
     try {
-      // get the property for the last update check
-      String lastUpdateCheck = TmmProperties.getInstance().getProperty("lastUpdateCheck", "0");
-
-      long old = Long.parseLong(lastUpdateCheck);
+      // get the timestamp for the last update check
+      long old = TmmStore.getInstance().getAsLong("tmm.update.lastCheck", 0L);
       long now = new Date().getTime();
 
       return now > old + (long) Settings.getInstance().getAutomaticUpdateInterval() * 1000 * 3600 * 24F;

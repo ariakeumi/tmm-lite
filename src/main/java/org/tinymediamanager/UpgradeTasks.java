@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
+import org.tinymediamanager.core.TmmStore;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.entities.MediaEntity;
 import org.tinymediamanager.core.entities.MediaFile;
@@ -185,6 +186,36 @@ public abstract class UpgradeTasks {
         property = "language:70," + property;
         properties.putProperty("tvshow.trailerTable.visibleColumns", property);
       }
+    }
+
+    // migrate volatile data from tmm.prop to the TmmStore
+    // (runs on every startup, but is a no-op once the data has been migrated)
+    migrateVolatilePropertiesToTmmStore();
+  }
+
+  /**
+   * migrate volatile data (timestamps, ..) which has been stored in the tmm.prop into the {@link TmmStore}
+   */
+  static void migrateVolatilePropertiesToTmmStore() {
+    TmmProperties properties = TmmProperties.getInstance();
+    boolean changed = false;
+
+    String lastUpdateCheck = properties.getProperty("lastUpdateCheck");
+    if (StringUtils.isNotBlank(lastUpdateCheck) && TmmStore.getInstance().get("tmm.update.lastCheck") == null) {
+      TmmStore.getInstance().put("tmm.update.lastCheck", lastUpdateCheck);
+      properties.removeProperty("lastUpdateCheck");
+      changed = true;
+    }
+
+    String lastYtDlpUpdateCheck = properties.getProperty("lastYtDlpUpdateCheck");
+    if (StringUtils.isNotBlank(lastYtDlpUpdateCheck) && TmmStore.getInstance().get("tmm.ytdlp.lastCheck") == null) {
+      TmmStore.getInstance().put("tmm.ytdlp.lastCheck", lastYtDlpUpdateCheck);
+      properties.removeProperty("lastYtDlpUpdateCheck");
+      changed = true;
+    }
+
+    if (changed) {
+      properties.writeProperties();
     }
   }
 

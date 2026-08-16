@@ -23,6 +23,7 @@ import org.h2.mvstore.MVMap;
 import org.h2.mvstore.MVStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tinymediamanager.Globals;
 
 /**
  * the class {@link TmmStore} provides a general purpose key/value store based on an H2 MVStore.<br>
@@ -45,9 +46,31 @@ public class TmmStore {
   private static TmmStore              instance;
   private static MVStore               mvStore;
   private static MVMap<String, String> storeMap;
+  private static String                overriddenStoreFolder;
 
   private TmmStore() {
     init();
+  }
+
+  /**
+   * override the folder where the store resides in<br>
+   * <b>Should only be used for unit testing et al.!</b><br>
+   *
+   * @param folder
+   *          the folder to store the database in (null to revert to the default folder)
+   */
+  static synchronized void setStoreFolder(String folder) {
+    shutdown();
+    overriddenStoreFolder = folder;
+  }
+
+  /**
+   * get the folder where the store resides in
+   *
+   * @return the folder
+   */
+  private static String getStoreFolder() {
+    return StringUtils.isNotBlank(overriddenStoreFolder) ? overriddenStoreFolder : Globals.DATA_FOLDER;
   }
 
   /**
@@ -69,6 +92,7 @@ public class TmmStore {
   static synchronized void clearInstances() {
     shutdown();
     instance = null;
+    overriddenStoreFolder = null;
   }
 
   /**
@@ -79,7 +103,7 @@ public class TmmStore {
       return;
     }
 
-    Path databaseFile = Paths.get(Settings.getInstance().getSettingsFolder(), STORE_DB);
+    Path databaseFile = Paths.get(getStoreFolder(), STORE_DB);
 
     try {
       try {
@@ -125,7 +149,7 @@ public class TmmStore {
     }
     catch (Exception e) {
       LOGGER.debug("could not write to the MVstore - '{}'", e.getMessage());
-      Utils.deleteFileSafely(Paths.get(Settings.getInstance().getSettingsFolder(), STORE_DB));
+      Utils.deleteFileSafely(Paths.get(getStoreFolder(), STORE_DB));
       shutdown();
     }
   }
@@ -157,7 +181,7 @@ public class TmmStore {
     }
     catch (Exception e) {
       LOGGER.debug("could not read the MVstore - '{}'", e.getMessage());
-      Utils.deleteFileSafely(Paths.get(Settings.getInstance().getSettingsFolder(), STORE_DB));
+      Utils.deleteFileSafely(Paths.get(getStoreFolder(), STORE_DB));
       shutdown();
     }
 
@@ -188,7 +212,7 @@ public class TmmStore {
     }
     catch (Exception e) {
       LOGGER.debug("could not read the MVstore - '{}'", e.getMessage());
-      Utils.deleteFileSafely(Paths.get(Settings.getInstance().getSettingsFolder(), STORE_DB));
+      Utils.deleteFileSafely(Paths.get(getStoreFolder(), STORE_DB));
       shutdown();
     }
 
@@ -215,7 +239,7 @@ public class TmmStore {
     }
     catch (Exception e) {
       LOGGER.debug("could not write to the MVstore - '{}'", e.getMessage());
-      Utils.deleteFileSafely(Paths.get(Settings.getInstance().getSettingsFolder(), STORE_DB));
+      Utils.deleteFileSafely(Paths.get(getStoreFolder(), STORE_DB));
       shutdown();
     }
   }
@@ -313,7 +337,7 @@ public class TmmStore {
     }
     catch (Exception e) {
       LOGGER.debug("could not close MVstore - deleting the store");
-      Utils.deleteFileSafely(Paths.get(Settings.getInstance().getSettingsFolder(), STORE_DB));
+      Utils.deleteFileSafely(Paths.get(getStoreFolder(), STORE_DB));
     }
     finally {
       mvStore = null;
