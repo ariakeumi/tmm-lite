@@ -149,7 +149,7 @@ public class TmmOsUtils {
     // copy and load the native libs to the temp dir to avoid unforseeable issues - Windows only
     if (SystemUtils.IS_OS_WINDOWS) {
       try {
-        Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"), "tmm");
+        Path tmpDir = Paths.get(Utils.getTempFolder());
         Path nativeDir = tmpDir.resolve(nativepath).toAbsolutePath();
         Utils.copyDirectoryRecursive(tmmNativeDir, nativeDir);
 

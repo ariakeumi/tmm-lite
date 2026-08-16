@@ -17,10 +17,13 @@ package org.tinymediamanager;
 
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Class Globals. used to hold global information/fields for the whole application
@@ -28,7 +31,8 @@ import org.apache.commons.lang3.SystemUtils;
  * @author Manuel Laggner
  */
 public final class Globals {
-  private static final boolean DEBUG = Boolean.parseBoolean(System.getProperty("tmm.debug", "false"));
+  private static final Logger  LOGGER = LoggerFactory.getLogger(Globals.class);
+  private static final boolean DEBUG  = Boolean.parseBoolean(System.getProperty("tmm.debug", "false"));
   private static final boolean READ_ONLY;
 
   public static final String   CONTENT_FOLDER;
@@ -38,6 +42,7 @@ public final class Globals {
   public static final String   BACKUP_FOLDER;
   public static final String   LOG_FOLDER;
   public static final String   ADDON_FOLDER;
+  public static final String   TEMP_FOLDER;
 
   static {
     // first we look for a dedicated folder property
@@ -104,6 +109,41 @@ public final class Globals {
     else {
       ADDON_FOLDER = Paths.get(contentFolder, "addons").toAbsolutePath().normalize().toString();
     }
+
+    // temp - prefer the systems temp folder, fall back to <content>/tmp if it is not writable
+    Path tempFolder = null;
+    try {
+      Path sysTemp = Paths.get(System.getProperty("java.io.tmpdir"));
+      if (Files.exists(sysTemp) && Files.isWritable(sysTemp)) {
+        Path tmmTemp = sysTemp.resolve("tmm");
+        if (!Files.exists(tmmTemp)) {
+          Files.createDirectories(tmmTemp);
+        }
+        if (Files.isWritable(tmmTemp)) {
+          tempFolder = tmmTemp.toAbsolutePath().normalize();
+        }
+      }
+    }
+    catch (Exception | Error e) {
+      // fall back to <content>/tmp below
+    }
+
+    if (tempFolder == null) {
+      tempFolder = Paths.get(CONTENT_FOLDER, "tmp").toAbsolutePath().normalize();
+      LOGGER.warn("System temp folder is not writable - using '{}' as temp folder", tempFolder);
+    }
+
+    // ensure the temp folder exists
+    try {
+      if (!Files.exists(tempFolder)) {
+        Files.createDirectories(tempFolder);
+      }
+    }
+    catch (Exception | Error e) {
+      LOGGER.warn("Could not create temp folder '{}' - '{}'", tempFolder, e.getMessage());
+    }
+
+    TEMP_FOLDER = tempFolder.toString();
   }
 
   private Globals() {

@@ -153,37 +153,6 @@ public class Utils {
 
   private static final List<Locale> AVAILABLE_LOCALES           = new ArrayList<>();
 
-  private static String             tempFolder;
-
-  static {
-    // get the systems default temp folder
-    try {
-      String temp = System.getProperty("java.io.tmpdir");
-      Path tempFolder = Paths.get(temp);
-      if (Files.exists(tempFolder) && Files.isWritable(tempFolder)) {
-        // create a subfolder for tmm
-        tempFolder = Paths.get(temp, "tmm");
-        if (!Files.exists(tempFolder)) {
-          Files.createDirectories(tempFolder);
-        }
-        if (Files.exists(tempFolder) && Files.isWritable(tempFolder)) {
-          Utils.tempFolder = tempFolder.toAbsolutePath().toString();
-        }
-        else {
-          Utils.tempFolder = temp;
-        }
-      }
-      else {
-        Utils.tempFolder = "tmp";
-      }
-    }
-    catch (Exception | Error ignored) {
-      if (tempFolder != null) {
-        tempFolder = "tmp";
-      }
-    }
-  }
-
   private Utils() {
     // hide public constructor for utility classes
   }
@@ -2245,7 +2214,7 @@ public class Utils {
    * @return a string to the temporary folder
    */
   public static String getTempFolder() {
-    return tempFolder;
+    return Globals.TEMP_FOLDER;
   }
 
   /**
@@ -2441,12 +2410,7 @@ public class Utils {
   }
 
   public static void clearTempFolder() {
-    try {
-      FileUtils.forceDeleteOnExit(Paths.get(tempFolder).toFile());
-    }
-    catch (Exception ignored) {
-      // just ignore
-    }
+    deleteDirectorySafely(Paths.get(Globals.TEMP_FOLDER));
   }
 
   /**
