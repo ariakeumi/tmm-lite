@@ -92,7 +92,6 @@ public class TmmStore {
   static synchronized void clearInstances() {
     shutdown();
     instance = null;
-    overriddenStoreFolder = null;
   }
 
   /**
