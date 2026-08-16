@@ -352,10 +352,10 @@ class FernsehserienParser {
           // 2014–
           String ytext = years.ownText().strip();
           String[] yearEnd = ytext.split("\\D"); // ATTN: not delimited by a normal - but a –, so use "not Digit" regex
-          if (yearEnd[0] != null && yearEnd[0].length() == 4) {
+          if (yearEnd.length > 0 && yearEnd[0] != null && yearEnd[0].length() == 4) {
             md.setYear(MetadataUtil.parseInt(yearEnd[0]));
           }
-          if (yearEnd[1] != null && yearEnd[1].length() == 4) {
+          if (yearEnd.length > 1 && yearEnd[1] != null && yearEnd[1].length() == 4) {
             md.setYearEnd(MetadataUtil.parseInt(yearEnd[1]));
             md.setStatus(MediaAiredStatus.ENDED);
           }

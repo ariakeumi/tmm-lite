@@ -8,6 +8,7 @@ x [Movies, TV shows] added a guard to prevent adding/processing nested data sour
 x [UI] some minor fixes for the range slider in the image chooser
 x [UI] removed completeness indicators for missing episodes
 x [UI] moved "Include external audio streams in NFO" to the NFO settings panel
+x [Fernsehserien.de] fixed error when searching for ongoing TV shows
 
 
 Version 5.3.1
