@@ -141,7 +141,7 @@ class DateTextField extends JFormattedTextField implements CaretListener, FocusL
       dateFormatter.applyPattern(dateFormatString);
     }
     catch (RuntimeException e) {
-      dateFormatter = (SimpleDateFormat) TmmDateFormat.getDateFormat();
+      dateFormatter = (SimpleDateFormat) TmmDateFormat.getDateFormat().clone();
       dateFormatter.setLenient(false);
     }
     this.datePattern = dateFormatter.toPattern();
@@ -241,10 +241,10 @@ class DateTextField extends JFormattedTextField implements CaretListener, FocusL
     this.showTime = showTime;
     if (!customDateFormat) {
       if (showTime) {
-        dateFormatter = (SimpleDateFormat) TmmDateFormat.getDateShortTimeFormat();
+        dateFormatter = (SimpleDateFormat) TmmDateFormat.getDateShortTimeFormat().clone();
       }
       else {
-        dateFormatter = (SimpleDateFormat) TmmDateFormat.getDateFormat();
+        dateFormatter = (SimpleDateFormat) TmmDateFormat.getDateFormat().clone();
       }
       dateFormatter.setLenient(false);
       this.datePattern = dateFormatter.toPattern();

@@ -71,56 +71,62 @@ import com.google.gson.stream.JsonReader;
  *
  */
 public class VSMeta {
-  private static final Logger           LOGGER                    = LoggerFactory.getLogger(VSMeta.class);
+  private static final Logger                 LOGGER                    = LoggerFactory.getLogger(VSMeta.class);
 
   // https://gist.github.com/soywiz/2c10feb1231e70aca19a58aca9d6c16a
-  private static final byte             TAG_TITLE1                = 0x12;
-  private static final byte             TAG_TITLE2                = 0x1A;
-  private static final byte             TAG_TITLE3                = 0x22;
-  private static final byte             TAG_YEAR                  = 0x28;
-  private static final byte             TAG_RELEASE_DATE          = 0x32;
-  private static final byte             TAG_LOCKED                = 0x38;
-  private static final byte             TAG_SUMMARY               = 0x42;
-  private static final byte             TAG_META_JSON             = 0x4A;                                 // movie & episode
-  private static final byte             TAG_CLASSIFICATION        = 0x5A;
-  private static final byte             TAG_RATING                = 0x60;
-  private static final int              TAG_POSTER_DATA           = 0x8a;
-  private static final int              TAG_POSTER_MD5            = 0x92;
-  private static final int              TAG_GROUP3                = 0xaa;                                 // on v1, the backdrop is in its own group
+  private static final byte                   TAG_TITLE1                = 0x12;
+  private static final byte                   TAG_TITLE2                = 0x1A;
+  private static final byte                   TAG_TITLE3                = 0x22;
+  private static final byte                   TAG_YEAR                  = 0x28;
+  private static final byte                   TAG_RELEASE_DATE          = 0x32;
+  private static final byte                   TAG_LOCKED                = 0x38;
+  private static final byte                   TAG_SUMMARY               = 0x42;
+  private static final byte                   TAG_META_JSON             = 0x4A;                                                             // movie &
+                                                                                                                                            // episode
+  private static final byte                   TAG_CLASSIFICATION        = 0x5A;
+  private static final byte                   TAG_RATING                = 0x60;
+  private static final int                    TAG_POSTER_DATA           = 0x8a;
+  private static final int                    TAG_POSTER_MD5            = 0x92;
+  private static final int                    TAG_GROUP3                = 0xaa;                                                             // on v1,
+                                                                                                                                            // the
+                                                                                                                                            // backdrop
+                                                                                                                                            // is in
+                                                                                                                                            // its own
+                                                                                                                                            // group
 
-  private static final byte             TAG_GROUP1                = 0x52;
-  private static final byte             TAG1_CAST                 = 0x0A;
-  private static final byte             TAG1_DIRECTOR             = 0x12;
-  private static final byte             TAG1_GENRE                = 0x1A;
-  private static final byte             TAG1_WRITER               = 0x22;
+  private static final byte                   TAG_GROUP1                = 0x52;
+  private static final byte                   TAG1_CAST                 = 0x0A;
+  private static final byte                   TAG1_DIRECTOR             = 0x12;
+  private static final byte                   TAG1_GENRE                = 0x1A;
+  private static final byte                   TAG1_WRITER               = 0x22;
 
-  private static final int              TAG_GROUP2                = 0x9a;
-  private static final byte             TAG2_SEASON               = 0x08;
-  private static final byte             TAG2_EPISODE              = 0x10;
-  private static final byte             TAG2_RELEASE_DATE_TV_SHOW = 0x22;
-  private static final byte             TAG2_LOCKED               = 0x28;
+  private static final int                    TAG_GROUP2                = 0x9a;
+  private static final byte                   TAG2_SEASON               = 0x08;
+  private static final byte                   TAG2_EPISODE              = 0x10;
+  private static final byte                   TAG2_RELEASE_DATE_TV_SHOW = 0x22;
+  private static final byte                   TAG2_LOCKED               = 0x28;
 
-  private static final byte             TAG2_TVSHOW_YEAR          = 0x18;
-  private static final byte             TAG2_TVSHOW_SUMMARY       = 0x32;
-  private static final byte             TAG2_TVSHOW_POSTER_DATA   = 0x3A;
-  private static final byte             TAG2_TVSHOW_POSTER_MD5    = 0x42;
-  private static final byte             TAG2_TVSHOW_META_JSON     = 0x4A;
+  private static final byte                   TAG2_TVSHOW_YEAR          = 0x18;
+  private static final byte                   TAG2_TVSHOW_SUMMARY       = 0x32;
+  private static final byte                   TAG2_TVSHOW_POSTER_DATA   = 0x3A;
+  private static final byte                   TAG2_TVSHOW_POSTER_MD5    = 0x42;
+  private static final byte                   TAG2_TVSHOW_META_JSON     = 0x4A;
 
-  private static final byte             TAG2_GROUP3               = 0x52;
-  private static final byte             TAG3_BACKDROP_DATA        = 0x0a;
-  private static final byte             TAG3_BACKDROP_MD5         = 0x12;
-  private static final byte             TAG3_TIMESTAMP            = 0x18;
+  private static final byte                   TAG2_GROUP3               = 0x52;
+  private static final byte                   TAG3_BACKDROP_DATA        = 0x0a;
+  private static final byte                   TAG3_BACKDROP_MD5         = 0x12;
+  private static final byte                   TAG3_TIMESTAMP            = 0x18;
 
-  private final SimpleDateFormat        dateFormat                = new SimpleDateFormat("yyyy-MM-dd");
+  private final ThreadLocal<SimpleDateFormat> dateFormat                = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd"));
 
-  private final Info                    info                      = new Info();
-  private final HashMap<String, Object> ids                       = new HashMap<>(0);
+  private final Info                          info                      = new Info();
+  private final HashMap<String, Object>       ids                       = new HashMap<>(0);
 
-  private Path                          vsMetaFile                = null;
-  private String                        basename                  = "";
-  private MovieSet                      movieSet                  = null;
-  private float                         rating                    = 0.0f;
-  private final List<MediaArtwork>      artworks                  = new ArrayList<>(0);
+  private Path                                vsMetaFile                = null;
+  private String                              basename                  = "";
+  private MovieSet                            movieSet                  = null;
+  private float                               rating                    = 0.0f;
+  private final List<MediaArtwork>            artworks                  = new ArrayList<>(0);
 
   static class Info {
     public String    title1            = "";             // movie/show title
@@ -270,7 +276,7 @@ public class VSMeta {
 
           case TAG_RELEASE_DATE:
             try {
-              info.releaseDate = dateFormat.parse(data.readStringVL());
+              info.releaseDate = dateFormat.get().parse(data.readStringVL());
             }
             catch (ParseException e) {
               LOGGER.debug("Could not parse date...");
@@ -393,7 +399,7 @@ public class VSMeta {
 
         case TAG2_RELEASE_DATE_TV_SHOW:
           try {
-            info.tvshowReleaseDate = dateFormat.parse(s.readStringVL());
+            info.tvshowReleaseDate = dateFormat.get().parse(s.readStringVL());
           }
           catch (ParseException e) {
             LOGGER.debug("Could not parse date...");

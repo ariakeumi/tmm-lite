@@ -42,16 +42,17 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Helper class for easy usage of the TSDB API using retrofit.
  */
 class TheSportsDbController {
-  public static final String     API_HOST          = "www.thesportsdb.com";
-  public static final String     API_VERSION       = "v1";
-  public static final String     PATH_API_KEY      = "api_key";
-  private static final String    TSDB_DATE_PATTERN = "yyyy-MM-dd";
+  public static final String                  API_HOST          = "www.thesportsdb.com";
+  public static final String                  API_VERSION       = "v1";
+  public static final String                  PATH_API_KEY      = "api_key";
+  private static final String                 TSDB_DATE_PATTERN = "yyyy-MM-dd";
 
-  private final String           apiUrl;
-  private final SimpleDateFormat dateFormat;
-  private String                 apiKey;
+  private final String                        apiUrl;
+  private final ThreadLocal<SimpleDateFormat> dateFormat        = ThreadLocal
+      .withInitial(() -> new SimpleDateFormat(TSDB_DATE_PATTERN, Locale.ENGLISH));
+  private String                              apiKey;
 
-  private Retrofit               retrofit;
+  private Retrofit                            retrofit;
 
   TheSportsDbController(String apiKey) {
     this.apiKey = apiKey;
@@ -60,7 +61,6 @@ class TheSportsDbController {
     }
 
     this.apiUrl = "https://" + API_HOST + "/api/" + API_VERSION + "/";
-    this.dateFormat = new SimpleDateFormat(TSDB_DATE_PATTERN, Locale.ENGLISH);
   }
 
   public String getApiKey() {
@@ -115,7 +115,7 @@ class TheSportsDbController {
     builder.registerTypeAdapter(Integer.class, (JsonDeserializer<Integer>) (json, typeOfT, context) -> json.getAsInt());
     builder.registerTypeAdapter(Date.class, (JsonDeserializer<Date>) (json, typeOfT, context) -> {
       try {
-        return dateFormat.parse(json.getAsString());
+        return dateFormat.get().parse(json.getAsString());
       }
       catch (ParseException e) {
         // return null instead of failing (like default parser would)

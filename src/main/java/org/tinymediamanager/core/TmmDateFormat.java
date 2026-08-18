@@ -98,12 +98,12 @@ public class TmmDateFormat {
     }
   }
 
-  private static final String                  NATIVE_DATE_MEDIUM;
+  private static final String                               NATIVE_DATE_MEDIUM;
 
-  private static final String                  NATIVE_TIME_SHORT;
-  private static final String                  NATIVE_TIME_MEDIUM;
+  private static final String                               NATIVE_TIME_SHORT;
+  private static final String                               NATIVE_TIME_MEDIUM;
 
-  private static final Map<String, DateFormat> DATEFORMAT_CACHE = new ConcurrentHashMap<>();
+  private static final Map<String, ThreadLocal<DateFormat>> DATEFORMAT_CACHE = new ConcurrentHashMap<>();
 
   static {
     DateFormat[] formats = getDateTimeFormats();
@@ -488,12 +488,7 @@ public class TmmDateFormat {
    * @return the date format
    */
   private static DateFormat getCachedDateFormat(String pattern) {
-    DateFormat df = DATEFORMAT_CACHE.get(pattern);
-    if (df == null) {
-      df = formatFromString(pattern);
-      DATEFORMAT_CACHE.put(pattern, df);
-    }
-    return df;
+    return DATEFORMAT_CACHE.computeIfAbsent(pattern, p -> ThreadLocal.withInitial(() -> formatFromString(p))).get();
   }
 
   /**

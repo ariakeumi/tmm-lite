@@ -58,18 +58,18 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Helper class for easy usage of the TMDB v3 API using retrofit.
  */
 class TmdbController {
-  public static final String     API_HOST           = "api.themoviedb.org";
-  public static final String     ALTERNATE_API_HOST = "api.tmdb.org";
-  public static final String     API_VERSION        = "3";
-  public static final String     PARAM_API_KEY      = "api_key";
-  private static final String    TMDB_DATE_PATTERN  = "yyyy-MM-dd";
+  public static final String                  API_HOST           = "api.themoviedb.org";
+  public static final String                  ALTERNATE_API_HOST = "api.tmdb.org";
+  public static final String                  API_VERSION        = "3";
+  public static final String                  PARAM_API_KEY      = "api_key";
+  private static final String                 TMDB_DATE_PATTERN  = "yyyy-MM-dd";
 
-  private final String           apiUrl;
-  private final SimpleDateFormat dateFormat;
-  private final String           apiKey;
-  private final boolean          alternateServer;
+  private final String                        apiUrl;
+  private final ThreadLocal<SimpleDateFormat> dateFormat         = ThreadLocal.withInitial(() -> new SimpleDateFormat(TMDB_DATE_PATTERN));
+  private final String                        apiKey;
+  private final boolean                       alternateServer;
 
-  private Retrofit               retrofit;
+  private Retrofit                            retrofit;
 
   TmdbController(String apiKey, boolean alternateServer) {
     this.apiKey = apiKey;
@@ -81,8 +81,6 @@ class TmdbController {
     else {
       apiUrl = "https://" + API_HOST + "/" + API_VERSION + "/";
     }
-
-    this.dateFormat = new SimpleDateFormat(TMDB_DATE_PATTERN);
   }
 
   public String apiKey() {
@@ -191,7 +189,7 @@ class TmdbController {
 
     builder.registerTypeAdapter(Date.class, (JsonDeserializer<Date>) (json, typeOfT, context) -> {
       try {
-        return dateFormat.parse(json.getAsString());
+        return dateFormat.get().parse(json.getAsString());
       }
       catch (ParseException e) {
         // return null instead of failing (like default parser would)

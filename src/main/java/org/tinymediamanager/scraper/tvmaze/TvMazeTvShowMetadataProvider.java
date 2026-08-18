@@ -1,7 +1,6 @@
 package org.tinymediamanager.scraper.tvmaze;
 
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,8 +51,8 @@ import org.tinymediamanager.scraper.tvmaze.entities.Show;
 public final class TvMazeTvShowMetadataProvider extends TvMazeMetadataProvider
     implements ITvShowMetadataProvider, ITvShowArtworkProvider, ITvShowImdbMetadataProvider, ITvShowTvdbMetadataProvider {
 
-  private static final Logger LOGGER          = LoggerFactory.getLogger(TvMazeTvShowMetadataProvider.class);
-  private final DateFormat    premieredFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+  private static final Logger                 LOGGER          = LoggerFactory.getLogger(TvMazeTvShowMetadataProvider.class);
+  private final ThreadLocal<SimpleDateFormat> premieredFormat = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH));
 
   @Override
   public MediaProviderInfo getProviderInfo() {
@@ -119,7 +118,7 @@ public final class TvMazeTvShowMetadataProvider extends TvMazeMetadataProvider
     }
 
     try {
-      md.setReleaseDate(premieredFormat.parse(show.premiered));
+      md.setReleaseDate(premieredFormat.get().parse(show.premiered));
     }
     catch (Exception e) {
       LOGGER.trace("could not parse releasedate: {}", e.getMessage());
@@ -638,7 +637,7 @@ public final class TvMazeTvShowMetadataProvider extends TvMazeMetadataProvider
 
       md.setRuntime(episode.runtime);
       try {
-        md.setReleaseDate(premieredFormat.parse(episode.airdate));
+        md.setReleaseDate(premieredFormat.get().parse(episode.airdate));
         md.setYear(parseYear(episode.airdate));
       }
       catch (Exception ignored) {
