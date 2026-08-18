@@ -5,6 +5,7 @@ Version 5.3.2
 + [Trailer] added language information for trailers and improved trailer handling to enhance automatic trailer selection #3343
 ---
 x [Movies, TV shows] added a guard to prevent adding/processing nested data sources
+x [Movies, TV shows] import pre-existing date added from NFO files
 x [UI] some minor fixes for the range slider in the image chooser
 x [UI] removed completeness indicators for missing episodes
 x [UI] moved "Include external audio streams in NFO" to the NFO settings panel

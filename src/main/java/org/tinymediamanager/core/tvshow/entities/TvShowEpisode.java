@@ -322,6 +322,7 @@ public class TvShowEpisode extends MediaEntity implements Comparable<TvShowEpiso
     setMediaSource(mediaSource == MediaSource.UNKNOWN || force ? other.mediaSource : mediaSource);
     setEdition(edition == TvShowEpisodeEdition.NONE || force ? other.edition : edition);
     setRuntime(runtime == 0 || force ? other.runtime : runtime);
+    setDateAdded(DateUtils.getLowerDate(dateAdded, other.dateAdded));
 
     if (force) {
       actors.clear();

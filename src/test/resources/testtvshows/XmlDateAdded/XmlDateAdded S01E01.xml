@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<episodedetails>
+    <title>Test Episode</title>
+    <showtitle>XmlDateAdded</showtitle>
+    <season>1</season>
+    <episode>1</episode>
+    <dateadded>2019-01-02 03:04:05</dateadded>
+</episodedetails>

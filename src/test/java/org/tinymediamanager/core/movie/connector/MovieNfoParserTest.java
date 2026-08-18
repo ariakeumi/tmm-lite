@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import org.junit.Before;
@@ -47,6 +48,39 @@ public class MovieNfoParserTest extends BasicMovieTest {
 
     Movie m = MovieUpdateDatasourceTask.parseNFOs(mfs);
     assertThat(m.getImdbId()).isEqualTo("tt0499549");
+  }
+
+  @Test
+  public void testParseNFOsDateAddedFromSecondNfo() {
+    List<MediaFile> mfs = new ArrayList<>();
+    // first NFO has no <dateadded> -> would default to now()
+    mfs.add(new MediaFile(getWorkFolder().resolve("movie_nfo").resolve("multi_nfo_first.nfo")));
+    // second NFO has a <dateadded> -> should be adopted since the first had none
+    mfs.add(new MediaFile(getWorkFolder().resolve("movie_nfo").resolve("multi_nfo_second.nfo")));
+
+    Movie m = MovieUpdateDatasourceTask.parseNFOs(mfs);
+
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(m.getDateAdded());
+    assertThat(cal.get(Calendar.YEAR)).isEqualTo(2014);
+    assertThat(cal.get(Calendar.MONTH)).isEqualTo(Calendar.AUGUST);
+    assertThat(cal.get(Calendar.DAY_OF_MONTH)).isEqualTo(7);
+  }
+
+  @Test
+  public void testParseNFOsDateAddedFromFirstNfo() {
+    List<MediaFile> mfs = new ArrayList<>();
+    // first NFO has a <dateadded> -> should win, even though the second also has one
+    mfs.add(new MediaFile(getWorkFolder().resolve("movie_nfo").resolve("multi_nfo_second.nfo")));
+    mfs.add(new MediaFile(getWorkFolder().resolve("movie_nfo").resolve("multi_nfo_first.nfo")));
+
+    Movie m = MovieUpdateDatasourceTask.parseNFOs(mfs);
+
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(m.getDateAdded());
+    assertThat(cal.get(Calendar.YEAR)).isEqualTo(2014);
+    assertThat(cal.get(Calendar.MONTH)).isEqualTo(Calendar.AUGUST);
+    assertThat(cal.get(Calendar.DAY_OF_MONTH)).isEqualTo(7);
   }
 
   @Test

@@ -82,13 +82,13 @@ public class DateUtils {
   }
 
   /**
-   * Gets the higher {@link Date} of the given two {@link Date} objects. Nullsafe!
+   * Gets the higher/newer {@link Date} of the given two {@link Date} objects. Nullsafe!
    * 
    * @param date1
    *          the first {@link Date} object
    * @param date2
    *          the second {@link Date} object
-   * @return the higher {@link Date} object or null if both are null
+   * @return the higher/newer {@link Date} object or null if both are null
    */
   public static Date getHigherDate(Date date1, Date date2) {
     // If both dates are null, return null
@@ -107,6 +107,34 @@ public class DateUtils {
 
     // Both dates are non-null, return the latest one
     return (date1.after(date2)) ? date1 : date2;
+  }
+
+  /**
+   * Gets the lower/older {@link Date} of the given two {@link Date} objects. Nullsafe!
+   *
+   * @param date1
+   *          the first {@link Date} object
+   * @param date2
+   *          the second {@link Date} object
+   * @return the lower/older {@link Date} object or null if both are null
+   */
+  public static Date getLowerDate(Date date1, Date date2) {
+    // If both dates are null, return null
+    if (date1 == null && date2 == null) {
+      return null;
+    }
+
+    // If one date is null, return the non-null one
+    if (date1 == null) {
+      return date2;
+    }
+
+    if (date2 == null) {
+      return date1;
+    }
+
+    // Both dates are non-null, return the latest one
+    return (date1.before(date2)) ? date1 : date2;
   }
 
   /**

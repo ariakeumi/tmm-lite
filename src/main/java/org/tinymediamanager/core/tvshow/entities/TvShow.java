@@ -263,6 +263,7 @@ public class TvShow extends MediaEntity implements IMediaInformation {
     setCertification(certification == MediaCertification.UNKNOWN || force ? other.certification : certification);
     setCountry(StringUtils.isEmpty(country) || force ? other.country : country);
     setTop250(top250 == 0 || force ? other.top250 : top250);
+    setDateAdded(DateUtils.getLowerDate(dateAdded, other.dateAdded));
 
     // when force is set, clear the lists/maps and add all other values
     if (force) {

@@ -19,8 +19,10 @@ package org.tinymediamanager.core.tvshow.tasks;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Path;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.After;
@@ -37,9 +39,9 @@ import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.core.tvshow.entities.TvShowSeason;
 
 public class TvShowUpdateDatasourceTaskTest extends BasicTvShowTest {
-  private static final int NUMBER_OF_EXPECTED_SHOWS      = 18;
-  private static final int NUMBER_OF_EXPECTED_EPISODES   = 165;
-  private static final int NUMBER_OF_EXPECTED_MEDIAFILES = 410;
+  private static final int NUMBER_OF_EXPECTED_SHOWS      = 19;
+  private static final int NUMBER_OF_EXPECTED_EPISODES   = 166;
+  private static final int NUMBER_OF_EXPECTED_MEDIAFILES = 414;
 
   @Before
   public void setup() throws Exception {
@@ -115,6 +117,22 @@ public class TvShowUpdateDatasourceTaskTest extends BasicTvShowTest {
     assertThat(show.getTitle()).isEqualTo("Breaking Bad");
     assertThat(show.getEpisodes().size()).isEqualTo(62);
     assertThat(show.getSeasons().size()).isEqualTo(5);
+  }
+
+  @Test
+  public void udsXmlDateAdded() throws Exception {
+    TvShowUpdateDatasourceTask task = new TvShowUpdateDatasourceTask(List.of(getWorkFolder().resolve("testtvshows").resolve("XmlDateAdded")));
+    task.run();
+
+    TvShowList tvShowList = TvShowModuleManager.getInstance().getTvShowList();
+    TvShow show = tvShowList.getTvShowByPath(getWorkFolder().resolve("testtvshows/XmlDateAdded"));
+    assertThat(show).isNotNull();
+    assertThat(show.getEpisodes()).hasSize(1);
+
+    TvShowEpisode episode = show.getEpisodes().get(0);
+    // the NFO has no <dateadded>, but the .xml file does - must be adopted instead of now()
+    Date expectedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2019-01-02 03:04:05");
+    assertThat(episode.getDateAdded()).isEqualTo(expectedDate);
   }
 
   private void check() throws Exception {
@@ -225,6 +243,15 @@ public class TvShowUpdateDatasourceTaskTest extends BasicTvShowTest {
     assertThat(seasons.get(2).getEpisodes().size()).isEqualTo(20);
     assertThat(seasons.get(3).getSeason()).isEqualTo(3);
     assertThat(seasons.get(3).getEpisodes().size()).isEqualTo(15);
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    // Janosik DVD - show dateAdded must come from the NFO, not now()
+    ///////////////////////////////////////////////////////////////////////////////////////
+    show = tvShowList.getTvShowByPath(getWorkFolder().resolve("testtvshows/Janosik DVD"));
+    assertThat(show).isNotNull();
+    assertThat(show.getTitle()).isEqualTo("Janosik");
+    Date expectedJanosikDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("2017-03-16 23:28:08");
+    assertThat(show.getDateAdded()).isEqualTo(expectedJanosikDate);
 
     ///////////////////////////////////////////////////////////////////////////////////////
     // unknown -1/-1 detection

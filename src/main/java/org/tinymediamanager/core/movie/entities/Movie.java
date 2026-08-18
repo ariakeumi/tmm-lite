@@ -283,6 +283,7 @@ public class Movie extends MediaEntity implements IMediaInformation {
     setMediaSource(mediaSource == MediaSource.UNKNOWN || force ? other.mediaSource : mediaSource);
     setCertification(certification == MediaCertification.UNKNOWN || force ? other.certification : certification);
     setEdition(edition == MovieEdition.NONE || force ? other.edition : edition);
+    setDateAdded(DateUtils.getLowerDate(dateAdded, other.dateAdded));
 
     // when force is set, clear the lists/maps and add all other values
     if (force) {
