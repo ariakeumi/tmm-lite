@@ -120,6 +120,44 @@ public class TvShowUpdateDatasourceTaskTest extends BasicTvShowTest {
   }
 
   @Test
+  public void udsNestedDatasourceSingleShowUpdate() throws Exception {
+    TvShowSettings settings = TvShowModuleManager.getInstance().getSettings();
+    TvShowList tvShowList = TvShowModuleManager.getInstance().getTvShowList();
+
+    // first do a full scan to populate the TV show list
+    TvShowUpdateDatasourceTask task = new TvShowUpdateDatasourceTask();
+    task.run();
+
+    // verify Breaking Bad exists
+    Path parentDs = getWorkFolder().resolve("testtvshows").toAbsolutePath();
+    Path nestedDs = parentDs.resolve("Breaking Bad");
+
+    TvShow show = tvShowList.getTvShowByPath(nestedDs);
+    assertThat(show).isNotNull();
+    assertThat(show.getTitle()).isEqualTo("Breaking Bad");
+
+    // simulate an already broken setup (nested data source added before the guard existed)
+    settings.setTvShowDataSources(List.of(parentDs.toString(), nestedDs.toString()));
+
+    // now update only the single TV show (like TvShowUpdateAction would)
+    TvShowUpdateDatasourceTask singleTask = new TvShowUpdateDatasourceTask(List.of(nestedDs));
+    singleTask.run();
+
+    // the show must still exist exactly once - no duplication
+    assertThat(tvShowList.getTvShows()).hasSizeGreaterThanOrEqualTo(1);
+
+    // Breaking Bad must be present (not duplicated or removed)
+    show = tvShowList.getTvShowByPath(nestedDs);
+    assertThat(show).isNotNull();
+    assertThat(show.getTitle()).isEqualTo("Breaking Bad");
+    assertThat(show.getEpisodes().size()).isEqualTo(62);
+
+    // there must be no duplicate - count shows with the same path
+    long count = tvShowList.getTvShows().stream().filter(s -> s.getPathNIO().equals(nestedDs)).count();
+    assertThat(count).isEqualTo(1);
+  }
+
+  @Test
   public void udsXmlDateAdded() throws Exception {
     TvShowUpdateDatasourceTask task = new TvShowUpdateDatasourceTask(List.of(getWorkFolder().resolve("testtvshows").resolve("XmlDateAdded")));
     task.run();

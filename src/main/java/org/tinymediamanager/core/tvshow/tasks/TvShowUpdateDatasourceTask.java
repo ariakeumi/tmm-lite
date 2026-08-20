@@ -202,6 +202,15 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
     for (Path folder : ListUtils.nullSafe(folders)) {
       Path normalizedFolder = folder.normalize().toAbsolutePath();
 
+      // first check if this folder matches an existing TV show - if so, treat it as a folderToUpdate
+      // (even if it is also a configured data source, the TV show takes priority)
+      if (tvShowList.getTvShowByPath(normalizedFolder) != null) {
+        if (!foldersToUpdate.contains(normalizedFolder)) {
+          foldersToUpdate.add(normalizedFolder);
+        }
+        continue;
+      }
+
       // check if the folder is exactly a datasource from the settings
       if (datasourcesFromSettings.contains(normalizedFolder)) {
         // put the datasource into the datasource list
