@@ -36,7 +36,6 @@ public class ExternalToolTest {
     TemporaryFolder tmpFolder = new TemporaryFolder();
     tmpFolder.create();
     addonFolder = tmpFolder.newFolder("addons").toPath();
-    System.setProperty("tmm.addonfolder", addonFolder.toAbsolutePath().toString());
   }
 
   @Test
@@ -51,7 +50,7 @@ public class ExternalToolTest {
     Utils.deleteDirectorySafely(addonFolder);
     Files.createDirectory(addonFolder);
 
-    assertThat(ExternalTools.isToolInstalled("ffmpeg")).isEqualTo(false);
+    assertThat(ExternalTools.isToolInstalled("ffmpeg", addonFolder.toAbsolutePath().toString())).isEqualTo(false);
   }
 
   @Test
@@ -60,7 +59,7 @@ public class ExternalToolTest {
     Files.createDirectory(addonFolder);
 
     Files.copy(Paths.get("target/test-classes/external_tools/yt-dlp.ver"), addonFolder.resolve("yt-dlp.ver"));
-    assertThat(ExternalTools.isToolInstalled("yt-dlp")).isEqualTo(true);
+    assertThat(ExternalTools.isToolInstalled("yt-dlp", addonFolder.toAbsolutePath().toString())).isEqualTo(true);
   }
 
   @Test
@@ -74,6 +73,6 @@ public class ExternalToolTest {
     List<ExternalTools.ExternalTool> externalToolsList = externalTools.parseJson();
     assertThat(externalToolsList).isNotEmpty();
 
-    assertThat(externalTools.isUpdateAvailable("yt-dlp")).isEqualTo(true);
+    assertThat(externalTools.isUpdateAvailable("yt-dlp", addonFolder.toAbsolutePath().toString())).isEqualTo(true);
   }
 }

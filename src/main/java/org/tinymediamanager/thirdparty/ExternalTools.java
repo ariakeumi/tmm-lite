@@ -70,7 +70,20 @@ public class ExternalTools {
    * @return true/false
    */
   public static boolean isToolInstalled(String toolName) {
-    Path versionFile = getVersionFile(toolName);
+    return isToolInstalled(toolName, Globals.ADDON_FOLDER);
+  }
+
+  /**
+   * Check whether this tool is installed or not
+   * 
+   * @param toolName
+   *          the tool name
+   * @param addonFolder
+   *          the addon folder to check
+   * @return true/false
+   */
+  static boolean isToolInstalled(String toolName, String addonFolder) {
+    Path versionFile = getVersionFile(toolName, addonFolder);
     return Files.exists(versionFile);
   }
 
@@ -79,10 +92,12 @@ public class ExternalTools {
    * 
    * @param toolName
    *          the tool name
+   * @param addonFolder
+   *          the addon folder to use
    * @return the {@link Path} of the version file
    */
-  private static Path getVersionFile(String toolName) {
-    return Paths.get(Globals.ADDON_FOLDER, toolName + ".ver");
+  private static Path getVersionFile(String toolName, String addonFolder) {
+    return Paths.get(addonFolder, toolName + ".ver");
   }
 
   /**
@@ -95,6 +110,21 @@ public class ExternalTools {
    *           any {@link Exception} thrown while checking
    */
   public boolean isUpdateAvailable(String toolName) throws Exception {
+    return isUpdateAvailable(toolName, Globals.ADDON_FOLDER);
+  }
+
+  /**
+   * Check if an update is available for the given tool
+   * 
+   * @param toolName
+   *          the tool name
+   * @param addonFolder
+   *          the addon folder to check
+   * @return true/false
+   * @throws Exception
+   *           any {@link Exception} thrown while checking
+   */
+  public boolean isUpdateAvailable(String toolName, String addonFolder) throws Exception {
     // lazy loading of the JSON
     init();
 
@@ -107,8 +137,8 @@ public class ExternalTools {
     }
 
     // let's have a look if the tool is installed and
-    if (isToolInstalled(toolName)) {
-      String installedVersion = Utils.readFileToString(getVersionFile(toolName));
+    if (isToolInstalled(toolName, addonFolder)) {
+      String installedVersion = Utils.readFileToString(getVersionFile(toolName, addonFolder));
 
       if (installedVersion.equalsIgnoreCase(externalTool.version)) {
         return false;
