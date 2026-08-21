@@ -11,6 +11,7 @@ x [UI] removed completeness indicators for missing episodes
 x [UI] moved "Include external audio streams in NFO" to the NFO settings panel
 x [Core] fall back to the content folder if the systems temp folder is not writable
 x [Core] fixed parsing of dates in multithreaded environments #3344
+x [TVDB] fixed parsing of end-date #3349
 x [Fernsehserien.de] fixed error when searching for ongoing TV shows
 
 

@@ -223,7 +223,7 @@ public class DateUtils {
    * @param date
    * @return LocalDate or NULL
    */
-  public static LocalDate toLocalD(Date date) {
+  public static LocalDate toLocalDate(Date date) {
     if (date == null) {
       return null;
     }

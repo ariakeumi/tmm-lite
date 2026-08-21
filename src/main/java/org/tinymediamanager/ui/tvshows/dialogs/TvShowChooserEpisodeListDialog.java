@@ -132,8 +132,8 @@ class TvShowChooserEpisodeListDialog extends TmmDialog {
           if (!(episodeContainer.tvShowEpisode.getSeason() > 0 && episodeContainer.tvShowEpisode.getEpisode() > 0)
               && episodeContainer.tvShowEpisode.getFirstAired() != null && md.getReleaseDate() != null) {
             LocalDate epdate = episodeContainer.getFirstAired();
-            LocalDate mddate = DateUtils.toLocalD(md.getReleaseDate());
-            if (epdate.equals(mddate)) {
+            LocalDate mddate = DateUtils.toLocalDate(md.getReleaseDate());
+            if (epdate != null && epdate.equals(mddate)) {
               episodeContainer.setTitle(md.getTitle());
               break;
             }
@@ -148,7 +148,7 @@ class TvShowChooserEpisodeListDialog extends TmmDialog {
         // for each container, get all the episodes with SAME date (can be multiple)
         List<MediaMetadata> matchedDate = tvShowChooserModel.getEpisodeList()
             .stream()
-            .filter(md -> md.getReleaseDate() != null && DateUtils.toLocalD(md.getReleaseDate()).equals(episodeContainer.getFirstAired()))
+            .filter(md -> md.getReleaseDate() != null && DateUtils.toLocalDate(md.getReleaseDate()).equals(episodeContainer.getFirstAired()))
             .toList();
 
         // with that reduced list, we calculate a title-match score, and find the best match
@@ -200,7 +200,7 @@ class TvShowChooserEpisodeListDialog extends TmmDialog {
     }
 
     public LocalDate getFirstAired() {
-      return tvShowEpisode.getFirstAired() == null ? null : DateUtils.toLocalD(tvShowEpisode.getFirstAired());
+      return tvShowEpisode.getFirstAired() == null ? null : DateUtils.toLocalDate(tvShowEpisode.getFirstAired());
     }
 
     public Map<String, Object> getShowIds() {

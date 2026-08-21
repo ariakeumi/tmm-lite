@@ -252,7 +252,7 @@ public class TvShowEpisodeAndSeasonParser {
       result.date = aired.date; // pop
       if (result.season == -1) {
         // STILL -1? take year as season
-        result.season = DateUtils.toLocalD(aired.date).getYear();
+        result.season = DateUtils.toLocalDate(aired.date).getYear();
       }
     }
 

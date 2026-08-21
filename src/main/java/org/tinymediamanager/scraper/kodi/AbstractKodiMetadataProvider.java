@@ -322,7 +322,7 @@ public abstract class AbstractKodiMetadataProvider implements IKodiMetadataProvi
     }
     if (md.getYear() == 0 && md.getReleaseDate() != null) {
       // fallback - if we have no year set (like UniversalScraper)
-      md.setYear(DateUtils.toLocalD(md.getReleaseDate()).getYear());
+      md.setYear(DateUtils.toLocalDate(md.getReleaseDate()).getYear());
     }
 
     String tagline = getInfoFromScraperFunctionOrBase("tagline", details, subDetails);

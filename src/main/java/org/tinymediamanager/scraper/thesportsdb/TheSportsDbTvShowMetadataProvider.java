@@ -495,7 +495,7 @@ public final class TheSportsDbTvShowMetadataProvider extends TheSportsDbMetadata
     try {
       Date d = DateUtils.parseDate(event.dateEvent);
       md.setReleaseDate(d);
-      LocalDate ld = DateUtils.toLocalD(d);
+      LocalDate ld = DateUtils.toLocalDate(d);
       md.setYear(ld.getYear());
       season = ld.getYear(); // our seasons are year based!
     }
@@ -532,7 +532,7 @@ public final class TheSportsDbTvShowMetadataProvider extends TheSportsDbMetadata
       mt.setUrl(event.strVideo);
       mt.setDate(md.getReleaseDate());
       mt.setScrapedBy(MediaMetadata.TSDB);
-      mt.setName(DateUtils.toLocalD(md.getReleaseDate()).toString() + " - " + event.strEvent);
+      mt.setName(DateUtils.toLocalDate(md.getReleaseDate()).toString() + " - " + event.strEvent);
       md.addTrailer(mt);
     }
 
