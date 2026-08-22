@@ -101,16 +101,16 @@ public class ReleaseInfo {
   }
 
   /**
-   * Gets the builds the.
+   * Gets the build id.
    *
-   * @return the builds the
+   * @return the builds id
    */
   public static String getBuild() {
     return build;
   }
 
   /**
-   * human readable version with tier (like 5.0-NIGHTLY)
+   * human-readable version with tier (like 5.0-NIGHTLY)
    *
    * @return
    */

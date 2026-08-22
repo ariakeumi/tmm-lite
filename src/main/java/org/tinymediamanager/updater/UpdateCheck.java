@@ -89,12 +89,12 @@ public class UpdateCheck {
         try {
           Url url;
 
-          if (ReleaseInfo.isNightly() || StringUtils.isBlank(License.getInstance().ref())) {
+          if (ReleaseInfo.isNightly() || ReleaseInfo.isPreRelease() || StringUtils.isBlank(License.getInstance().ref())) {
             // different webserver, no caching - no need to create a cached call
             url = new Url(urlAsString);
           }
           else {
-            url = new Url(urlAsString + "?z=" + System.nanoTime() + "&clientver=" + License.getInstance().ref());
+            url = new Url(urlAsString + "?release=" + ReleaseInfo.getHumanVersion() + "&clientver=" + License.getInstance().ref());
           }
 
           remoteDigest = UrlUtil.getStringFromUrl(url);
