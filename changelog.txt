@@ -6,6 +6,7 @@ Version 5.3.2
 ---
 x [Movies, TV shows] added a guard to prevent adding/processing nested data sources
 x [Movies, TV shows] import pre-existing date added from NFO files
+x [TV shows] enhanced update of single TV shows
 x [UI] some minor fixes for the range slider in the image chooser
 x [UI] removed completeness indicators for missing episodes
 x [UI] moved "Include external audio streams in NFO" to the NFO settings panel
@@ -13,6 +14,7 @@ x [Core] fall back to the content folder if the systems temp folder is not writa
 x [Core] fixed parsing of dates in multithreaded environments #3344
 x [TVDB] fixed parsing of end-date #3349
 x [Fernsehserien.de] fixed error when searching for ongoing TV shows
+x [Tool] upgraded yt-dlp to 2026.08.19
 
 
 Version 5.3.1
