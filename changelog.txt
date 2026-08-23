@@ -1,3 +1,7 @@
+Version 5.3.3
+=======================
+
+
 Version 5.3.2
 =======================
 + [Simkl.com] added support for syncing watched status with Simkl.com
