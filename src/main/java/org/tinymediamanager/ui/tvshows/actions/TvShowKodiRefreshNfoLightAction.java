@@ -16,17 +16,12 @@
 package org.tinymediamanager.ui.tvshows.actions;
 
 import java.awt.event.ActionEvent;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.threading.TmmTask;
 import org.tinymediamanager.core.threading.TmmTaskHandle;
 import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
-import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.thirdparty.KodiRPC;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.actions.TmmAction;
@@ -34,15 +29,15 @@ import org.tinymediamanager.ui.tvshows.TvShowSelectionModel;
 import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 
 /**
- * The Class TvShowEditAction. To edit TV shows/episodes
+ * The class {@link TvShowKodiRefreshNfoLightAction} is used to force a refresh of all selected items (TV shows only) in Kodi
  * 
  * @author Manuel Laggner
  */
-public class TvShowKodiRefreshNfoAction extends TmmAction {
-  public TvShowKodiRefreshNfoAction() {
+public class TvShowKodiRefreshNfoLightAction extends TmmAction {
+  public TvShowKodiRefreshNfoLightAction() {
     putValue(LARGE_ICON_KEY, IconManager.MEDIAINFO);
     putValue(SMALL_ICON, IconManager.MEDIAINFO);
-    putValue(NAME, TmmResourceBundle.getString("kodi.rpc.refreshnfo"));
+    putValue(NAME, TmmResourceBundle.getString("kodi.rpc.refreshnfo") + " (" + (TmmResourceBundle.getString("metatag.tvshows") + ")"));
   }
 
   @Override
@@ -58,52 +53,32 @@ public class TvShowKodiRefreshNfoAction extends TmmAction {
     }
 
     TmmTaskManager.getInstance()
-        .addUnnamedTask(new TmmTask(TmmResourceBundle.getString("kodi.rpc.refreshnfo"),
-            selectedObjects.getTvShows().size() + selectedObjects.getEpisodesRecursive().size(), TmmTaskHandle.TaskType.BACKGROUND_TASK) {
+        .addUnnamedTask(new TmmTask(TmmResourceBundle.getString("kodi.rpc.refreshnfo"), selectedObjects.getTvShows().size(),
+            TmmTaskHandle.TaskType.BACKGROUND_TASK) {
 
           @Override
           protected void doInBackground() {
             KodiRPC kodiRPC = KodiRPC.getInstance();
             int i = 0;
 
-            // cache of all processed DbIds (better than whole objects)
-            List<UUID> processed = new ArrayList<UUID>(selectedObjects.getEpisodesRecursive().size());
-
-            // update show + all EPs
-            boolean remap = false;
+            // update show
             for (TvShow tvShow : selectedObjects.getTvShows()) {
-              kodiRPC.refreshFromNfo(tvShow);
-              remap = true;
-              processed.addAll(tvShow.getEpisodes().stream().map(ep -> ep.getDbId()).collect(Collectors.toList()));
+              kodiRPC.refreshFromNfo(tvShow, false);
               publishState(++i);
               if (cancel) {
                 return;
               }
             }
 
-            // update single EP only, but not if we already had it via show...
-            for (TvShowEpisode episode : selectedObjects.getEpisodesRecursive()) {
-              if (!processed.contains(episode.getDbId())) {
-                kodiRPC.refreshFromNfo(episode);
-
-                publishState(++i);
-                if (cancel) {
-                  return;
-                }
-              }
+            // we need to re-match the shows
+            try {
+              // need some time to propagate the new showId
+              Thread.sleep(1000);
             }
-
-            // if we have updated at least one show (but not episode), we need to re-match the shows
-            if (remap) {
-              try {
-                // need some time to propagate the new showId
-                Thread.sleep(1000);
-              }
-              catch (InterruptedException e) {
-                // ignore
-              }
-              kodiRPC.updateTvShowMappings();
+            catch (InterruptedException e) {
+              // ignore
             }
+            kodiRPC.updateTvShowMappings();
           }
         });
   }

@@ -35,7 +35,8 @@ import org.tinymediamanager.ui.movies.actions.MovieKodiRefreshNfoAction;
 import org.tinymediamanager.ui.moviesets.actions.MovieSetKodiGetWatchedMovieAction;
 import org.tinymediamanager.ui.moviesets.actions.MovieSetKodiRefreshMovieNfoAction;
 import org.tinymediamanager.ui.tvshows.actions.TvShowKodiGetWatchedAction;
-import org.tinymediamanager.ui.tvshows.actions.TvShowKodiRefreshNfoAction;
+import org.tinymediamanager.ui.tvshows.actions.TvShowKodiRefreshNfoFullAction;
+import org.tinymediamanager.ui.tvshows.actions.TvShowKodiRefreshNfoLightAction;
 
 /**
  * the class {@link KodiRPCMenu} is used to build the menu for the Kodi RPC
@@ -218,7 +219,8 @@ public class KodiRPCMenu {
     JMenu m = new JMenu(version);
     m.setIcon(IconManager.KODI);
 
-    m.add(new TvShowKodiRefreshNfoAction());
+    m.add(new TvShowKodiRefreshNfoFullAction());
+    m.add(new TvShowKodiRefreshNfoLightAction());
     m.add(new TvShowKodiGetWatchedAction());
 
     m.addSeparator();

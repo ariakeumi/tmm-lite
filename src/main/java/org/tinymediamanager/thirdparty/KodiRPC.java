@@ -521,7 +521,7 @@ public class KodiRPC {
     }
   }
 
-  public void refreshFromNfo(TvShow tvShow) {
+  public void refreshFromNfo(TvShow tvShow, boolean withEpisodes) {
     Integer kodiID = tvshowmappings.get(tvShow.getDbId());
 
     if (kodiID != null) {
@@ -534,7 +534,7 @@ public class KodiRPC {
         // we do NOT return here, maybe Kodi will do something even w/o nfo...
       }
 
-      final VideoLibrary.RefreshTVShow call = new VideoLibrary.RefreshTVShow(kodiID, false, true); // always refresh from NFO, recursive
+      final VideoLibrary.RefreshTVShow call = new VideoLibrary.RefreshTVShow(kodiID, false, withEpisodes); // always refresh from NFO
       sendWoResponse(call);
     }
     else {
