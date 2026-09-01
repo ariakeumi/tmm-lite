@@ -61,7 +61,10 @@ class TvShowScraperOptionsSettingsPanel extends JPanel {
   private JCheckBox                 chckbxDoNotOverwrite;
   private JCheckBox                 chckbxFetchAllRatings;
   private JCheckBox                 chckbxRatingImdb;
+  private JCheckBox                 chckbxRatingRtTomatometer;
+  private JCheckBox                 chckbxRatingRtAudienceScore;
   private JCheckBox                 chckbxRatingTmdb;
+  private JCheckBox                 chckbxRatingMcMetascore;
   private JCheckBox                 chckbxRatingMcUserscore;
   private JCheckBox                 chckbxRatingMyAnimeList;
   private JCheckBox                 chckbxRatingRogerEbert;
@@ -91,7 +94,10 @@ class TvShowScraperOptionsSettingsPanel extends JPanel {
 
     chckbxRatingImdb.addItemListener(checkBoxListener);
     chckbxRatingTmdb.addItemListener(checkBoxListener);
+    chckbxRatingMcMetascore.addItemListener(checkBoxListener);
     chckbxRatingMcUserscore.addItemListener(checkBoxListener);
+    chckbxRatingRtTomatometer.addItemListener(checkBoxListener);
+    chckbxRatingRtAudienceScore.addItemListener(checkBoxListener);
     chckbxRatingTraktTv.addItemListener(checkBoxListener);
     chckbxRatingLetterboxd.addItemListener(checkBoxListener);
     chckbxRatingMyAnimeList.addItemListener(checkBoxListener);
@@ -137,6 +143,9 @@ class TvShowScraperOptionsSettingsPanel extends JPanel {
         chckbxRatingTmdb = new JCheckBox("TMDB");
         panelOptions.add(chckbxRatingTmdb, "cell 2 5");
 
+        chckbxRatingMcMetascore = new JCheckBox("Metacritic Metascore");
+        panelOptions.add(chckbxRatingMcMetascore, "cell 2 5");
+
         chckbxRatingMcUserscore = new JCheckBox("Metacritic Userscore");
         panelOptions.add(chckbxRatingMcUserscore, "cell 2 5");
 
@@ -151,6 +160,12 @@ class TvShowScraperOptionsSettingsPanel extends JPanel {
 
         chckbxRatingLetterboxd = new JCheckBox("Letterboxd");
         panelOptions.add(chckbxRatingLetterboxd, "cell 2 5");
+
+        chckbxRatingRtTomatometer = new JCheckBox("Rotten Tomatoes - Tomatometer");
+        panelOptions.add(chckbxRatingRtTomatometer, "flowx,cell 2 6");
+
+        chckbxRatingRtAudienceScore = new JCheckBox("RottenTomatoes - Audience Score");
+        panelOptions.add(chckbxRatingRtAudienceScore, "cell 2 6");
 
         chckbxCapitalizeWords = new JCheckBox(TmmResourceBundle.getString("Settings.scraper.capitalizeWords"));
         panelOptions.add(chckbxCapitalizeWords, "cell 1 8");
@@ -183,8 +198,17 @@ class TvShowScraperOptionsSettingsPanel extends JPanel {
     if (src.contains(RatingProvider.RatingSource.TMDB)) {
       chckbxRatingTmdb.setSelected(true);
     }
+    if (src.contains(RatingProvider.RatingSource.METACRITIC)) {
+      chckbxRatingMcMetascore.setSelected(true);
+    }
     if (src.contains(RatingProvider.RatingSource.METACRITIC_USER)) {
       chckbxRatingMcUserscore.setSelected(true);
+    }
+    if (src.contains(RatingProvider.RatingSource.ROTTEN_TOMATOES_TOMATOMETER)) {
+      chckbxRatingRtTomatometer.setSelected(true);
+    }
+    if (src.contains(RatingProvider.RatingSource.ROTTEN_TOMATOES_AVG_RATING)) {
+      chckbxRatingRtAudienceScore.setSelected(true);
     }
     if (src.contains(RatingProvider.RatingSource.MAL)) {
       chckbxRatingMyAnimeList.setSelected(true);
@@ -209,8 +233,17 @@ class TvShowScraperOptionsSettingsPanel extends JPanel {
     if (chckbxRatingTmdb.isSelected()) {
       fetchRatingSources.add(RatingProvider.RatingSource.TMDB);
     }
+    if (chckbxRatingMcMetascore.isSelected()) {
+      fetchRatingSources.add(RatingProvider.RatingSource.METACRITIC);
+    }
     if (chckbxRatingMcUserscore.isSelected()) {
       fetchRatingSources.add(RatingProvider.RatingSource.METACRITIC_USER);
+    }
+    if (chckbxRatingRtTomatometer.isSelected()) {
+      fetchRatingSources.add(RatingProvider.RatingSource.ROTTEN_TOMATOES_TOMATOMETER);
+    }
+    if (chckbxRatingRtAudienceScore.isSelected()) {
+      fetchRatingSources.add(RatingProvider.RatingSource.ROTTEN_TOMATOES_AVG_RATING);
     }
     if (chckbxRatingMyAnimeList.isSelected()) {
       fetchRatingSources.add(RatingProvider.RatingSource.MAL);
@@ -298,5 +331,17 @@ class TvShowScraperOptionsSettingsPanel extends JPanel {
     AutoBinding autoBinding_11 = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxFetchAllRatings, jCheckBoxBeanProperty_1,
         chckbxRatingLetterboxd, jCheckBoxBeanProperty_2);
     autoBinding_11.bind();
+    //
+    AutoBinding autoBinding_12 = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxFetchAllRatings, jCheckBoxBeanProperty_1,
+        chckbxRatingRtTomatometer, jCheckBoxBeanProperty_2);
+    autoBinding_12.bind();
+    //
+    AutoBinding autoBinding_13 = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxFetchAllRatings, jCheckBoxBeanProperty_1,
+        chckbxRatingRtAudienceScore, jCheckBoxBeanProperty_2);
+    autoBinding_13.bind();
+    //
+    AutoBinding autoBinding_14 = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxFetchAllRatings, jCheckBoxBeanProperty_1,
+        chckbxRatingMcMetascore, jCheckBoxBeanProperty_2);
+    autoBinding_14.bind();
   }
 }

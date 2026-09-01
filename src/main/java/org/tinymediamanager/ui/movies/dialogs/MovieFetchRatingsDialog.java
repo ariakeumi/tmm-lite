@@ -47,13 +47,13 @@ public class MovieFetchRatingsDialog extends TmmDialog {
 
     JPanel panelContent = new JPanel();
     getContentPane().add(panelContent, BorderLayout.CENTER);
-    panelContent.setLayout(new MigLayout("", "[][250lp]", "[][50lp]"));
+    panelContent.setLayout(new MigLayout("", "[][250lp, grow]", "[][50lp]"));
 
     JLabel lblRatingSource = new TmmLabel(TmmResourceBundle.getString("metatag.rating.source"));
     panelContent.add(lblRatingSource, "cell 0 0,alignx right");
 
     cbSources = new TmmCheckComboBox<>(RatingProvider.RatingSource.getRatingSourcesForMovies());
-    panelContent.add(cbSources, "cell 1 0,growx");
+    panelContent.add(cbSources, "cell 1 0,growx, wmin 0");
 
     {
       JButton cancelButton = new JButton(TmmResourceBundle.getString("Button.cancel"));

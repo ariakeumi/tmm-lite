@@ -22,6 +22,7 @@ import static org.tinymediamanager.scraper.MediaMetadata.TMDB_SET;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -506,8 +507,9 @@ public final class TmdbMovieMetadataProvider extends TmdbMetadataProvider implem
     }
 
     // add all movies belonging to this movie set
+    Date now = new Date();
     for (BaseMovie part : ListUtils.nullSafe(collection.parts)) {
-      if (part.release_date == null) {
+      if (part.release_date == null || part.release_date.after(now)) {
         // has not been released yet?
         continue;
       }

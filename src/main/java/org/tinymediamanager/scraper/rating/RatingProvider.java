@@ -81,16 +81,7 @@ public class RatingProvider {
      * @return a {@link List} of all relevant {@link RatingSource}s
      */
     public static List<RatingSource> getRatingSourcesForTvShows() {
-      List<RatingSource> ratingSources = new ArrayList<>();
-
-      for (RatingSource ratingSource : values()) {
-        if (ratingSource == METACRITIC || ratingSource == ROTTEN_TOMATOES_AVG_RATING || ratingSource == ROTTEN_TOMATOES_TOMATOMETER) {
-          continue;
-        }
-        ratingSources.add(ratingSource);
-      }
-
-      return ratingSources;
+      return Arrays.asList(values());
     }
   }
 
