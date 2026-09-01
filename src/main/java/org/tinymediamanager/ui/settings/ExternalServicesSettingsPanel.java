@@ -23,6 +23,7 @@ import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -75,22 +76,38 @@ class ExternalServicesSettingsPanel extends JPanel {
   private JButton             btnGetSimklPin;
   private JButton             btnTestSimklConnection;
   private JLabel              lblSimklStatus;
+  private JCheckBox           chckbxTraktTv;
+  private JCheckBox           chckbxSimklCom;
 
   ExternalServicesSettingsPanel() {
     // UI init
     initComponents();
 
     // data init
-    if (License.getInstance().isValidLicense()
-        && StringUtils.isNoneBlank(TraktTv.getInstance().getAccessToken(), TraktTv.getInstance().getRefreshToken())) {
-      lblTraktStatus.setText(TmmResourceBundle.getString("Settings.trakt.status.good"));
+    if (License.getInstance().isValidLicense()) {
+      chckbxTraktTv.setEnabled(true);
+      chckbxSimklCom.setEnabled(true);
+
+      if (StringUtils.isNoneBlank(TraktTv.getInstance().getAccessToken(), TraktTv.getInstance().getRefreshToken())) {
+        lblTraktStatus.setText(TmmResourceBundle.getString("Settings.trakt.status.good"));
+      }
+      else {
+        lblTraktStatus.setText(TmmResourceBundle.getString("Settings.trakt.status.bad"));
+      }
+
+      if (StringUtils.isNotBlank(Simkl.getInstance().getAccessToken())) {
+        lblSimklStatus.setText(TmmResourceBundle.getString("Settings.simkl.status.good"));
+      }
+      else {
+        lblSimklStatus.setText(TmmResourceBundle.getString("Settings.simkl.status.bad"));
+      }
     }
     else {
-      lblTraktStatus.setText(TmmResourceBundle.getString("Settings.trakt.status.bad"));
+      chckbxTraktTv.setEnabled(false);
+      chckbxSimklCom.setEnabled(false);
     }
 
     btnGetTraktPin.addActionListener(e -> getTraktPin());
-    btnGetTraktPin.setEnabled(License.getInstance().isValidLicense());
     btnTestTraktConnection.addActionListener(e -> {
       try {
         TraktTv.getInstance().refreshAccessToken();
@@ -100,20 +117,14 @@ class ExternalServicesSettingsPanel extends JPanel {
       catch (Exception e1) {
         TmmToastManager.showErrorToast(this, TmmResourceBundle.getString("Settings.trakttv"),
             TmmResourceBundle.getString("Settings.trakt.testconnection.bad"));
+
+        // no connection possible, clear the tokens
+        TraktTv.getInstance().setAccessToken("");
+        TraktTv.getInstance().setRefreshToken("");
       }
     });
-    btnTestTraktConnection.setEnabled(License.getInstance().isValidLicense());
-
-    // data init
-    if (License.getInstance().isValidLicense() && StringUtils.isNotBlank(Simkl.getInstance().getAccessToken())) {
-      lblSimklStatus.setText(TmmResourceBundle.getString("Settings.simkl.status.good"));
-    }
-    else {
-      lblSimklStatus.setText(TmmResourceBundle.getString("Settings.simkl.status.bad"));
-    }
 
     btnGetSimklPin.addActionListener(e -> getSimklPin());
-    btnGetSimklPin.setEnabled(License.getInstance().isValidLicense());
     btnTestSimklConnection.addActionListener(e -> {
       if (Simkl.getInstance().testConnection()) {
         TmmToastManager.showSuccessToast(this, TmmResourceBundle.getString("Settings.simkl"),
@@ -122,9 +133,11 @@ class ExternalServicesSettingsPanel extends JPanel {
       else {
         TmmToastManager.showErrorToast(this, TmmResourceBundle.getString("Settings.simkl"),
             TmmResourceBundle.getString("Settings.simkl.testconnection.bad"));
+
+        // no connection possible, clear the token
+        Simkl.getInstance().setAccessToken("");
       }
     });
-    btnTestSimklConnection.setEnabled(License.getInstance().isValidLicense());
   }
 
   private void getTraktPin() {
@@ -340,27 +353,30 @@ class ExternalServicesSettingsPanel extends JPanel {
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelTrakt, lblTraktT, true);
       collapsiblePanel.addExtraTitleComponent(new DocsButton("/settings#trakttv"));
       add(collapsiblePanel, "cell 0 0,growx, wmin 0");
-      {
-        lblTraktStatus = new JLabel("");
-        panelTrakt.add(lblTraktStatus, "cell 1 0 2 1");
-      }
+
+      chckbxTraktTv = new JCheckBox(TmmResourceBundle.getString("Settings.trakt.enable"));
+      panelTrakt.add(chckbxTraktTv, "cell 1 0 2 1");
       {
         btnGetTraktPin = new JButton(TmmResourceBundle.getString("Settings.trakt.getpin"));
-        panelTrakt.add(btnGetTraktPin, "cell 1 1 2 1");
+        panelTrakt.add(btnGetTraktPin, "cell 2 1");
 
         btnTestTraktConnection = new JButton(TmmResourceBundle.getString("Settings.trakt.testconnection"));
-        panelTrakt.add(btnTestTraktConnection, "cell 1 1 2 1");
+        panelTrakt.add(btnTestTraktConnection, "cell 2 1");
+      }
+      {
+        lblTraktStatus = new JLabel("");
+        panelTrakt.add(lblTraktStatus, "cell 2 2");
       }
 
       JLabel lblTraktDateT = new TmmLabel(TmmResourceBundle.getString("Settings.trakt.date"));
-      panelTrakt.add(lblTraktDateT, "flowx,cell 1 3 2 1");
+      panelTrakt.add(lblTraktDateT, "flowx,cell 2 3");
 
       cbTraktDate = new JComboBox(DateField.values());
-      panelTrakt.add(cbTraktDate, "cell 1 3 2 1");
+      panelTrakt.add(cbTraktDate, "cell 2 3");
     }
     {
       JPanel panelSimkl = new JPanel();
-      panelSimkl.setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][]"));
+      panelSimkl.setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][][]"));
 
       JLabel lblSimklT = new TmmLabel(TmmResourceBundle.getString("Settings.simkl"), H3);
 
@@ -371,16 +387,19 @@ class ExternalServicesSettingsPanel extends JPanel {
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelSimkl, lblSimklT, true);
       collapsiblePanel.addExtraTitleComponent(new DocsButton("/settings#simkl"));
       add(collapsiblePanel, "cell 0 2,growx, wmin 0");
-      {
-        lblSimklStatus = new JLabel("");
-        panelSimkl.add(lblSimklStatus, "cell 1 0 2 1");
-      }
+
+      chckbxSimklCom = new JCheckBox(TmmResourceBundle.getString("Settings.simkl.enable"));
+      panelSimkl.add(chckbxSimklCom, "cell 1 0 2 1");
       {
         btnGetSimklPin = new JButton(TmmResourceBundle.getString("Settings.simkl.getpin"));
-        panelSimkl.add(btnGetSimklPin, "cell 1 1 2 1");
+        panelSimkl.add(btnGetSimklPin, "cell 2 1");
 
         btnTestSimklConnection = new JButton(TmmResourceBundle.getString("Settings.simkl.testconnection"));
-        panelSimkl.add(btnTestSimklConnection, "cell 1 1 2 1");
+        panelSimkl.add(btnTestSimklConnection, "cell 2 1");
+      }
+      {
+        lblSimklStatus = new JLabel("");
+        panelSimkl.add(lblSimklStatus, "cell 2 2");
       }
     }
     {
@@ -412,11 +431,43 @@ class ExternalServicesSettingsPanel extends JPanel {
     AutoBinding autoBinding = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, settingsBeanProperty, cbTraktDate,
         jComboBoxBeanProperty);
     autoBinding.bind();
-
+    //
     Property settingsBeanProperty_1 = BeanProperty.create("mdbListApiKey");
     Property jTextFieldBeanProperty = BeanProperty.create("text");
     AutoBinding autobinding_1 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, settingsBeanProperty_1, tfMdbListApiKey,
         jTextFieldBeanProperty);
     autobinding_1.bind();
+    //
+    Property jCheckBoxBeanProperty = BeanProperty.create("selected");
+    Property jButtonBeanProperty = BeanProperty.create("enabled");
+    AutoBinding autoBinding_2 = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxTraktTv, jCheckBoxBeanProperty, btnTestTraktConnection,
+        jButtonBeanProperty);
+    autoBinding_2.bind();
+    //
+    AutoBinding autoBinding_3 = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxTraktTv, jCheckBoxBeanProperty, cbTraktDate,
+        jButtonBeanProperty);
+    autoBinding_3.bind();
+    //
+    Property settingsBeanProperty_2 = BeanProperty.create("traktTvEnabled");
+    AutoBinding autoBinding_6 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, settingsBeanProperty_2, chckbxTraktTv,
+        jCheckBoxBeanProperty);
+    autoBinding_6.bind();
+    //
+    Property settingsBeanProperty_3 = BeanProperty.create("simklComEnabled");
+    AutoBinding autoBinding_7 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, settingsBeanProperty_3, chckbxSimklCom,
+        jCheckBoxBeanProperty);
+    autoBinding_7.bind();
+    //
+    AutoBinding autoBinding_1 = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxSimklCom, jCheckBoxBeanProperty, btnGetSimklPin,
+        jButtonBeanProperty);
+    autoBinding_1.bind();
+    //
+    AutoBinding autoBinding_4 = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxSimklCom, jCheckBoxBeanProperty, btnTestSimklConnection,
+        jButtonBeanProperty);
+    autoBinding_4.bind();
+    //
+    AutoBinding autoBinding_5 = Bindings.createAutoBinding(UpdateStrategy.READ, chckbxTraktTv, jCheckBoxBeanProperty, btnGetTraktPin,
+        jButtonBeanProperty);
+    autoBinding_5.bind();
   }
 }

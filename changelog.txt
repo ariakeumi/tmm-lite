@@ -1,6 +1,7 @@
 Version 5.3.3
 =======================
 x [TV shows] added an action to refresh only the TV show NFO via Kodi RPC #3351
+x [External Services] added a dedicated setting to enable/disable Trakt.tv and Simkl.com support
 
 
 Version 5.3.2

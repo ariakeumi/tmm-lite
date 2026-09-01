@@ -49,12 +49,15 @@ import org.tinymediamanager.core.entities.MediaTrailer;
 import org.tinymediamanager.core.entities.Person;
 import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
+import org.tinymediamanager.license.License;
 import org.tinymediamanager.scraper.MediaMetadata;
 import org.tinymediamanager.scraper.entities.MediaEpisodeGroup;
 import org.tinymediamanager.scraper.entities.MediaEpisodeNumber;
 import org.tinymediamanager.scraper.util.LanguageUtils;
 import org.tinymediamanager.scraper.util.MetadataUtil;
 import org.tinymediamanager.scraper.util.StrgUtils;
+import org.tinymediamanager.thirdparty.simkl.Simkl;
+import org.tinymediamanager.thirdparty.trakttv.TraktTv;
 import org.tinymediamanager.ui.TmmUILayoutStore;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -191,6 +194,44 @@ public abstract class UpgradeTasks {
     // migrate volatile data from tmm.prop to the TmmStore
     // (runs on every startup, but is a no-op once the data has been migrated)
     migrateVolatilePropertiesToTmmStore();
+
+    if (StrgUtils.compareVersion(v, "5.3.3") < 0) {
+      Settings settings = Settings.getInstance();
+
+      // enable external services if settings are available
+      if (StringUtils.isNotBlank(TraktTv.getInstance().getRefreshToken())) {
+        settings.setTraktTvEnabled(License.getInstance().isValidLicense());
+      }
+      if (StringUtils.isNotBlank(Simkl.getInstance().getAccessToken())) {
+        settings.setSimklComEnabled(License.getInstance().isValidLicense());
+      }
+
+      // check external services keys and remove them if they are not valid anymore
+      // but only on release builds (nightly/GIT builds might trigger the upgrade too often
+      if (ReleaseInfo.isPreRelease() || ReleaseInfo.isReleaseBuild()) {
+        // Trakt.tv
+        if (StringUtils.isNotBlank(TraktTv.getInstance().getRefreshToken())) {
+          try {
+            TraktTv.getInstance().refreshAccessToken();
+          }
+          catch (Exception e) {
+            // no connection possible, clear the tokens
+            TraktTv.getInstance().setAccessToken("");
+            TraktTv.getInstance().setRefreshToken("");
+            settings.setTraktTvEnabled(false);
+          }
+        }
+
+        // Simkl.com
+        if (StringUtils.isNotBlank(Simkl.getInstance().getAccessToken())) {
+          if (!Simkl.getInstance().testConnection()) {
+            // no connection possible, clear the token
+            Simkl.getInstance().setAccessToken("");
+            settings.setSimklComEnabled(false);
+          }
+        }
+      }
+    }
   }
 
   /**

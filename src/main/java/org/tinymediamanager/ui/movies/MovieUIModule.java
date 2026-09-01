@@ -37,7 +37,6 @@ import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.MoviePostProcessExecutor;
 import org.tinymediamanager.core.threading.NullTasksMenu;
 import org.tinymediamanager.core.threading.TmmTaskManager;
-import org.tinymediamanager.license.License;
 import org.tinymediamanager.thirdparty.KodiRPC;
 import org.tinymediamanager.thirdparty.simkl.Simkl;
 import org.tinymediamanager.thirdparty.trakttv.TraktTv;
@@ -498,7 +497,9 @@ public class MovieUIModule extends AbstractTmmUIModule {
     popupMenu.addPopupMenuListener(new PopupMenuListener() {
       @Override
       public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
-        if (StringUtils.isNotBlank(Settings.getInstance().getKodiHost())) {
+        Settings settings = Settings.getInstance();
+
+        if (StringUtils.isNotBlank(settings.getKodiHost())) {
           kodiRPCMenu.setText(KodiRPC.getInstance().getVersion());
           kodiRPCMenu.setEnabled(true);
         }
@@ -507,14 +508,14 @@ public class MovieUIModule extends AbstractTmmUIModule {
           kodiRPCMenu.setEnabled(false);
         }
 
-        if (License.getInstance().isValidLicense() && StringUtils.isNotBlank(TraktTv.getInstance().getAccessToken())) {
+        if (settings.isTraktTvEnabled() && TraktTv.getInstance().isEnabled()) {
           traktMenu.setEnabled(true);
         }
         else {
           traktMenu.setEnabled(false);
         }
 
-        if (Simkl.getInstance().isFeatureEnabled() && StringUtils.isNotBlank(Simkl.getInstance().getAccessToken())) {
+        if (settings.isSimklComEnabled() && Simkl.getInstance().isEnabled()) {
           simklMenu.setEnabled(true);
         }
         else {

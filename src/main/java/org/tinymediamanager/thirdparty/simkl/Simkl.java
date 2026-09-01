@@ -251,7 +251,7 @@ public class Simkl implements TmmFeature {
   /**
    * Check if the feature is enabled and we have a valid access token.
    */
-  private boolean isEnabled() {
+  public boolean isEnabled() {
     if (!isFeatureEnabled()) {
       return false;
     }

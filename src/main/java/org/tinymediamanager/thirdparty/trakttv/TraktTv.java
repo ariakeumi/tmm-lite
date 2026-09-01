@@ -242,10 +242,27 @@ public class TraktTv implements TmmFeature {
 
   /**
    * do we have values for user/pass/api?!
+   *
+   * @return true/false if trakt could be called
+   */
+  public boolean isEnabled() {
+    if (!isFeatureEnabled()) {
+      return false;
+    }
+
+    if (StringUtils.isNoneBlank(getAccessToken(), getRefreshToken())) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * do we have values for user/pass/api?!
    * 
    * @return true/false if trakt could be called
    */
-  private boolean isEnabled() {
+  private boolean isEnabledInternal() {
     if (!isFeatureEnabled()) {
       LOGGER.warn("Trakt.tv feature not enabled!");
       return false;
@@ -316,7 +333,7 @@ public class TraktTv implements TmmFeature {
   public void getPersonalLists() throws ScrapeException {
     initAPI();
 
-    if (!isEnabled()) {
+    if (!isEnabledInternal()) {
       return;
     }
 
@@ -356,7 +373,7 @@ public class TraktTv implements TmmFeature {
   public void syncTraktMovieCollection(List<Movie> moviesInTmm) throws ScrapeException {
     initAPI();
 
-    if (!isEnabled()) {
+    if (!isEnabledInternal()) {
       return;
     }
 
@@ -371,7 +388,7 @@ public class TraktTv implements TmmFeature {
   public void syncTraktMovieWatched(List<Movie> moviesInTmm) throws ScrapeException {
     initAPI();
 
-    if (!isEnabled()) {
+    if (!isEnabledInternal()) {
       return;
     }
 
@@ -385,7 +402,7 @@ public class TraktTv implements TmmFeature {
   public void syncTraktMovieRating(List<Movie> moviesInTmm) throws ScrapeException {
     initAPI();
 
-    if (!isEnabled()) {
+    if (!isEnabledInternal()) {
       return;
     }
 
@@ -398,7 +415,7 @@ public class TraktTv implements TmmFeature {
   public void removeFromTraktMovieCollection(List<Movie> moviesInTmm) throws ScrapeException {
     initAPI();
 
-    if (!isEnabled()) {
+    if (!isEnabledInternal()) {
       return;
     }
 
@@ -411,7 +428,7 @@ public class TraktTv implements TmmFeature {
   public void removeFromTraktMovieWatched(List<Movie> moviesInTmm) throws ScrapeException {
     initAPI();
 
-    if (!isEnabled()) {
+    if (!isEnabledInternal()) {
       return;
     }
 
@@ -425,7 +442,7 @@ public class TraktTv implements TmmFeature {
   void clearTraktMovies() throws Exception {
     initAPI();
 
-    if (!isEnabled()) {
+    if (!isEnabledInternal()) {
       return;
     }
 
@@ -448,7 +465,7 @@ public class TraktTv implements TmmFeature {
   public void syncTraktTvShowCollection(List<TvShow> tvShowsInTmm) throws Exception {
     initAPI();
 
-    if (!isEnabled()) {
+    if (!isEnabledInternal()) {
       return;
     }
 
@@ -458,7 +475,7 @@ public class TraktTv implements TmmFeature {
   public void syncTraktTvShowWatched(List<TvShow> tvShowsInTmm) throws Exception {
     initAPI();
 
-    if (!isEnabled()) {
+    if (!isEnabledInternal()) {
       return;
     }
 
@@ -468,7 +485,7 @@ public class TraktTv implements TmmFeature {
   public void syncTraktTvShowRating(List<TvShow> tvShowsInTmm) throws Exception {
     initAPI();
 
-    if (!isEnabled()) {
+    if (!isEnabledInternal()) {
       return;
     }
 
@@ -478,7 +495,7 @@ public class TraktTv implements TmmFeature {
   public void removeFromTraktTvShowCollection(List<TvShow> tvShowsInTmm) throws Exception {
     initAPI();
 
-    if (!isEnabled()) {
+    if (!isEnabledInternal()) {
       return;
     }
 
@@ -488,7 +505,7 @@ public class TraktTv implements TmmFeature {
   public void removeFromTraktTvShowWatched(List<TvShow> tvShowsInTmm) throws Exception {
     initAPI();
 
-    if (!isEnabled()) {
+    if (!isEnabledInternal()) {
       return;
     }
 
@@ -502,7 +519,7 @@ public class TraktTv implements TmmFeature {
   public void clearTraktTvShows() throws Exception {
     initAPI();
 
-    if (!isEnabled()) {
+    if (!isEnabledInternal()) {
       return;
     }
 

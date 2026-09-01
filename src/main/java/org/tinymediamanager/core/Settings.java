@@ -88,8 +88,13 @@ public final class Settings extends AbstractSettings {
   private String                                           proxyPassword;
   private int                                              maximumDownloadThreads       = 2;
 
+  // external services
   private DateField                                        traktDateField               = DateField.DATE_ADDED;
 
+  private boolean                                          traktTvEnabled               = false;
+  private boolean                                          simklComEnabled              = false;
+
+  private boolean                                          kodiEnabled                  = false;
   private String                                           kodiHost                     = "";
   private int                                              kodiHttpPort                 = 8080;
   private int                                              kodiTcpPort                  = 9090;
@@ -917,6 +922,26 @@ public final class Settings extends AbstractSettings {
     DateField oldValue = this.traktDateField;
     this.traktDateField = newValue;
     firePropertyChange("traktDateField", oldValue, newValue);
+  }
+
+  public boolean isTraktTvEnabled() {
+    return traktTvEnabled;
+  }
+
+  public void setTraktTvEnabled(boolean newValue) {
+    boolean oldValue = this.traktTvEnabled;
+    this.traktTvEnabled = newValue;
+    firePropertyChange("traktTvEnabled", oldValue, newValue);
+  }
+
+  public boolean isSimklComEnabled() {
+    return simklComEnabled;
+  }
+
+  public void setSimklComEnabled(boolean newValue) {
+    boolean oldValue = this.simklComEnabled;
+    this.simklComEnabled = newValue;
+    firePropertyChange("simklComEnabled", oldValue, newValue);
   }
 
   public String getKodiHost() {
