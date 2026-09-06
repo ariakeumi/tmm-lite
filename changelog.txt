@@ -4,7 +4,8 @@ Version 5.3.3
 ---
 x [Movie sets] do not scrape unreleased movies
 x [TV shows] added an action to refresh only the TV show NFO via Kodi RPC #3351
-x [External Services] added a dedicated setting to enable/disable Trakt.tv and Simkl.com support
+x [UI] do not list unaired special episodes as missing when "display missing specials" is disabled #3355
+x [External Services] added a dedicated setting to enable or disable Trakt.tv and Simkl.com support
 
 
 Version 5.3.2

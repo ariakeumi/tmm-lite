@@ -59,12 +59,12 @@ public enum TvShowEpisodeType {
     }
     else {
       // dummy episode
-      if (episode.getFirstAired() == null || episode.getFirstAired().compareTo(new Date()) > 0) {
-        return DUMMY_NOT_AIRED;
-      }
-
       if (episode.getSeason() == 0) {
         return DUMMY_SPECIAL;
+      }
+
+      if (episode.getFirstAired() == null || episode.getFirstAired().compareTo(new Date()) > 0) {
+        return DUMMY_NOT_AIRED;
       }
 
       return DUMMY_NORMAL;
