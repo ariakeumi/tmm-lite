@@ -76,13 +76,13 @@ public class TvShowEpisodeAndSeasonParser {
   public static final Pattern  EPISODE_ONLY       = Pattern.compile("[\\s_.-]ep?[\\s_.-]?(\\d{1,4})", Pattern.CASE_INSENSITIVE);
   private static final Pattern EPISODE_PATTERN    = Pattern.compile("[epx_-]+(\\d{1,4})", Pattern.CASE_INSENSITIVE);
   private static final Pattern EPISODE_PATTERN_2  = Pattern.compile("(?:episode|ep)[\\. _-]*(\\d{1,4})", Pattern.CASE_INSENSITIVE);
-  // (1/6) with normal or unicode slash!
+  // (1/6) with normal or Unicode slash!
   private static final Pattern EPISODE_PATTERN_NR = Pattern.compile("(\\d{1,2})[⧸/⁄](\\d{1,2})", Pattern.CASE_INSENSITIVE);
   private static final Pattern ROMAN_PATTERN      = Pattern.compile("(part|pt)[\\._\\s]+([MDCLXVI]+)", Pattern.CASE_INSENSITIVE);
   private static final Pattern SEASON_MULTI_EP    = Pattern.compile("s(\\d{1,4})[ _]?((?:([epx.-]+\\d{1,4})+))", Pattern.CASE_INSENSITIVE);
   private static final Pattern SEASON_MULTI_EP_2  = Pattern.compile("(\\d{1,4})(?=x)((?:([epx]+\\d{1,4})+))", Pattern.CASE_INSENSITIVE);
   // matches patterns like S01E05-07 (interval where second ep is greater than first)
-  private static final Pattern SEASON_EP_RANGE    = Pattern.compile("s(\\d{1,4})[ _]?[eE](\\d{1,4})-(\\d{1,4})", Pattern.CASE_INSENSITIVE);
+  private static final Pattern SEASON_EP_RANGE    = Pattern.compile("s(\\d{1,4})[ _]?[eE](\\d{1,4})-[eE]?(\\d{1,4})", Pattern.CASE_INSENSITIVE);
   private static final Pattern NUMBERS_2_PATTERN  = Pattern.compile("([0-9]{2})", Pattern.CASE_INSENSITIVE);
   private static final Pattern NUMBERS_3_PATTERN  = Pattern.compile("([0-9])([0-9]{2})", Pattern.CASE_INSENSITIVE);
 
