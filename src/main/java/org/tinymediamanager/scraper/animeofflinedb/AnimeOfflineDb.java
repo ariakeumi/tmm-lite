@@ -60,7 +60,7 @@ public class AnimeOfflineDb {
         }
         catch (Exception e) {
           LOGGER.debug("Getting tag failed; fallback to known tag - {}", e.getMessage());
-          tagName = "2025-32"; // fallback to a known tag/week
+          tagName = "2026-27"; // fallback to a known tag/week; abandoned; use latest available
         }
 
         // not need to cache by OkHttp
