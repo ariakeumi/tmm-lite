@@ -19,9 +19,7 @@ import static org.tinymediamanager.ui.TmmFontHelper.L1;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
-import javax.swing.JOptionPane;
 
 import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
@@ -33,12 +31,14 @@ import org.tinymediamanager.core.tvshow.tasks.TvShowRenameTask;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.actions.TmmAction;
-import org.tinymediamanager.ui.dialogs.TmmOptionDialog;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
+import org.tinymediamanager.ui.panels.ConfirmationPanel;
+import org.tinymediamanager.ui.panels.ModalPopupPanel;
 import org.tinymediamanager.ui.tvshows.TvShowSelectionModel;
 import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 
 /**
- * TvShowRenameWithProfileAction - rename TV shows/episodes with a specific renamer profile
+ * The class {@link TvShowRenameWithProfileAction} - rename TV shows/episodes with a specific renamer profile
  *
  * @author Manuel Laggner
  */
@@ -59,28 +59,33 @@ public class TvShowRenameWithProfileAction extends TmmAction {
     }
 
     if (selectedObjects.isEmpty()) {
+      TmmToastManager.showErrorToast(TvShowUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("tvshow.rename"),
+          TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
-    // display warning and ask the user again
-    if (Boolean.FALSE.equals(TmmProperties.getInstance().getPropertyAsBoolean("tvshow.hiderenamehint"))) {
-      JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
-      TmmFontHelper.changeFont(checkBox, L1);
-      checkBox.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-
-      int answer = TmmOptionDialog.showOptionDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tvshow.rename"),
-          TmmResourceBundle.getString("tvshow.rename.desc"), checkBox);
-
-      if (checkBox.isSelected()) {
-        TmmProperties.getInstance().putProperty("tvshow.hiderenamehint", String.valueOf(checkBox.isSelected()));
-      }
-
-      if (answer != JOptionPane.YES_OPTION) {
-        return;
-      }
+    if (Boolean.TRUE.equals(TmmProperties.getInstance().getPropertyAsBoolean("tvshow.hiderenamehint"))) {
+      executeRename(selectedObjects);
+      return;
     }
 
-    // rename
+    JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
+    TmmFontHelper.changeFont(checkBox, L1);
+
+    ModalPopupPanel popupPanel = MainWindow.getInstance().createModalPopupPanel();
+    popupPanel.setTitle(TmmResourceBundle.getString("tvshow.rename"));
+    ConfirmationPanel confirmationPanel = new ConfirmationPanel(TmmResourceBundle.getString("tvshow.rename.desc"), checkBox);
+    popupPanel.setContent(confirmationPanel);
+    popupPanel.setOnCloseHandler(() -> {
+      if (confirmationPanel.isCheckBoxSelected()) {
+        TmmProperties.getInstance().putProperty("tvshow.hiderenamehint", String.valueOf(confirmationPanel.isCheckBoxSelected()));
+      }
+      executeRename(selectedObjects);
+    });
+    MainWindow.getInstance().showModalPopupPanel(popupPanel);
+  }
+
+  private void executeRename(TvShowSelectionModel.SelectedObjects selectedObjects) {
     TvShowRenamerProfile profile = TvShowModuleManager.getInstance().getSettings().getRenamerProfile(profileName);
     TmmThreadPool renameTask = new TvShowRenameTask(selectedObjects.getTvShows(), selectedObjects.getEpisodesRecursive(), profile);
     TmmTaskManager.getInstance().addMainTask(renameTask);

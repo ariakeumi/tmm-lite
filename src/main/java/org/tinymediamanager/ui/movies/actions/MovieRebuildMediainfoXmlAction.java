@@ -21,9 +21,7 @@ import static org.tinymediamanager.ui.TmmFontHelper.L1;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
-import javax.swing.JOptionPane;
 
 import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.TmmProperties;
@@ -37,7 +35,10 @@ import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.actions.TmmAction;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
 import org.tinymediamanager.ui.movies.MovieUIModule;
+import org.tinymediamanager.ui.panels.ConfirmationPanel;
+import org.tinymediamanager.ui.panels.ModalPopupPanel;
 
 /**
  * the class {@link MovieRebuildMediainfoXmlAction} is used to delete mediainfo.xml for selected movies
@@ -57,32 +58,33 @@ public class MovieRebuildMediainfoXmlAction extends TmmAction {
     List<Movie> selectedMovies = MovieUIModule.getInstance().getSelectionModel().getSelectedMovies();
 
     if (selectedMovies.isEmpty()) {
-      JOptionPane.showMessageDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tmm.nothingselected"));
+      TmmToastManager.showErrorToast(MovieUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("movie.rebuildmediainfoxml"),
+          TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
-    // display warning and ask the user again
-    if (!TmmProperties.getInstance().getPropertyAsBoolean("movie.hidedeletemediainfoxmlhint")) {
-      JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
-      TmmFontHelper.changeFont(checkBox, L1);
-      checkBox.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-
-      Object[] options = { TmmResourceBundle.getString("Button.yes"), TmmResourceBundle.getString("Button.no") };
-      Object[] params = { TmmResourceBundle.getString("movie.deletemediainfoxml.desc"), checkBox };
-      int answer = JOptionPane.showOptionDialog(MainWindow.getInstance(), params, TmmResourceBundle.getString("movie.deletemediainfoxml"),
-          JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, null);
-
-      // the user don't want to show this dialog again
-      if (checkBox.isSelected()) {
-        TmmProperties.getInstance().putProperty("movie.hidedeletemediainfoxmlhint", String.valueOf(checkBox.isSelected()));
-      }
-
-      if (answer != JOptionPane.YES_OPTION) {
-        return;
-      }
+    if (TmmProperties.getInstance().getPropertyAsBoolean("movie.hidedeletemediainfoxmlhint")) {
+      executeRebuild(selectedMovies);
+      return;
     }
 
-    // delete mediainfo.xml
+    JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
+    TmmFontHelper.changeFont(checkBox, L1);
+
+    ModalPopupPanel popupPanel = MainWindow.getInstance().createModalPopupPanel();
+    popupPanel.setTitle(TmmResourceBundle.getString("movie.deletemediainfoxml"));
+    ConfirmationPanel confirmationPanel = new ConfirmationPanel(TmmResourceBundle.getString("movie.deletemediainfoxml.desc"), checkBox);
+    popupPanel.setContent(confirmationPanel);
+    popupPanel.setOnCloseHandler(() -> {
+      if (confirmationPanel.isCheckBoxSelected()) {
+        TmmProperties.getInstance().putProperty("movie.hidedeletemediainfoxmlhint", String.valueOf(confirmationPanel.isCheckBoxSelected()));
+      }
+      executeRebuild(selectedMovies);
+    });
+    MainWindow.getInstance().showModalPopupPanel(popupPanel);
+  }
+
+  private void executeRebuild(List<Movie> selectedMovies) {
     for (Movie movie : selectedMovies) {
       movie.getMediaFiles(MediaFileType.MEDIAINFO).forEach(mediaFile -> {
         Utils.deleteFileSafely(mediaFile.getFileAsPath());
@@ -90,7 +92,6 @@ public class MovieRebuildMediainfoXmlAction extends TmmAction {
       });
     }
 
-    // get data of all files within all selected movies
     TmmThreadPool task = new MovieReloadMediaInformationTask(selectedMovies);
     TmmTaskManager.getInstance().addMainTask(task);
   }

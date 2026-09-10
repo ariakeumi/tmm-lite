@@ -20,9 +20,7 @@ import static org.tinymediamanager.ui.TmmFontHelper.L1;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
-import javax.swing.JOptionPane;
 
 import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
@@ -35,11 +33,13 @@ import org.tinymediamanager.core.threading.TmmThreadPool;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.actions.TmmAction;
-import org.tinymediamanager.ui.dialogs.TmmOptionDialog;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
 import org.tinymediamanager.ui.movies.MovieUIModule;
+import org.tinymediamanager.ui.panels.ConfirmationPanel;
+import org.tinymediamanager.ui.panels.ModalPopupPanel;
 
 /**
- * MovieRenameAction - rename movies
+ * The class {@link MovieRenameWithProfileAction} is used to rename movies using the desired renamer profile
  * 
  * @author Manuel Laggner
  */
@@ -56,30 +56,33 @@ public class MovieRenameWithProfileAction extends TmmAction {
     List<Movie> selectedMovies = MovieUIModule.getInstance().getSelectionModel().getSelectedMovies();
 
     if (selectedMovies.isEmpty()) {
-      JOptionPane.showMessageDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tmm.nothingselected"));
+      TmmToastManager.showErrorToast(MovieUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("movie.rename"),
+          TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
-    // display warning and ask the user again
-    if (!TmmProperties.getInstance().getPropertyAsBoolean("movie.hiderenamehint")) {
-      JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
-      TmmFontHelper.changeFont(checkBox, L1);
-      checkBox.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-
-      int answer = TmmOptionDialog.showOptionDialog(MainWindow.getInstance(), TmmResourceBundle.getString("movie.rename"),
-          TmmResourceBundle.getString("movie.rename.desc"), checkBox);
-
-      // the user don't want to show this dialog again
-      if (checkBox.isSelected()) {
-        TmmProperties.getInstance().putProperty("movie.hiderenamehint", String.valueOf(checkBox.isSelected()));
-      }
-
-      if (answer != JOptionPane.YES_OPTION) {
-        return;
-      }
+    if (TmmProperties.getInstance().getPropertyAsBoolean("movie.hiderenamehint")) {
+      executeRename(selectedMovies);
+      return;
     }
 
-    // rename
+    JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
+    TmmFontHelper.changeFont(checkBox, L1);
+
+    ModalPopupPanel popupPanel = MainWindow.getInstance().createModalPopupPanel();
+    popupPanel.setTitle(TmmResourceBundle.getString("movie.rename"));
+    ConfirmationPanel confirmationPanel = new ConfirmationPanel(TmmResourceBundle.getString("movie.rename.desc"), checkBox);
+    popupPanel.setContent(confirmationPanel);
+    popupPanel.setOnCloseHandler(() -> {
+      if (confirmationPanel.isCheckBoxSelected()) {
+        TmmProperties.getInstance().putProperty("movie.hiderenamehint", String.valueOf(confirmationPanel.isCheckBoxSelected()));
+      }
+      executeRename(selectedMovies);
+    });
+    MainWindow.getInstance().showModalPopupPanel(popupPanel);
+  }
+
+  private void executeRename(List<Movie> selectedMovies) {
     MovieRenamerProfile profile = MovieModuleManager.getInstance().getSettings().getRenamerProfile(profileName);
     TmmThreadPool renameTask = new MovieRenameTask(selectedMovies, profile);
     TmmTaskManager.getInstance().addMainTask(renameTask);

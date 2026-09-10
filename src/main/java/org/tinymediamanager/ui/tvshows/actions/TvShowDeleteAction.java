@@ -20,7 +20,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import org.tinymediamanager.core.Settings;
@@ -33,12 +32,14 @@ import org.tinymediamanager.core.tvshow.entities.TvShowSeason;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.actions.TmmAction;
-import org.tinymediamanager.ui.dialogs.TmmOptionDialog;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
+import org.tinymediamanager.ui.panels.ConfirmationPanel;
+import org.tinymediamanager.ui.panels.ModalPopupPanel;
 import org.tinymediamanager.ui.tvshows.TvShowSelectionModel;
 import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 
 /**
- * The class TvShowDeleteAction. To remove selected elements and delete it from the data source
+ * The class {@link TvShowDeleteAction} is used to remove selected elements and delete it from the data source
  * 
  * @author Manuel Laggner
  */
@@ -56,35 +57,40 @@ public class TvShowDeleteAction extends TmmAction {
     TvShowSelectionModel.SelectedObjects selectedObjects = TvShowUIModule.getInstance().getSelectionModel().getSelectedObjects();
 
     if (selectedObjects.isEmpty()) {
+      TmmToastManager.showErrorToast(TvShowUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("tvshow.delete"),
+          TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
-    // display warning and ask the user again
     String message = Settings.getInstance().isEnableTrash() ? TmmResourceBundle.getString("tvshow.delete.desc")
         : TmmResourceBundle.getString("tvshow.delete.desc2");
-    int answer = TmmOptionDialog.showOptionDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tvshow.delete"), message);
-    if (answer != JOptionPane.YES_OPTION) {
-      return;
-    }
 
-    if (selectedObjects.isLockedFound()) {
-      TvShowSelectionModel.showLockedInformation();
-    }
+    ModalPopupPanel popupPanel = MainWindow.getInstance().createModalPopupPanel();
+    popupPanel.setTitle(TmmResourceBundle.getString("tvshow.delete"));
 
-    TmmTaskManager.getInstance().addUnnamedTask(() -> {
-      for (TvShow tvShow : selectedObjects.getTvShows()) {
-        TvShowModuleManager.getInstance().getTvShowList().deleteTvShow(tvShow);
+    ConfirmationPanel confirmationPanel = new ConfirmationPanel(message);
+    popupPanel.setContent(confirmationPanel);
+    popupPanel.setOnCloseHandler(() -> {
+      if (selectedObjects.isLockedFound()) {
+        TvShowSelectionModel.showLockedInformation();
       }
 
-      for (TvShowSeason season : selectedObjects.getSeasons()) {
-        for (TvShowEpisode episode : season.getEpisodes()) {
-          season.getTvShow().deleteEpisode(episode);
+      TmmTaskManager.getInstance().addUnnamedTask(() -> {
+        for (TvShow tvShow : selectedObjects.getTvShows()) {
+          TvShowModuleManager.getInstance().getTvShowList().deleteTvShow(tvShow);
         }
-      }
 
-      for (TvShowEpisode episode : selectedObjects.getEpisodes()) {
-        episode.getTvShow().deleteEpisode(episode);
-      }
+        for (TvShowSeason season : selectedObjects.getSeasons()) {
+          for (TvShowEpisode episode : season.getEpisodes()) {
+            season.getTvShow().deleteEpisode(episode);
+          }
+        }
+
+        for (TvShowEpisode episode : selectedObjects.getEpisodes()) {
+          episode.getTvShow().deleteEpisode(episode);
+        }
+      });
     });
+    MainWindow.getInstance().showModalPopupPanel(popupPanel);
   }
 }

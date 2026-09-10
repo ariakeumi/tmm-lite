@@ -15,29 +15,22 @@
  */
 package org.tinymediamanager.ui.tvshows;
 
-import static org.tinymediamanager.ui.TmmFontHelper.L1;
-
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.swing.BorderFactory;
-import javax.swing.JCheckBox;
-import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import org.tinymediamanager.core.AbstractModelObject;
-import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.bus.Event;
 import org.tinymediamanager.core.bus.EventBus;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.core.tvshow.entities.TvShowSeason;
-import org.tinymediamanager.ui.MainWindow;
-import org.tinymediamanager.ui.TmmFontHelper;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
 import org.tinymediamanager.ui.components.treetable.TmmTreeTable;
 
 /**
@@ -348,20 +341,8 @@ public class TvShowSelectionModel extends AbstractModelObject {
   }
 
   public static void showLockedInformation() {
-    if (Boolean.FALSE.equals(TmmProperties.getInstance().getPropertyAsBoolean("tvshow.hidelockedhint"))) {
-      JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
-      TmmFontHelper.changeFont(checkBox, L1);
-      checkBox.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-
-      Object[] params = { TmmResourceBundle.getString("tvshow.lockedfound.desc"), checkBox };
-      JOptionPane.showMessageDialog(MainWindow.getInstance(), params, TmmResourceBundle.getString("tvshow.lockedfound"),
-          JOptionPane.INFORMATION_MESSAGE);
-
-      // the user don't want to show this dialog again
-      if (checkBox.isSelected()) {
-        TmmProperties.getInstance().putProperty("tvshow.hidelockedhint", String.valueOf(checkBox.isSelected()));
-      }
-    }
+    TmmToastManager.showWarningToast(TvShowUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("tvshow.lockedfound"),
+        TmmResourceBundle.getString("tvshow.lockedfound.desc"));
   }
 
   public static class SelectedObjects {

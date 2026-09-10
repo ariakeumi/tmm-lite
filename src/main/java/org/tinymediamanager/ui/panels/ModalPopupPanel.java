@@ -51,6 +51,8 @@ import net.miginfocom.swing.MigLayout;
  * @author Manuel Laggner
  */
 public class ModalPopupPanel extends JPanel {
+  private static final int               ARC = 15;
+
   private final IModalPopupPanelProvider popupPanelProvider;
 
   private final JLabel                   lblTitle;
@@ -85,27 +87,61 @@ public class ModalPopupPanel extends JPanel {
         Graphics2D g2d = (Graphics2D) g1.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        Dimension arcs = new Dimension(15, 15);
+        Dimension arcs = new Dimension(ARC, ARC);
         int width = getWidth();
         int height = getHeight();
 
         // Draws the rounded opaque panel with borders.
         g2d.setColor(getBackground());
         g2d.fillRoundRect(0, 0, width - 1, height - 1, arcs.width, arcs.height);// paint background
+        g2d.setColor(new Color(80, 80, 80));
+        g2d.drawRoundRect(0, 0, width - 1, height - 1, arcs.width, arcs.height);
+        g2d.dispose();
+      }
+
+      @Override
+      protected void paintChildren(Graphics g) {
+        Graphics2D g2d = (Graphics2D) g.create();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setClip(new java.awt.geom.RoundRectangle2D.Double(0, 0, getWidth(), getHeight(), 15, 15));
+        super.paintChildren(g2d);
         g2d.dispose();
       }
     };
+
     layoutPanel.setOpaque(false);
     layoutPanel.setLayout(new BorderLayout());
-    layoutPanel.setBorder(new EmptyBorder(5, 20, 5, 20));
     add(layoutPanel, "cell 0 0");
+
+    JPanel titlePanel = new JPanel() {
+      @Override
+      protected void paintComponent(Graphics g1) {
+        super.paintComponent(g1);
+        Graphics2D g2d = (Graphics2D) g1.create();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        int width = getWidth();
+        int height = getHeight();
+        g2d.setColor(javax.swing.UIManager.getColor("PopupPanelTitle.background"));
+        int arc = ARC;
+        g2d.fillRoundRect(0, 0, width, arc * 2, arc, arc);
+        g2d.fillRect(0, arc, width, height - arc);
+        g2d.setColor(javax.swing.UIManager.getColor("Separator.foreground"));
+        g2d.drawLine(0, height - 1, width, height - 1);
+        g2d.dispose();
+      }
+    };
+    titlePanel.setOpaque(false);
+    titlePanel.setLayout(new MigLayout("insets 0, gap 0", "[grow]", "[grow]"));
 
     lblTitle = new JLabel(title);
     lblTitle.setHorizontalAlignment(CENTER);
     TmmFontHelper.changeFont(lblTitle, TmmFontHelper.H3, Font.BOLD);
-    layoutPanel.add(lblTitle, BorderLayout.NORTH);
+    titlePanel.add(lblTitle, "cell 0 0, grow, gaptop 5, gapbottom 5, gapleft 20, gapright 20");
+    layoutPanel.add(titlePanel, BorderLayout.NORTH);
 
     contentPanel = new JPanel();
+    contentPanel.setBorder(new EmptyBorder(0, 20, 0, 20));
     layoutPanel.add(contentPanel, BorderLayout.CENTER);
 
     {
@@ -113,8 +149,7 @@ public class ModalPopupPanel extends JPanel {
       layoutPanel.add(bottomPanel, BorderLayout.SOUTH);
       bottomPanel.setLayout(new MigLayout("insets n 0 0 0, gap rel 0", "[grow][]", "[shrink 0][]"));
 
-      JSeparator separator = new JSeparator();
-      bottomPanel.add(separator, "cell 0 0 2 1,growx");
+      bottomPanel.add(new JSeparator(), "cell 0 0 2 1,growx");
 
       buttonPanel = new JPanel();
       EqualsLayout layout = new EqualsLayout(5);

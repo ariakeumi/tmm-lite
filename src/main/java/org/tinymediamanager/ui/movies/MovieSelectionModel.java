@@ -15,24 +15,18 @@
  */
 package org.tinymediamanager.ui.movies;
 
-import static org.tinymediamanager.ui.TmmFontHelper.L1;
-
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import javax.swing.BorderFactory;
-import javax.swing.JCheckBox;
-import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
 import org.tinymediamanager.core.AbstractModelObject;
 import org.tinymediamanager.core.AbstractSettings;
 import org.tinymediamanager.core.MediaFileType;
-import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.bus.Event;
 import org.tinymediamanager.core.bus.EventBus;
@@ -40,8 +34,7 @@ import org.tinymediamanager.core.entities.MediaEntity;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.scraper.util.ListUtils;
-import org.tinymediamanager.ui.MainWindow;
-import org.tinymediamanager.ui.TmmFontHelper;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
 import org.tinymediamanager.ui.movies.filters.IMovieUIFilter;
 
 import ca.odell.glazedlists.EventList;
@@ -230,19 +223,9 @@ public class MovieSelectionModel extends AbstractModelObject implements ListSele
     }
 
     boolean lockedFound = selectedMovies.stream().anyMatch(MediaEntity::isLocked);
-    if (lockedFound && !TmmProperties.getInstance().getPropertyAsBoolean("movie.hidelockedhint")) {
-      JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
-      TmmFontHelper.changeFont(checkBox, L1);
-      checkBox.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-
-      Object[] params = { TmmResourceBundle.getString("movie.lockedfound.desc"), checkBox };
-      JOptionPane.showMessageDialog(MainWindow.getInstance(), params, TmmResourceBundle.getString("movie.lockedfound"),
-          JOptionPane.INFORMATION_MESSAGE);
-
-      // the user don't want to show this dialog again
-      if (checkBox.isSelected()) {
-        TmmProperties.getInstance().putProperty("movie.hidelockedhint", String.valueOf(checkBox.isSelected()));
-      }
+    if (lockedFound) {
+      TmmToastManager.showWarningToast(MovieUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("movie.lockedfound"),
+          TmmResourceBundle.getString("movie.lockedfound.desc"));
     }
 
     return selectedMovies.stream().filter(movie -> !movie.isLocked()).toList();

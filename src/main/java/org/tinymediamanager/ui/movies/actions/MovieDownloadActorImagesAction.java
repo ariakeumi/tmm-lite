@@ -21,7 +21,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
 
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import org.tinymediamanager.core.TmmResourceBundle;
@@ -29,12 +28,15 @@ import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.actions.TmmAction;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
 import org.tinymediamanager.ui.movies.MovieUIModule;
+import org.tinymediamanager.ui.panels.ConfirmationPanel;
+import org.tinymediamanager.ui.panels.ModalPopupPanel;
 
 /**
- * The Class MovieDownloadActorImagesAction To download images from actors / producers for selected Movies
+ * The class {@link MovieDownloadActorImagesAction} is used to download images from actors / producers for selected Movies
  *
- * @author wjanes
+ * @author Wolfgang Janes
  */
 public class MovieDownloadActorImagesAction extends TmmAction {
 
@@ -51,21 +53,26 @@ public class MovieDownloadActorImagesAction extends TmmAction {
     List<Movie> selectedMovies = MovieUIModule.getInstance().getSelectionModel().getSelectedMovies();
 
     if (selectedMovies.isEmpty()) {
-      JOptionPane.showMessageDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tmm.nothingselected"));
+      TmmToastManager.showErrorToast(MovieUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("movie.downloadactorimages"),
+          TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
-    boolean overwriteActorImages = false;
+    ModalPopupPanel popupPanel = MainWindow.getInstance().createModalPopupPanel();
+    popupPanel.setTitle(TmmResourceBundle.getString("movie.downloadactorimages"));
 
-    Object[] options = { TmmResourceBundle.getString("Button.yes"), TmmResourceBundle.getString("Button.no") };
-    int answer = JOptionPane.showOptionDialog(MainWindow.getFrame(), TmmResourceBundle.getString("movie.downloadactorimages.overwrite"),
-        TmmResourceBundle.getString("movie.downloadactorimages"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, null);
-    if (answer == JOptionPane.YES_OPTION) {
-      overwriteActorImages = true;
-    }
-
-    for (Movie movie : selectedMovies) {
-      movie.writeActorImages(overwriteActorImages);
-    }
+    ConfirmationPanel confirmationPanel = new ConfirmationPanel(TmmResourceBundle.getString("movie.downloadactorimages.overwrite"));
+    popupPanel.setContent(confirmationPanel);
+    popupPanel.setOnCloseHandler(() -> {
+      for (Movie movie : selectedMovies) {
+        movie.writeActorImages(true);
+      }
+    });
+    popupPanel.setOnCancelHandler(() -> {
+      for (Movie movie : selectedMovies) {
+        movie.writeActorImages(false);
+      }
+    });
+    MainWindow.getInstance().showModalPopupPanel(popupPanel);
   }
 }

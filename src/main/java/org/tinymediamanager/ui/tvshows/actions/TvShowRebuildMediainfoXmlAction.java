@@ -20,9 +20,7 @@ import static org.tinymediamanager.ui.TmmFontHelper.L1;
 
 import java.awt.event.ActionEvent;
 
-import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
-import javax.swing.JOptionPane;
 
 import org.tinymediamanager.core.MediaFileType;
 import org.tinymediamanager.core.TmmProperties;
@@ -37,11 +35,14 @@ import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.actions.TmmAction;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
+import org.tinymediamanager.ui.panels.ConfirmationPanel;
+import org.tinymediamanager.ui.panels.ModalPopupPanel;
 import org.tinymediamanager.ui.tvshows.TvShowSelectionModel;
 import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 
 /**
- * the class {@link TvShowRebuildMediainfoXmlAction} is used to delete mediainfo.xml for selected TV shows/episodes and rebuild it afterwards
+ * The class {@link TvShowRebuildMediainfoXmlAction} is used to delete mediainfo.xml for selected TV shows/episodes and rebuild it afterwards
  *
  * @author Manuel Laggner
  */
@@ -62,30 +63,33 @@ public class TvShowRebuildMediainfoXmlAction extends TmmAction {
     }
 
     if (selectedObjects.isEmpty()) {
+      TmmToastManager.showErrorToast(TvShowUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("tvshow.rebuildmediainfoxml"),
+          TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
-    // display warning and ask the user again
-    if (Boolean.FALSE.equals(TmmProperties.getInstance().getPropertyAsBoolean("tvshow.hidedeletemediainfoxmlhint"))) {
-      JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
-      TmmFontHelper.changeFont(checkBox, L1);
-      checkBox.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-
-      Object[] options = { TmmResourceBundle.getString("Button.yes"), TmmResourceBundle.getString("Button.no") };
-      Object[] params = { TmmResourceBundle.getString("tvshow.deletemediainfoxml.desc"), checkBox };
-      int answer = JOptionPane.showOptionDialog(MainWindow.getInstance(), params, TmmResourceBundle.getString("tvshow.deletemediainfoxml"),
-          JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, null);
-
-      // the user don't want to show this dialog again
-      if (checkBox.isSelected()) {
-        TmmProperties.getInstance().putProperty("tvshow.hidedeletemediainfoxmlhint", String.valueOf(checkBox.isSelected()));
-      }
-
-      if (answer != JOptionPane.YES_OPTION) {
-        return;
-      }
+    if (Boolean.TRUE.equals(TmmProperties.getInstance().getPropertyAsBoolean("tvshow.hidedeletemediainfoxmlhint"))) {
+      executeRebuild(selectedObjects);
+      return;
     }
 
+    JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
+    TmmFontHelper.changeFont(checkBox, L1);
+
+    ModalPopupPanel popupPanel = MainWindow.getInstance().createModalPopupPanel();
+    popupPanel.setTitle(TmmResourceBundle.getString("tvshow.deletemediainfoxml"));
+    ConfirmationPanel confirmationPanel = new ConfirmationPanel(TmmResourceBundle.getString("tvshow.deletemediainfoxml.desc"), checkBox);
+    popupPanel.setContent(confirmationPanel);
+    popupPanel.setOnCloseHandler(() -> {
+      if (confirmationPanel.isCheckBoxSelected()) {
+        TmmProperties.getInstance().putProperty("tvshow.hidedeletemediainfoxmlhint", String.valueOf(confirmationPanel.isCheckBoxSelected()));
+      }
+      executeRebuild(selectedObjects);
+    });
+    MainWindow.getInstance().showModalPopupPanel(popupPanel);
+  }
+
+  private void executeRebuild(TvShowSelectionModel.SelectedObjects selectedObjects) {
     for (TvShow tvShow : selectedObjects.getTvShows()) {
       tvShow.getMediaFiles(MediaFileType.MEDIAINFO).forEach(mediaFile -> {
         Utils.deleteFileSafely(mediaFile.getFileAsPath());
@@ -99,7 +103,6 @@ public class TvShowRebuildMediainfoXmlAction extends TmmAction {
       });
     }
 
-    // get data of all files within all selected TV shows/episodes
     TmmThreadPool task = new TvShowReloadMediaInformationTask(selectedObjects.getTvShows(), selectedObjects.getEpisodesRecursive());
     TmmTaskManager.getInstance().addMainTask(task);
   }

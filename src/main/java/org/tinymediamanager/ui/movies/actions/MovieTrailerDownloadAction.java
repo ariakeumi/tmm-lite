@@ -21,7 +21,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
 
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import org.tinymediamanager.core.MediaFileType;
@@ -32,10 +31,13 @@ import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.actions.TmmAction;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
 import org.tinymediamanager.ui.movies.MovieUIModule;
+import org.tinymediamanager.ui.panels.ConfirmationPanel;
+import org.tinymediamanager.ui.panels.ModalPopupPanel;
 
 /**
- * The class MovieTrailerDownloadAction is used to trigger trailer download for selected movies
+ * The class {@link MovieTrailerDownloadAction} is used to trigger trailer download for selected movies
  *
  * @author Manuel Laggner
  */
@@ -54,11 +56,11 @@ public class MovieTrailerDownloadAction extends TmmAction {
     List<Movie> selectedMovies = MovieUIModule.getInstance().getSelectionModel().getSelectedMovies();
 
     if (selectedMovies.isEmpty()) {
-      JOptionPane.showMessageDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tmm.nothingselected"));
+      TmmToastManager.showErrorToast(MovieUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("movie.downloadtrailer"),
+          TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
-    // first check if there is at least one movie containing a trailer mf
     boolean existingTrailer = false;
     for (Movie movie : selectedMovies) {
       if (!movie.getMediaFiles(MediaFileType.TRAILER).isEmpty()) {
@@ -67,18 +69,22 @@ public class MovieTrailerDownloadAction extends TmmAction {
       }
     }
 
-    // if there is any existing trailer found, show a message dialog
-    boolean overwriteTrailer = false;
-    if (existingTrailer) {
-      Object[] options = { TmmResourceBundle.getString("Button.yes"), TmmResourceBundle.getString("Button.no") };
-      int answer = JOptionPane.showOptionDialog(MainWindow.getFrame(), TmmResourceBundle.getString("movie.overwritetrailer"),
-          TmmResourceBundle.getString("movie.downloadtrailer"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, null);
-      if (answer == JOptionPane.YES_OPTION) {
-        overwriteTrailer = true;
-      }
+    if (!existingTrailer) {
+      startDownloadTasks(selectedMovies, false);
+      return;
     }
 
-    // start tasks
+    ModalPopupPanel popupPanel = MainWindow.getInstance().createModalPopupPanel();
+    popupPanel.setTitle(TmmResourceBundle.getString("movie.downloadtrailer"));
+
+    ConfirmationPanel confirmationPanel = new ConfirmationPanel(TmmResourceBundle.getString("movie.overwritetrailer"));
+    popupPanel.setContent(confirmationPanel);
+    popupPanel.setOnCloseHandler(() -> startDownloadTasks(selectedMovies, true));
+    popupPanel.setOnCancelHandler(() -> startDownloadTasks(selectedMovies, false));
+    MainWindow.getInstance().showModalPopupPanel(popupPanel);
+  }
+
+  private void startDownloadTasks(List<Movie> selectedMovies, boolean overwriteTrailer) {
     for (Movie movie : selectedMovies) {
       if (!movie.getMediaFiles(MediaFileType.TRAILER).isEmpty() && !overwriteTrailer) {
         continue;

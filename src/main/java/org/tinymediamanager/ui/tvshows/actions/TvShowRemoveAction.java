@@ -20,9 +20,7 @@ import static org.tinymediamanager.ui.TmmFontHelper.L1;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
-import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import org.tinymediamanager.core.TmmProperties;
@@ -36,12 +34,14 @@ import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.actions.TmmAction;
-import org.tinymediamanager.ui.dialogs.TmmOptionDialog;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
+import org.tinymediamanager.ui.panels.ConfirmationPanel;
+import org.tinymediamanager.ui.panels.ModalPopupPanel;
 import org.tinymediamanager.ui.tvshows.TvShowSelectionModel;
 import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 
 /**
- * The class TvShowRemoveAction. To remove selected elements
+ * The class {@link TvShowRemoveAction} is used to remove selected elements (TV shows/episodes)
  * 
  * @author Manuel Laggner
  */
@@ -62,28 +62,33 @@ public class TvShowRemoveAction extends TmmAction {
     }
 
     if (selectedObjects.isEmpty()) {
+      TmmToastManager.showErrorToast(TvShowUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("tvshow.remove"),
+          TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
-    // display warning and ask the user again
-    if (Boolean.FALSE.equals(TmmProperties.getInstance().getPropertyAsBoolean("tvshow.hideremovehint"))) {
-      JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
-      TmmFontHelper.changeFont(checkBox, L1);
-      checkBox.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-
-      int answer = TmmOptionDialog.showOptionDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tvshow.remove"),
-          TmmResourceBundle.getString("tvshow.remove.desc"), checkBox);
-
-      // the user don't want to show this dialog again
-      if (checkBox.isSelected()) {
-        TmmProperties.getInstance().putProperty("tvshow.hideremovehint", String.valueOf(checkBox.isSelected()));
-      }
-
-      if (answer != JOptionPane.YES_OPTION) {
-        return;
-      }
+    if (Boolean.TRUE.equals(TmmProperties.getInstance().getPropertyAsBoolean("tvshow.hideremovehint"))) {
+      executeRemove(selectedObjects);
+      return;
     }
 
+    JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
+    TmmFontHelper.changeFont(checkBox, L1);
+
+    ModalPopupPanel popupPanel = MainWindow.getInstance().createModalPopupPanel();
+    popupPanel.setTitle(TmmResourceBundle.getString("tvshow.remove"));
+    ConfirmationPanel confirmationPanel = new ConfirmationPanel(TmmResourceBundle.getString("tvshow.remove.desc"), checkBox);
+    popupPanel.setContent(confirmationPanel);
+    popupPanel.setOnCloseHandler(() -> {
+      if (confirmationPanel.isCheckBoxSelected()) {
+        TmmProperties.getInstance().putProperty("tvshow.hideremovehint", String.valueOf(confirmationPanel.isCheckBoxSelected()));
+      }
+      executeRemove(selectedObjects);
+    });
+    MainWindow.getInstance().showModalPopupPanel(popupPanel);
+  }
+
+  private void executeRemove(TvShowSelectionModel.SelectedObjects selectedObjects) {
     TmmTaskManager.getInstance().addUnnamedTask(() -> {
       for (TvShowEpisode episode : selectedObjects.getEpisodes()) {
         if (episode.isDummy()) {

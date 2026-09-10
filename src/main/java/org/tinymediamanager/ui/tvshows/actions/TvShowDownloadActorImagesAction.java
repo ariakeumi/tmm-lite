@@ -20,7 +20,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import org.tinymediamanager.core.TmmResourceBundle;
@@ -29,11 +28,14 @@ import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.actions.TmmAction;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
+import org.tinymediamanager.ui.panels.ConfirmationPanel;
+import org.tinymediamanager.ui.panels.ModalPopupPanel;
 import org.tinymediamanager.ui.tvshows.TvShowSelectionModel;
 import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 
 /**
- * The Class TvShowDownloadActorImagesAction To download images from actors / producers for selected TvShows
+ * The class {@link TvShowDownloadActorImagesAction} is used to download images from actors / producers for selected TvShows
  *
  * @author Wolfgang Janes
  */
@@ -56,24 +58,32 @@ public class TvShowDownloadActorImagesAction extends TmmAction {
     }
 
     if (selectedObjects.isEmpty()) {
+      TmmToastManager.showErrorToast(TvShowUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("tvshow.downloadactorimages"),
+          TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
-    boolean overwriteActorImages = false;
+    ModalPopupPanel popupPanel = MainWindow.getInstance().createModalPopupPanel();
+    popupPanel.setTitle(TmmResourceBundle.getString("tvshow.downloadactorimages"));
 
-    Object[] options = { TmmResourceBundle.getString("Button.yes"), TmmResourceBundle.getString("Button.no") };
-    int answer = JOptionPane.showOptionDialog(MainWindow.getFrame(), TmmResourceBundle.getString("tvshow.downloadactorimages.overwrite"),
-        TmmResourceBundle.getString("tvshow.downloadactorimages"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, null);
-    if (answer == JOptionPane.YES_OPTION) {
-      overwriteActorImages = true;
-    }
-
-    for (TvShow tvShow : selectedObjects.getTvShows()) {
-      tvShow.writeActorImages(overwriteActorImages);
-    }
-
-    for (TvShowEpisode episode : selectedObjects.getEpisodesRecursive()) {
-      episode.writeActorImages(overwriteActorImages);
-    }
+    ConfirmationPanel confirmationPanel = new ConfirmationPanel(TmmResourceBundle.getString("tvshow.downloadactorimages.overwrite"));
+    popupPanel.setContent(confirmationPanel);
+    popupPanel.setOnCloseHandler(() -> {
+      for (TvShow tvShow : selectedObjects.getTvShows()) {
+        tvShow.writeActorImages(true);
+      }
+      for (TvShowEpisode episode : selectedObjects.getEpisodesRecursive()) {
+        episode.writeActorImages(true);
+      }
+    });
+    popupPanel.setOnCancelHandler(() -> {
+      for (TvShow tvShow : selectedObjects.getTvShows()) {
+        tvShow.writeActorImages(false);
+      }
+      for (TvShowEpisode episode : selectedObjects.getEpisodesRecursive()) {
+        episode.writeActorImages(false);
+      }
+    });
+    MainWindow.getInstance().showModalPopupPanel(popupPanel);
   }
 }

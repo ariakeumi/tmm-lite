@@ -21,7 +21,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
 
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import org.tinymediamanager.core.MediaFileType;
@@ -32,6 +31,9 @@ import org.tinymediamanager.core.tvshow.tasks.TvShowTrailerDownloadTask;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.actions.TmmAction;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
+import org.tinymediamanager.ui.panels.ConfirmationPanel;
+import org.tinymediamanager.ui.panels.ModalPopupPanel;
 import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 
 /**
@@ -55,11 +57,11 @@ public class TvShowTrailerDownloadAction extends TmmAction {
     List<TvShow> selectedTvShows = TvShowUIModule.getInstance().getSelectionModel().getSelectedTvShows();
 
     if (selectedTvShows.isEmpty()) {
-      JOptionPane.showMessageDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tmm.nothingselected"));
+      TmmToastManager.showErrorToast(TvShowUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("tvshow.downloadtrailer"),
+          TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
-    // first check if there is at least one movie containing a trailer mf
     boolean existingTrailer = false;
     for (TvShow tvShow : selectedTvShows) {
       if (!tvShow.getMediaFiles(MediaFileType.TRAILER).isEmpty()) {
@@ -68,18 +70,21 @@ public class TvShowTrailerDownloadAction extends TmmAction {
       }
     }
 
-    // if there is any existing trailer found, show a message dialog
-    boolean overwriteTrailer = false;
-    if (existingTrailer) {
-      Object[] options = { TmmResourceBundle.getString("Button.yes"), TmmResourceBundle.getString("Button.no") };
-      int answer = JOptionPane.showOptionDialog(MainWindow.getFrame(), TmmResourceBundle.getString("movie.overwritetrailer"),
-          TmmResourceBundle.getString("tvshow.downloadtrailer"), JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, null);
-      if (answer == JOptionPane.YES_OPTION) {
-        overwriteTrailer = true;
-      }
+    if (!existingTrailer) {
+      startDownloadTasks(selectedTvShows, false);
+      return;
     }
 
-    // start tasks
+    ModalPopupPanel popupPanel = MainWindow.getInstance().createModalPopupPanel();
+    popupPanel.setTitle(TmmResourceBundle.getString("tvshow.downloadtrailer"));
+    ConfirmationPanel confirmationPanel = new ConfirmationPanel(TmmResourceBundle.getString("movie.overwritetrailer"));
+    popupPanel.setContent(confirmationPanel);
+    popupPanel.setOnCloseHandler(() -> startDownloadTasks(selectedTvShows, true));
+    popupPanel.setOnCancelHandler(() -> startDownloadTasks(selectedTvShows, false));
+    MainWindow.getInstance().showModalPopupPanel(popupPanel);
+  }
+
+  private void startDownloadTasks(List<TvShow> selectedTvShows, boolean overwriteTrailer) {
     for (TvShow tvShow : selectedTvShows) {
       if (!tvShow.getMediaFiles(MediaFileType.TRAILER).isEmpty() && !overwriteTrailer) {
         continue;

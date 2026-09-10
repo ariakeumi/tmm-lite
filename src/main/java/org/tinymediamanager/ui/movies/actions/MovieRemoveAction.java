@@ -21,9 +21,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import org.tinymediamanager.core.TmmProperties;
@@ -35,11 +33,13 @@ import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.actions.TmmAction;
-import org.tinymediamanager.ui.dialogs.TmmOptionDialog;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
 import org.tinymediamanager.ui.movies.MovieUIModule;
+import org.tinymediamanager.ui.panels.ConfirmationPanel;
+import org.tinymediamanager.ui.panels.ModalPopupPanel;
 
 /**
- * The MovieRemoveAction - to remove all selected movies from the database
+ * The class {@link MovieRemoveAction} - to remove all selected movies from the database
  * 
  * @author Manuel Laggner
  */
@@ -55,30 +55,29 @@ public class MovieRemoveAction extends TmmAction {
     List<Movie> selectedMovies = MovieUIModule.getInstance().getSelectionModel().getSelectedMovies();
 
     if (selectedMovies.isEmpty()) {
-      JOptionPane.showMessageDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tmm.nothingselected"));
+      TmmToastManager.showErrorToast(MovieUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("movie.remove"),
+          TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
-    // display warning and ask the user again
-    if (!TmmProperties.getInstance().getPropertyAsBoolean("movie.hideremovehint")) {
-      JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
-      TmmFontHelper.changeFont(checkBox, L1);
-      checkBox.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-
-      int answer = TmmOptionDialog.showOptionDialog(MainWindow.getInstance(), TmmResourceBundle.getString("movie.remove"),
-          TmmResourceBundle.getString("movie.remove.desc"), checkBox);
-
-      // the user don't want to show this dialog again
-      if (checkBox.isSelected()) {
-        TmmProperties.getInstance().putProperty("movie.hideremovehint", String.valueOf(checkBox.isSelected()));
-      }
-
-      if (answer != JOptionPane.YES_OPTION) {
-        return;
-      }
+    if (TmmProperties.getInstance().getPropertyAsBoolean("movie.hideremovehint")) {
+      TmmTaskManager.getInstance().addUnnamedTask(() -> MovieModuleManager.getInstance().getMovieList().removeMovies(selectedMovies));
+      return;
     }
 
-    // remove selected movies
-    TmmTaskManager.getInstance().addUnnamedTask(() -> MovieModuleManager.getInstance().getMovieList().removeMovies(selectedMovies));
+    JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
+    TmmFontHelper.changeFont(checkBox, L1);
+
+    ModalPopupPanel popupPanel = MainWindow.getInstance().createModalPopupPanel();
+    popupPanel.setTitle(TmmResourceBundle.getString("movie.remove"));
+    ConfirmationPanel confirmationPanel = new ConfirmationPanel(TmmResourceBundle.getString("movie.remove.desc"), checkBox);
+    popupPanel.setContent(confirmationPanel);
+    popupPanel.setOnCloseHandler(() -> {
+      if (confirmationPanel.isCheckBoxSelected()) {
+        TmmProperties.getInstance().putProperty("movie.hideremovehint", String.valueOf(confirmationPanel.isCheckBoxSelected()));
+      }
+      TmmTaskManager.getInstance().addUnnamedTask(() -> MovieModuleManager.getInstance().getMovieList().removeMovies(selectedMovies));
+    });
+    MainWindow.getInstance().showModalPopupPanel(popupPanel);
   }
 }

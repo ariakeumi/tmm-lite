@@ -21,7 +21,6 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
 
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import org.tinymediamanager.core.Settings;
@@ -32,11 +31,13 @@ import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.actions.TmmAction;
-import org.tinymediamanager.ui.dialogs.TmmOptionDialog;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
 import org.tinymediamanager.ui.movies.MovieUIModule;
+import org.tinymediamanager.ui.panels.ConfirmationPanel;
+import org.tinymediamanager.ui.panels.ModalPopupPanel;
 
 /**
- * The MovieDeleteAction - to remove all selected movies from the database and from the datasource
+ * The {@link MovieDeleteAction} - to remove all selected movies from the database and **physically** from the datasource
  * 
  * @author Manuel Laggner
  */
@@ -54,19 +55,25 @@ public class MovieDeleteAction extends TmmAction {
     List<Movie> selectedMovies = MovieUIModule.getInstance().getSelectionModel().getSelectedMovies();
 
     if (selectedMovies.isEmpty()) {
-      JOptionPane.showMessageDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tmm.nothingselected"));
+      TmmToastManager.showErrorToast(MovieUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("movie.delete"),
+          TmmResourceBundle.getString("tmm.nothingselected"));
       return;
     }
 
-    // display warning and ask the user again
-    String message = Settings.getInstance().isEnableTrash() ? TmmResourceBundle.getString("movie.delete.desc")
-        : TmmResourceBundle.getString("movie.delete.desc2");
-    int answer = TmmOptionDialog.showOptionDialog(MainWindow.getInstance(), TmmResourceBundle.getString("movie.delete"), message);
-    if (answer != JOptionPane.YES_OPTION) {
-      return;
+    String message;
+    if (Settings.getInstance().isEnableTrash()) {
+      message = TmmResourceBundle.getString("movie.delete.desc");
+    }
+    else {
+      message = TmmResourceBundle.getString("movie.delete.desc2");
     }
 
-    // remove selected movies
-    TmmTaskManager.getInstance().addUnnamedTask(() -> MovieModuleManager.getInstance().getMovieList().deleteMovies(selectedMovies));
+    ModalPopupPanel popupPanel = MainWindow.getInstance().createModalPopupPanel();
+    popupPanel.setTitle(TmmResourceBundle.getString("movie.delete"));
+    ConfirmationPanel confirmationPanel = new ConfirmationPanel(message);
+    popupPanel.setContent(confirmationPanel);
+    popupPanel.setOnCloseHandler(
+        () -> TmmTaskManager.getInstance().addUnnamedTask(() -> MovieModuleManager.getInstance().getMovieList().deleteMovies(selectedMovies)));
+    MainWindow.getInstance().showModalPopupPanel(popupPanel);
   }
 }
