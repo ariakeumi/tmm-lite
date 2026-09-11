@@ -213,7 +213,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
     List<Path> datasourcesFromSettings = new ArrayList<>();
     for (String ds : settings.getMovieDataSource()) {
       if (StringUtils.isNotBlank(ds)) {
-        datasourcesFromSettings.add(Paths.get(ds).normalize().toAbsolutePath());
+        datasourcesFromSettings.add(Utils.normalizeUnicode(Paths.get(ds).normalize().toAbsolutePath()));
       }
     }
 
@@ -225,7 +225,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
 
     // classify each folder
     for (Path folder : ListUtils.nullSafe(paths)) {
-      Path normalizedPath = folder.normalize().toAbsolutePath();
+      Path normalizedPath = Utils.normalizeUnicode(folder.normalize().toAbsolutePath());
 
       // check if the folder is exactly a datasource from the settings
       if (datasourcesFromSettings.contains(normalizedPath)) {
@@ -316,7 +316,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
       if (!nestedDataSources.isEmpty()) {
         List<Movie> moviesToRemove = new ArrayList<>();
         for (Movie movie : new ArrayList<>(movieList.getMovies())) {
-          Path movieDs = Paths.get(movie.getDataSource()).normalize().toAbsolutePath();
+          Path movieDs = Utils.normalizeUnicode(Paths.get(movie.getDataSource()).normalize().toAbsolutePath());
           if (!nestedDataSources.contains(movieDs)) {
             continue;
           }
@@ -623,7 +623,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
     List<Path> datasourcesFromSettings = new ArrayList<>();
     for (String ds : settings.getMovieDataSource()) {
       if (StringUtils.isNotBlank(ds)) {
-        datasourcesFromSettings.add(Paths.get(ds).normalize().toAbsolutePath());
+        datasourcesFromSettings.add(Utils.normalizeUnicode(Paths.get(ds).normalize().toAbsolutePath()));
       }
     }
 
@@ -1002,7 +1002,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
 
     Set<Path> allFiles = getAllFilesRecursiveButNoDiscFiles(movieDir);
     fileLock.writeLock().lock();
-    filesFound.add(movieDir.toAbsolutePath()); // our global cache
+    filesFound.add(Utils.normalizeUnicode(movieDir.toAbsolutePath())); // our global cache
     filesFound.addAll(allFiles); // our global cache
     fileLock.writeLock().unlock();
 
@@ -1314,7 +1314,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
     List<Movie> movies = new ArrayList<>(movieList.findByPath(movieDir));
 
     fileLock.writeLock().lock();
-    filesFound.add(movieDir); // our global cache
+    filesFound.add(Utils.normalizeUnicode(movieDir)); // our global cache
     filesFound.addAll(allFiles); // our global cache
     fileLock.writeLock().unlock();
 
@@ -1725,7 +1725,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
       boolean dirty = false;
 
       Path movieDir = movie.getPathNIO();
-      boolean dirFound = filesFound.contains(movieDir);
+      boolean dirFound = filesFound.contains(Utils.normalizeUnicode(movieDir));
 
       if (!dirFound) {
         // dir is not in hashset - check with exists to be sure it is not here
@@ -1972,10 +1972,11 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
           LOGGER.debug("Skipping: {}", path);
         }
         else {
-          if (fileNames.contains(path.toAbsolutePath())) {
+          Path absolute = Utils.normalizeUnicode(path.toAbsolutePath());
+          if (fileNames.contains(absolute)) {
             throw new IOException("duplicate found: '" + path.getFileName() + "' - fall back to the alternate method");
           }
-          fileNames.add(path.toAbsolutePath());
+          fileNames.add(absolute);
         }
       }
     }
@@ -2015,7 +2016,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
           LOGGER.debug("Skipping: {}", path);
         }
         else {
-          fileNames.add(path.toAbsolutePath());
+          fileNames.add(Utils.normalizeUnicode(path.toAbsolutePath()));
         }
       }
     }
@@ -2095,19 +2096,19 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
         // in a disc folder we only accept NFO (and trailer) files
         if (Utils.isRegularFile(attr) && path.matches(DISC_FOLDER_REGEX)) {
           if (FilenameUtils.getExtension(filename).equalsIgnoreCase("nfo") || FilenameUtils.getBaseName(filename).endsWith("trailer")) {
-            fFound.add(file.toAbsolutePath());
+            fFound.add(Utils.normalizeUnicode(file.toAbsolutePath()));
           }
           return CONTINUE;
         }
 
         // check if we're in dirty disc folder
         if (MediaFileHelper.isMainDiscIdentifierFile(filename)) {
-          fFound.add(file.toAbsolutePath());
+          fFound.add(Utils.normalizeUnicode(file.toAbsolutePath()));
           return CONTINUE;
         }
 
         if (Utils.isRegularFile(attr) && !filename.matches(SKIP_REGEX)) {
-          fFound.add(file.toAbsolutePath());
+          fFound.add(Utils.normalizeUnicode(file.toAbsolutePath()));
           return CONTINUE;
         }
       }
@@ -2145,7 +2146,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
 
         // add the disc folder itself (clean disc folder)
         if (dir.getFileName() != null && dir.getFileName().toString().matches(DISC_FOLDER_REGEX)) {
-          fFound.add(dir.toAbsolutePath());
+          fFound.add(Utils.normalizeUnicode(dir.toAbsolutePath()));
           return CONTINUE;
         }
 
@@ -2203,7 +2204,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
     private final boolean      skipFoldersWithNomedia;
 
     SearchAndParseVisitor(Path datasource) {
-      this.datasource = datasource;
+      this.datasource = Utils.normalizeUnicode(datasource);
 
       unstackedRoot = new ArrayList<>();
       videofolders = new HashSet<>();
@@ -2217,6 +2218,8 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
       if (cancel) {
         return TERMINATE;
       }
+
+      file = Utils.normalizeUnicode(file);
 
       if (visited.contains(file)) {
         // already visited? must be some sort of endless-loop - maybe from recursive symlinks
@@ -2271,6 +2274,8 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
         return TERMINATE;
       }
 
+      dir = Utils.normalizeUnicode(dir);
+
       if (visited.contains(dir)) {
         // already visited? must be some sort of endless-loop - maybe from recursive symlinks
         // --> ABORT
@@ -2316,6 +2321,8 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
       }
 
       incPostDir();
+
+      dir = Utils.normalizeUnicode(dir);
 
       if (this.videofolders.contains(dir)) {
         boolean update = true;
@@ -2373,7 +2380,7 @@ public class MovieUpdateDatasourceTask extends TmmThreadPool {
               LOGGER.debug("Skipping: {}", path);
             }
             else {
-              fileNames.add(path.toAbsolutePath());
+              fileNames.add(Utils.normalizeUnicode(path.toAbsolutePath()));
             }
           }
         }

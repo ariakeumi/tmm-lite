@@ -213,12 +213,13 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
    *          the MediaFileType
    */
   public MediaFile(Path f, MediaFileType type) {
-    this.path = f.getParent() == null ? "" : f.getParent().toString(); // just path w/o filename
-    this.filename = f.getFileName().toString();
-    this.file = f.toAbsolutePath();
+    Path fileNio = Utils.normalizeUnicode(f);
+    this.path = fileNio.getParent() == null ? "" : fileNio.getParent().toString(); // just path w/o filename
+    this.filename = fileNio.getFileName().toString();
+    this.file = fileNio.toAbsolutePath();
 
     if (type == null) {
-      this.type = MediaFileHelper.parseMediaFileType(f);
+      this.type = MediaFileHelper.parseMediaFileType(fileNio);
     }
     else {
       this.type = type;
@@ -471,15 +472,16 @@ public class MediaFile extends AbstractModelObject implements Comparable<MediaFi
 
     if (file == null) {
       Path f = Paths.get(this.path, this.filename);
-      file = f.toAbsolutePath();
+      file = Utils.normalizeUnicode(f.toAbsolutePath());
     }
     return file;
   }
 
   public void setFile(Path file) {
-    setFilename(file.getFileName().toString());
-    setPath(file.toAbsolutePath().getParent().toString());
-    this.file = file.toAbsolutePath();
+    Path normalized = Utils.normalizeUnicode(file).toAbsolutePath();
+    setFilename(normalized.getFileName().toString());
+    setPath(normalized.getParent().toString());
+    this.file = normalized;
   }
 
   /**

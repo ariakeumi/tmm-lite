@@ -18,6 +18,7 @@ package org.tinymediamanager.core.movie.tasks;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -82,6 +83,34 @@ public class MovieUpdateDatasourceTaskTest extends BasicMovieTest {
 
     MovieList movieList = MovieModuleManager.getInstance().getMovieList();
     assertThat(movieList.getMovies()).hasSize(4);
+  }
+
+  @Test
+  public void udsUmlautNoDuplicate() throws Exception {
+    // "ö" as precomposed NFC char - simulates a folder created outside of the macOS FS NFD conversion
+    Path ds = getWorkFolder().resolve("umlautds").toAbsolutePath();
+    Path movieDir = ds.resolve("Harry Potter und der Orden des Ph\u00f6nix (2007)");
+    Files.createDirectories(movieDir);
+    Files.createFile(movieDir.resolve("Harry Potter und der Orden des Ph\u00f6nix (2007).avi"));
+
+    MovieSettings settings = MovieModuleManager.getInstance().getSettings();
+    settings.setMovieDataSources(List.of(ds.toString()));
+
+    MovieList movieList = MovieModuleManager.getInstance().getMovieList();
+    Movie movie = new Movie();
+    movie.setDataSource(ds.toString());
+    movie.setPath(movieDir.toString());
+    movie.setTitle("Harry Potter und der Orden des Ph\u00f6nix");
+    movieList.addMovie(movie);
+
+    // first run: must NOT classify the folder as a new movie
+    new MovieUpdateDatasourceTask().run();
+    assertThat(movieList.getMovies()).as("no further duplicate after 1st run").hasSize(1);
+
+    // second run: still no duplicate, and cleanup must not drop the media files
+    new MovieUpdateDatasourceTask().run();
+    assertThat(movieList.getMovies()).as("no further duplicate after 2nd run").hasSize(1);
+    assertThat(movieList.getMovies().get(0).getMediaFiles(MediaFileType.VIDEO)).as("cleanup kept the video file").hasSize(1);
   }
 
   @Test
