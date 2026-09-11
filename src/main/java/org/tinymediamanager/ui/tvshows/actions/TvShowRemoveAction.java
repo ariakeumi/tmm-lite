@@ -18,10 +18,8 @@ package org.tinymediamanager.ui.tvshows.actions;
 import static org.tinymediamanager.ui.TmmFontHelper.L1;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 
 import javax.swing.JCheckBox;
-import javax.swing.KeyStroke;
 
 import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
@@ -50,7 +48,7 @@ public class TvShowRemoveAction extends TmmAction {
     putValue(NAME, TmmResourceBundle.getString("tvshow.remove"));
     putValue(SMALL_ICON, IconManager.DELETE);
     putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("tvshow.remove"));
-    putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
+    setDeleteAccelerators(0);
   }
 
   @Override

@@ -16,15 +16,20 @@
 
 package org.tinymediamanager.ui;
 
+import java.awt.event.ActionEvent;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
+
+import org.tinymediamanager.ui.actions.TmmAction;
+import org.tinymediamanager.ui.panels.IModalPopupPanelProvider;
 
 public abstract class AbstractTmmUIModule implements ITmmUIModule {
   protected static final ResourceBundle BUNDLE       = ResourceBundle.getBundle("messages");
@@ -72,16 +77,39 @@ public abstract class AbstractTmmUIModule implements ITmmUIModule {
   protected void registerAccelerators() {
     for (Map.Entry<Class<?>, Action> entry : actionMap.entrySet()) {
       try {
-        KeyStroke keyStroke = (KeyStroke) entry.getValue().getValue(Action.ACCELERATOR_KEY);
-        if (keyStroke != null) {
-          String actionMapKey = "action" + entry.getKey().getName();
-          getTabPanel().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, actionMapKey);
-          getTabPanel().getActionMap().put(actionMapKey, entry.getValue());
+        KeyStroke[] keyStrokes = getAcceleratorKeys(entry.getValue());
+        if (keyStrokes.length == 0) {
+          continue;
         }
+
+        String actionMapKey = "action" + entry.getKey().getName();
+        JComponent tabPanel = getTabPanel();
+        for (KeyStroke keyStroke : keyStrokes) {
+          tabPanel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, actionMapKey);
+        }
+        tabPanel.getActionMap().put(actionMapKey, new ModalPopupGuardAction(entry.getValue(), tabPanel));
       }
       catch (Exception ignored) {
+        // just do not crash
       }
     }
+  }
+
+  /**
+   * all keystrokes which trigger this action; {@link TmmAction}s may provide more than the single {@link Action#ACCELERATOR_KEY}
+   *
+   * @param action
+   *          the action to get the keystrokes of
+   *
+   * @return the keystrokes, empty if the action has no accelerator
+   */
+  private KeyStroke[] getAcceleratorKeys(Action action) {
+    if (action instanceof TmmAction tmmAction) {
+      return tmmAction.getAcceleratorKeys();
+    }
+
+    KeyStroke keyStroke = (KeyStroke) action.getValue(Action.ACCELERATOR_KEY);
+    return keyStroke == null ? new KeyStroke[0] : new KeyStroke[] { keyStroke };
   }
 
   @Override
@@ -137,5 +165,35 @@ public abstract class AbstractTmmUIModule implements ITmmUIModule {
   @Override
   public Icon getSearchButtonHoverIcon() {
     return IconManager.TOOLBAR_REFRESH_HOVER;
+  }
+
+  /**
+   * The class {@link ModalPopupGuardAction} suppresses accelerator invocations while a modal popup panel overlays the window, because those panels do
+   * not block the window wide key bindings of the tab panels
+   */
+  private static class ModalPopupGuardAction extends AbstractAction {
+    private final Action     delegate;
+    private final JComponent tabPanel;
+
+    ModalPopupGuardAction(Action delegate, JComponent tabPanel) {
+      this.delegate = delegate;
+      this.tabPanel = tabPanel;
+    }
+
+    @Override
+    public boolean isEnabled() {
+      // keep the dispatch semantics of the wrapped action
+      return delegate.isEnabled();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      IModalPopupPanelProvider provider = IModalPopupPanelProvider.findModalProvider(tabPanel);
+      if (provider != null && provider.isModalPopupPanelShowing()) {
+        return;
+      }
+
+      delegate.actionPerformed(e);
+    }
   }
 }

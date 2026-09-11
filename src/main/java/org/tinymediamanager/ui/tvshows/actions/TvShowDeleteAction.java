@@ -18,9 +18,6 @@ package org.tinymediamanager.ui.tvshows.actions;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-
-import javax.swing.KeyStroke;
 
 import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.TmmResourceBundle;
@@ -48,8 +45,7 @@ public class TvShowDeleteAction extends TmmAction {
     putValue(NAME, TmmResourceBundle.getString("tvshow.delete"));
     putValue(SMALL_ICON, IconManager.DELETE_FOREVER_RED);
     putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("tvshow.delete.hint"));
-    putValue(ACCELERATOR_KEY,
-        KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() + InputEvent.SHIFT_DOWN_MASK));
+    setDeleteAccelerators(Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() + InputEvent.SHIFT_DOWN_MASK);
   }
 
   @Override

@@ -57,4 +57,12 @@ public interface IModalPopupPanelProvider {
   void showModalPopupPanel(ModalPopupPanel popupPanel);
 
   void hideModalPopupPanel(ModalPopupPanel popupPanel);
+
+  /**
+   * a {@link ModalPopupPanel} only overlays the content of its window, so window wide key bindings (like the accelerators registered by the UI
+   * modules) still fire while it is shown
+   *
+   * @return true if at least one {@link ModalPopupPanel} is currently shown in this provider
+   */
+  boolean isModalPopupPanelShowing();
 }

@@ -352,6 +352,18 @@ public abstract class TmmDialog extends JDialog implements IModalPopupPanelProvi
     }
   }
 
+  @Override
+  public boolean isModalPopupPanelShowing() {
+    // deliberately not based on popupIndex: that counter must stay balanced by every caller, but a popup can also be
+    // dropped by other means
+    for (Component component : getLayeredPane().getComponents()) {
+      if (component instanceof ModalPopupPanel) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /**
    * Install the toast notification system for this dialog.
    * <p>

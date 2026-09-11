@@ -15,20 +15,25 @@
  */
 package org.tinymediamanager.ui.moviesets.actions;
 
+import static org.tinymediamanager.ui.TmmFontHelper.L1;
+
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.util.List;
 
-import javax.swing.KeyStroke;
+import javax.swing.JCheckBox;
 
+import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.entities.MovieSet;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.MainWindow;
+import org.tinymediamanager.ui.TmmFontHelper;
 import org.tinymediamanager.ui.actions.TmmAction;
 import org.tinymediamanager.ui.moviesets.MovieSetUIModule;
+import org.tinymediamanager.ui.panels.ConfirmationPanel;
+import org.tinymediamanager.ui.panels.ModalPopupPanel;
 
 /**
  * @author Manuel Laggner
@@ -43,7 +48,7 @@ public class MovieSetRemoveAction extends TmmAction {
     putValue(LARGE_ICON_KEY, IconManager.DELETE);
     putValue(SMALL_ICON, IconManager.DELETE);
     putValue(SHORT_DESCRIPTION, TmmResourceBundle.getString("movieset.remove.desc"));
-    putValue(ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0));
+    setDeleteAccelerators(0);
   }
 
   @Override
@@ -54,6 +59,28 @@ public class MovieSetRemoveAction extends TmmAction {
       return;
     }
 
+    if (TmmProperties.getInstance().getPropertyAsBoolean("movieset.hideremovehint")) {
+      executeRemove(selectedMovieSets);
+      return;
+    }
+
+    JCheckBox checkBox = new JCheckBox(TmmResourceBundle.getString("tmm.donotshowagain"));
+    TmmFontHelper.changeFont(checkBox, L1);
+
+    ModalPopupPanel popupPanel = MainWindow.getInstance().createModalPopupPanel();
+    popupPanel.setTitle(TmmResourceBundle.getString("movieset.remove.desc"));
+    ConfirmationPanel confirmationPanel = new ConfirmationPanel(TmmResourceBundle.getString("movieset.remove.confirm"), checkBox);
+    popupPanel.setContent(confirmationPanel);
+    popupPanel.setOnCloseHandler(() -> {
+      if (confirmationPanel.isCheckBoxSelected()) {
+        TmmProperties.getInstance().putProperty("movieset.hideremovehint", String.valueOf(confirmationPanel.isCheckBoxSelected()));
+      }
+      executeRemove(selectedMovieSets);
+    });
+    MainWindow.getInstance().showModalPopupPanel(popupPanel);
+  }
+
+  private void executeRemove(List<MovieSet> selectedMovieSets) {
     MainWindow.getInstance().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
     for (MovieSet movieSet : selectedMovieSets) {
       MovieModuleManager.getInstance().getMovieList().removeMovieSet(movieSet);
