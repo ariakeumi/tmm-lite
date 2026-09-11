@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -56,6 +57,7 @@ import org.tinymediamanager.ui.components.panel.IdLinkPanel;
 import org.tinymediamanager.ui.components.textfield.LinkTextArea;
 import org.tinymediamanager.ui.components.textfield.ReadOnlyTextPane;
 import org.tinymediamanager.ui.components.textfield.ReadOnlyTextPaneHTML;
+import org.tinymediamanager.ui.images.MultiIcon;
 import org.tinymediamanager.ui.panels.InformationPanel;
 import org.tinymediamanager.ui.panels.MediaInformationLogosPanel;
 import org.tinymediamanager.ui.panels.RatingPanel;
@@ -159,11 +161,28 @@ public class TvShowInformationPanel extends InformationPanel {
     };
 
     tvShowSelectionModel.addPropertyChangeListener(propertyChangeListener);
+
+    // live-update the tv show name icon when the "new tv show icon" setting is toggled
+    TvShowModuleManager.getInstance().getSettings().addPropertyChangeListener(e -> {
+      if ("showNewTvShowIcon".equals(e.getPropertyName())) {
+        TvShow tvShow = tvShowSelectionModel.getSelectedTvShow();
+        if (tvShow != null) {
+          setTvShowNameIcon(tvShow);
+        }
+      }
+    });
+  }
+
+  private void setTvShowNameIcon(TvShow tvShow) {
+    Icon lockIcon = tvShow.isLocked() ? IconManager.LOCK_BLUE : null;
+    boolean showNewIcon = TvShowModuleManager.getInstance().getSettings().isShowNewTvShowIcon();
+    Icon newIcon = (showNewIcon && tvShow.isNewlyAdded()) ? IconManager.NEW_GREEN2 : null;
+    lblTvShowName.setIcon(MultiIcon.of(newIcon, lockIcon));
   }
 
   private void changeTvShow(TvShow tvShow) {
     lblTvShowName.setText(tvShow.getTitle());
-    lblTvShowName.setIcon(tvShow.isLocked() ? IconManager.LOCK_BLUE : null);
+    setTvShowNameIcon(tvShow);
     lblOriginalTitle.setText(tvShow.getOriginalTitle());
     lblYear.setText(getIntegerAsStringWoZero(tvShow.getYear()));
     lblPremiered.setText(tvShow.getFirstAiredAsString());

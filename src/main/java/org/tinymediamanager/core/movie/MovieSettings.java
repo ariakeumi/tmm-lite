@@ -243,6 +243,7 @@ public final class MovieSettings extends AbstractSettings {
   // ui
   final List<MediaFileType>                 showArtworkTypes               = ObservableCollections.observableList(new ArrayList<>());
   boolean                                   showMovieTableTooltips;
+  boolean                                   showNewMovieIcon;
   final List<String>                        ratingSources                  = ObservableCollections.observableList(new ArrayList<>());
   final List<MovieScraperMetadataConfig>    movieCheckMetadata             = new ArrayList<>();
   boolean                                   movieDisplayAllMissingMetadata;
@@ -385,6 +386,7 @@ public final class MovieSettings extends AbstractSettings {
 
     // ui
     setShowMovieTableTooltips(true);
+    setShowNewMovieIcon(true);
     setMovieDisplayAllMissingMetadata(false);
     setMovieDisplayAllMissingArtwork(false);
     setMovieSetDisplayAllMissingMetadata(false);
@@ -2111,6 +2113,16 @@ public final class MovieSettings extends AbstractSettings {
     boolean oldValue = showMovieTableTooltips;
     showMovieTableTooltips = newValue;
     firePropertyChange("showMovieTableTooltips", oldValue, newValue);
+  }
+
+  public boolean isShowNewMovieIcon() {
+    return showNewMovieIcon;
+  }
+
+  public void setShowNewMovieIcon(boolean newValue) {
+    boolean oldValue = showNewMovieIcon;
+    showNewMovieIcon = newValue;
+    firePropertyChange("showNewMovieIcon", oldValue, newValue);
   }
 
   public boolean isShowMovieSetTableTooltips() {

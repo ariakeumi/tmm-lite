@@ -243,6 +243,7 @@ public final class TvShowSettings extends AbstractSettings {
   boolean                                        displayMissingNotAired;
   boolean                                        capitalWordsinTitles;
   boolean                                        showTvShowTableTooltips;
+  boolean                                        showNewTvShowIcon;
   boolean                                        seasonArtworkFallback;
   boolean                                        storeUiFilters;
   boolean                                        resetNewFlagOnUds;
@@ -363,6 +364,7 @@ public final class TvShowSettings extends AbstractSettings {
     setDisplayMissingNotAired(false);
     setCapitalWordsInTitles(false);
     setShowTvShowTableTooltips(true);
+    setShowNewTvShowIcon(true);
     setSeasonArtworkFallback(false);
     setStoreUiFilters(false);
     setResetNewFlagOnUds(true);
@@ -2003,6 +2005,16 @@ public final class TvShowSettings extends AbstractSettings {
     boolean oldValue = showTvShowTableTooltips;
     showTvShowTableTooltips = newValue;
     firePropertyChange("showTvShowTableTooltips", oldValue, newValue);
+  }
+
+  public boolean isShowNewTvShowIcon() {
+    return showNewTvShowIcon;
+  }
+
+  public void setShowNewTvShowIcon(boolean newValue) {
+    boolean oldValue = showNewTvShowIcon;
+    showNewTvShowIcon = newValue;
+    firePropertyChange("showNewTvShowIcon", oldValue, newValue);
   }
 
   public boolean isSeasonArtworkFallback() {

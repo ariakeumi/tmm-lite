@@ -121,6 +121,7 @@ class MovieUiSettingsPanel extends JPanel {
   private JCheckBox                                        chckbxStoreFilter;
   private JCheckBox                                        chckbxDisplayAllMissingMetadata;
   private JCheckBox                                        chckbxDisplayAllMissingArtwork;
+  private JCheckBox                                        chckbxNewIndicator;
 
   private final Map<MovieScraperMetadataConfig, JCheckBox> metadataCheckBoxes;
   private final Map<MovieScraperMetadataConfig, JCheckBox> artworkCheckBoxes;
@@ -410,7 +411,7 @@ class MovieUiSettingsPanel extends JPanel {
       JPanel panelUiSettings = new JPanel();
       // 16lp ~ width of the checkbox
       panelUiSettings
-          .setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][][][10lp!][][grow][][][][][][10lp!][][125lp,grow]"));
+          .setLayout(new MigLayout("hidemode 1, insets 0", "[20lp!][16lp!][grow]", "[][][][][10lp!][][grow][][][][][][10lp!][][125lp,grow]"));
 
       JLabel lblUiSettings = new TmmLabel(TmmResourceBundle.getString("Settings.ui"), H3);
       CollapsiblePanel collapsiblePanel = new CollapsiblePanel(panelUiSettings, lblUiSettings, true);
@@ -437,12 +438,16 @@ class MovieUiSettingsPanel extends JPanel {
         panelUiSettings.add(chckbxShowClearlogo, "cell 2 1");
       }
       {
+        chckbxNewIndicator = new JCheckBox(TmmResourceBundle.getString("Settings.movie.shownewindicator"));
+        panelUiSettings.add(chckbxNewIndicator, "cell 1 2 2 1");
+      }
+      {
         chckbxMovieTableTooltips = new JCheckBox(TmmResourceBundle.getString("Settings.movie.showtabletooltips"));
-        panelUiSettings.add(chckbxMovieTableTooltips, "cell 1 2 2 1");
+        panelUiSettings.add(chckbxMovieTableTooltips, "cell 1 3 2 1");
       }
       {
         JLabel lblCheckMetadata = new JLabel(TmmResourceBundle.getString("Settings.checkmetadata"));
-        panelUiSettings.add(lblCheckMetadata, "cell 1 4 2 1");
+        panelUiSettings.add(lblCheckMetadata, "cell 1 5 2 1");
 
         JPanel panelCheckMetadata = new JPanel();
         panelCheckMetadata.setLayout(new GridBagLayout());
@@ -468,16 +473,16 @@ class MovieUiSettingsPanel extends JPanel {
             addMetadataCheckbox(panelCheckMetadata, value, metadataCheckBoxes, gbc);
           }
         }
-        panelUiSettings.add(panelCheckMetadata, "cell 2 5");
+        panelUiSettings.add(panelCheckMetadata, "cell 2 6");
 
         chckbxDisplayAllMissingMetadata = new JHintCheckBox(TmmResourceBundle.getString("Settings.checkmetadata.displayall"));
         chckbxDisplayAllMissingMetadata.setToolTipText(TmmResourceBundle.getString("Settings.checkmetadata.displayall.desc"));
-        panelUiSettings.add(chckbxDisplayAllMissingMetadata, "cell 2 6");
+        panelUiSettings.add(chckbxDisplayAllMissingMetadata, "cell 2 7");
       }
 
       {
         JLabel lblCheckImages = new JLabel(TmmResourceBundle.getString("Settings.checkimages"));
-        panelUiSettings.add(lblCheckImages, "cell 1 8 2 1");
+        panelUiSettings.add(lblCheckImages, "cell 1 9 2 1");
 
         JPanel panelCheckImages = new JPanel();
         panelCheckImages.setLayout(new GridBagLayout());
@@ -495,18 +500,18 @@ class MovieUiSettingsPanel extends JPanel {
           }
         }
 
-        panelUiSettings.add(panelCheckImages, "cell 2 9");
+        panelUiSettings.add(panelCheckImages, "cell 2 10");
 
         chckbxDisplayAllMissingArtwork = new JHintCheckBox(TmmResourceBundle.getString("Settings.checkimages.displayall"));
         chckbxDisplayAllMissingArtwork.setToolTipText(TmmResourceBundle.getString("Settings.checkimages.displayall.desc"));
-        panelUiSettings.add(chckbxDisplayAllMissingArtwork, "cell 2 10");
+        panelUiSettings.add(chckbxDisplayAllMissingArtwork, "cell 2 11");
       }
       {
         JLabel lblRating = new JLabel(TmmResourceBundle.getString("Settings.preferredrating"));
-        panelUiSettings.add(lblRating, "cell 1 12 2 1");
+        panelUiSettings.add(lblRating, "cell 1 13 2 1");
 
         JPanel panelRatingSource = new JPanel();
-        panelUiSettings.add(panelRatingSource, "cell 2 13,grow");
+        panelUiSettings.add(panelRatingSource, "cell 2 14,grow");
         panelRatingSource.setLayout(new MigLayout("insets 0", "[100lp][]", "[grow][]"));
         {
           listRatings = new JList();
@@ -703,5 +708,10 @@ class MovieUiSettingsPanel extends JPanel {
     AutoBinding autoBinding_25 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty_21,
         chckbxDisplayAllMissingArtwork, jCheckBoxBeanProperty);
     autoBinding_25.bind();
+    //
+    Property movieSettingsBeanProperty_1 = BeanProperty.create("showNewMovieIcon");
+    AutoBinding autoBinding_1 = Bindings.createAutoBinding(UpdateStrategy.READ_WRITE, settings, movieSettingsBeanProperty_1, chckbxNewIndicator,
+        jCheckBoxBeanProperty);
+    autoBinding_1.bind();
   }
 }

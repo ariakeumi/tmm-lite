@@ -18,11 +18,14 @@ package org.tinymediamanager.ui.movies;
 
 import java.awt.Component;
 
+import javax.swing.Icon;
 import javax.swing.JTable;
 import javax.swing.table.TableColumn;
 
+import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.ui.IconManager;
+import org.tinymediamanager.ui.images.MultiIcon;
 import org.tinymediamanager.ui.renderer.BorderTableCellRenderer;
 
 /**
@@ -34,12 +37,10 @@ public class MovieBorderTableCellRenderer extends BorderTableCellRenderer {
   public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
     String text;
     if (value instanceof Movie movie) {
-      if (movie.isLocked()) {
-        setIcon(IconManager.LOCK_BLUE);
-      }
-      else {
-        setIcon(null);
-      }
+      Icon lockIcon = movie.isLocked() ? IconManager.LOCK_BLUE : null;
+      boolean showNewIcon = MovieModuleManager.getInstance().getSettings().isShowNewMovieIcon();
+      Icon newIcon = (showNewIcon && movie.isNewlyAdded()) ? IconManager.NEW_GREEN2 : null;
+      setIcon(MultiIcon.of(newIcon, lockIcon));
 
       // get the column
       TableColumn tableColumn = table.getColumnModel().getColumn(column);

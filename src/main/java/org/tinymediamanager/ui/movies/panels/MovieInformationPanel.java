@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -58,6 +59,7 @@ import org.tinymediamanager.ui.components.panel.IdLinkPanel;
 import org.tinymediamanager.ui.components.textfield.LinkTextArea;
 import org.tinymediamanager.ui.components.textfield.ReadOnlyTextPane;
 import org.tinymediamanager.ui.components.textfield.ReadOnlyTextPaneHTML;
+import org.tinymediamanager.ui.images.MultiIcon;
 import org.tinymediamanager.ui.movies.MovieSelectionModel;
 import org.tinymediamanager.ui.panels.InformationPanel;
 import org.tinymediamanager.ui.panels.MediaInformationLogosPanel;
@@ -169,11 +171,28 @@ public class MovieInformationPanel extends InformationPanel {
     };
 
     movieSelectionModel.addPropertyChangeListener(propertyChangeListener);
+
+    // live-update the movie name icon when the "new movie icon" setting is toggled
+    MovieModuleManager.getInstance().getSettings().addPropertyChangeListener(e -> {
+      if ("showNewMovieIcon".equals(e.getPropertyName())) {
+        Movie movie = selectionModel.getSelectedMovie();
+        if (movie != null) {
+          setMovieNameIcon(movie);
+        }
+      }
+    });
+  }
+
+  private void setMovieNameIcon(Movie movie) {
+    Icon lockIcon = movie.isLocked() ? IconManager.LOCK_BLUE : null;
+    boolean showNewIcon = MovieModuleManager.getInstance().getSettings().isShowNewMovieIcon();
+    Icon newIcon = (showNewIcon && movie.isNewlyAdded()) ? IconManager.NEW_GREEN2 : null;
+    lblMovieName.setIcon(MultiIcon.of(newIcon, lockIcon));
   }
 
   private void changeMovie(Movie movie) {
     lblMovieName.setText(movie.getTitle());
-    lblMovieName.setIcon(movie.isLocked() ? IconManager.LOCK_BLUE : null);
+    setMovieNameIcon(movie);
     lblOriginalTitle.setText(movie.getOriginalTitle());
     lblYear.setText(getIntegerAsStringWoZero(movie.getYear()));
     lblReleaseDate.setText(movie.getReleaseDateAsString());

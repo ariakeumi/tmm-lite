@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -65,6 +66,7 @@ import org.tinymediamanager.ui.components.panel.IdLinkPanel;
 import org.tinymediamanager.ui.components.textfield.LinkTextArea;
 import org.tinymediamanager.ui.components.textfield.ReadOnlyTextPane;
 import org.tinymediamanager.ui.components.textfield.ReadOnlyTextPaneHTML;
+import org.tinymediamanager.ui.images.MultiIcon;
 import org.tinymediamanager.ui.panels.InformationPanel;
 import org.tinymediamanager.ui.panels.MediaInformationLogosPanel;
 import org.tinymediamanager.ui.panels.RatingPanel;
@@ -137,6 +139,13 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
 
     tvShowEpisodeSelectionModel.addPropertyChangeListener(propertyChangeListener);
 
+    // live-update the tv show name icon when the "new tv show icon" setting is toggled
+    settings.addPropertyChangeListener(e -> {
+      if ("showNewTvShowIcon".equals(e.getPropertyName())) {
+        setTvShowNameIcon(tvShowEpisodeSelectionModel.getSelectedTvShowEpisode());
+      }
+    });
+
     // action listeners
     lblPath.addActionListener(arg0 -> {
       if (!StringUtils.isEmpty(lblPath.getText())) {
@@ -174,6 +183,16 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
     });
   }
 
+  private void setTvShowNameIcon(TvShowEpisode episode) {
+    if (episode == null || episode.getTvShow() == null) {
+      return;
+    }
+    var tvShow = episode.getTvShow();
+    Icon lockIcon = tvShow.isLocked() ? IconManager.LOCK_BLUE : null;
+    Icon newIcon = (settings.isShowNewTvShowIcon() && tvShow.isNewlyAdded()) ? IconManager.NEW_GREEN2 : null;
+    lblTvShowName.setIcon(MultiIcon.of(newIcon, lockIcon));
+  }
+
   private void changeEpisode(TvShowEpisode episode) {
     if (episode == null || episode.getTvShow() == null) {
       // happens when you delete season where the actual episode is in
@@ -181,7 +200,7 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
       return;
     }
     lblTvShowName.setText(episode.getTvShow().getTitle());
-    lblTvShowName.setIcon(episode.getTvShow().isLocked() ? IconManager.LOCK_BLUE : null);
+    setTvShowNameIcon(episode);
     lblEpisodeTitle.setText(episode.getTitleForUi());
     lblOriginalTitle.setText(episode.getOriginalTitle());
     lblSeason.setText(getIntegerAsStringWoZero(episode.getSeason()));

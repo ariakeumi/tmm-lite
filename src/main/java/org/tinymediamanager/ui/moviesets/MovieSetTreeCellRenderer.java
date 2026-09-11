@@ -18,6 +18,7 @@ package org.tinymediamanager.ui.moviesets;
 import java.awt.Color;
 import java.awt.Component;
 
+import javax.swing.Icon;
 import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -27,6 +28,7 @@ import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.movie.entities.MovieSet;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.components.treetable.TmmTreeTableCellRenderer;
+import org.tinymediamanager.ui.images.MultiIcon;
 
 /**
  * The class MovieSetTreeCellRenderer. Just for modifying the color of dummy movies
@@ -52,14 +54,11 @@ public class MovieSetTreeCellRenderer extends TmmTreeTableCellRenderer {
         renderer.setForeground(colorDummy);
       }
 
-      if (((MovieSetTreeDataProvider.MovieTreeNode) value).getUserObject() instanceof Movie) {
-        Movie movie = (Movie) ((MovieSetTreeDataProvider.MovieTreeNode) value).getUserObject();
-        if (movie.isLocked()) {
-          setIcon(IconManager.LOCK_BLUE);
-        }
-        else {
-          setIcon(null);
-        }
+      if (((MovieSetTreeDataProvider.MovieTreeNode) value).getUserObject() instanceof Movie movie) {
+        Icon lockIcon = movie.isLocked() ? IconManager.LOCK_BLUE : null;
+        boolean showNewIcon = MovieModuleManager.getInstance().getSettings().isShowNewMovieIcon();
+        Icon newIcon = (showNewIcon && movie.isNewlyAdded()) ? IconManager.NEW_GREEN2 : null;
+        setIcon(MultiIcon.of(newIcon, lockIcon));
       }
     }
 

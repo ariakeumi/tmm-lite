@@ -235,6 +235,7 @@ public class MovieListPanel extends TmmListPanel {
       switch (e.getPropertyName()) {
         case "movieCheckMetadata":
         case "movieCheckArtwork":
+        case "showNewMovieIcon":
           movieTable.invalidate();
           break;
 

@@ -124,7 +124,7 @@ public class TvShowTreePanel extends TmmListPanel {
     TvShowModuleManager.getInstance().getSettings().addPropertyChangeListener(e -> {
       switch (e.getPropertyName()) {
         case "tvShowCheckMetadata", "tvShowCheckArtwork", "seasonCheckArtwork", "episodeCheckMetadata", "episodeCheckArtwork",
-            "episodeSpecialsCheckMissingMetadata", "episodeSpecialsCheckMissingArtwork" ->
+            "episodeSpecialsCheckMissingMetadata", "episodeSpecialsCheckMissingArtwork", "showNewTvShowIcon" ->
           tree.invalidate();
       }
     });
