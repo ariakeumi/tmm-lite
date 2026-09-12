@@ -3,6 +3,7 @@ Version 5.3.3
 + [TV shows] added more rating sources for TV shows #3347
 + [UI] modernized confirmation dialogs and message toasts
 + [UI] re-added the "new" indicator used in tinyMediaManager v3.x
++ [Kodi] write Kodi v22 compatible edition tags into the NFO for movies and episodes #3341
 ---
 x [Movie sets] do not scrape unreleased movies
 x [TV shows] added an action to refresh only the TV show NFO via Kodi RPC #3351

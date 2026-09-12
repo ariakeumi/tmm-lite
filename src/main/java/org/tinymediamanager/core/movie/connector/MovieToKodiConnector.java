@@ -32,6 +32,7 @@ import org.tinymediamanager.core.NfoUtils;
 import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.entities.MediaRating;
 import org.tinymediamanager.core.entities.MediaTrailer;
+import org.tinymediamanager.core.movie.MovieEdition;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.scraper.MediaMetadata;
 import org.w3c.dom.Element;
@@ -55,6 +56,7 @@ public class MovieToKodiConnector extends MovieGenericXmlConnector {
     addEpbookmark();
     addTop250();
     addStatusAndCode();
+    addKodiEdition();
   }
 
   /**
@@ -295,5 +297,21 @@ public class MovieToKodiConnector extends MovieGenericXmlConnector {
     }
     root.insertBefore(status, premiered);
     root.insertBefore(code, premiered);
+  }
+
+  /**
+   * adds the Kodi v22 style edition tags <videoassettitle>Intl Theatrical Cut</videoassettitle> <hasvideoversions>true</hasvideoversions>
+   */
+  protected void addKodiEdition() {
+    if (movie.getEdition() != MovieEdition.NONE) {
+      // add Kodi v22 style edition tags
+      Element videoassettitle = document.createElement("videoassettitle");
+      videoassettitle.setTextContent(movie.getEdition().getTitle());
+      root.appendChild(videoassettitle);
+
+      Element hasvideoversions = document.createElement("hasvideoversions");
+      hasvideoversions.setTextContent("true");
+      root.appendChild(hasvideoversions);
+    }
   }
 }

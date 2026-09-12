@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.tinymediamanager.core.entities.MediaRating;
+import org.tinymediamanager.core.tvshow.TvShowEpisodeEdition;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 import org.tinymediamanager.scraper.MediaMetadata;
 import org.w3c.dom.Element;
@@ -104,6 +105,7 @@ public class TvShowEpisodeToKodiConnector extends TvShowEpisodeGenericXmlConnect
   protected void addOwnTags(TvShowEpisode episode, TvShowEpisodeNfoParser.Episode parser) {
     addEpbookmark(episode, parser);
     addCode(episode, parser);
+    addKodiEdition(episode, parser);
   }
 
   /**
@@ -126,5 +128,21 @@ public class TvShowEpisodeToKodiConnector extends TvShowEpisodeGenericXmlConnect
       code.setTextContent(parser.code);
     }
     root.appendChild(code);
+  }
+
+  /**
+   * adds the Kodi v22 style edition tags <videoassettitle>Intl Theatrical Cut</videoassettitle> <hasvideoversions>true</hasvideoversions>
+   */
+  protected void addKodiEdition(TvShowEpisode episode, TvShowEpisodeNfoParser.Episode parser) {
+    if (episode.getEdition() != TvShowEpisodeEdition.NONE) {
+      // add Kodi v22 style edition tags
+      Element videoassettitle = document.createElement("videoassettitle");
+      videoassettitle.setTextContent(episode.getEdition().getTitle());
+      root.appendChild(videoassettitle);
+
+      Element hasvideoversions = document.createElement("hasvideoversions");
+      hasvideoversions.setTextContent("true");
+      root.appendChild(hasvideoversions);
+    }
   }
 }

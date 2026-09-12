@@ -25,10 +25,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.tinymediamanager.core.MediaFileHelper;
 import org.tinymediamanager.core.MediaFileType;
+import org.tinymediamanager.core.NfoUtils;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.entities.MediaFileAudioStream;
 import org.tinymediamanager.core.entities.MediaFileSubtitle;
@@ -45,6 +48,8 @@ import org.tinymediamanager.core.movie.entities.MovieSet;
 import org.tinymediamanager.core.movie.filenaming.MovieNfoNaming;
 import org.tinymediamanager.scraper.MediaMetadata;
 import org.tinymediamanager.scraper.entities.MediaCertification;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class MovieToNfoConnectorTest extends BasicMovieTest {
 
@@ -95,6 +100,53 @@ public class MovieToNfoConnectorTest extends BasicMovieTest {
     MovieNfoParser movieNfoParser = MovieNfoParser.parseNfo(nfoFile);
     Movie newMovie = movieNfoParser.toMovie();
     compareMovies(movie, newMovie);
+  }
+
+  @Test
+  public void testKodiNfoEditionTags() throws Exception {
+    Files.createDirectories(getWorkFolder().resolve("kodi_nfo_edition"));
+
+    Movie movie = createMovie("kodi_nfo_edition");
+    movie.setEdition(MovieEdition.EXTENDED_EDITION);
+
+    // write it
+    List<MovieNfoNaming> nfoNames = Collections.singletonList(MovieNfoNaming.MOVIE_NFO);
+    MovieToKodiConnector connector = new MovieToKodiConnector(movie);
+    connector.write(nfoNames);
+
+    Path nfoFile = getWorkFolder().resolve("kodi_nfo_edition").resolve("movie.nfo");
+    assertThat(Files.exists(nfoFile)).isTrue();
+
+    Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(nfoFile.toFile());
+
+    Element videoassettitle = NfoUtils.getSingleElementByTag(document, "videoassettitle");
+    assertThat(videoassettitle).isNotNull();
+    assertThat(videoassettitle.getTextContent()).isEqualTo(MovieEdition.EXTENDED_EDITION.getTitle());
+
+    Element hasvideoversions = NfoUtils.getSingleElementByTag(document, "hasvideoversions");
+    assertThat(hasvideoversions).isNotNull();
+    assertThat(hasvideoversions.getTextContent()).isEqualTo("true");
+  }
+
+  @Test
+  public void testKodiNfoWithoutEditionTags() throws Exception {
+    Files.createDirectories(getWorkFolder().resolve("kodi_nfo_no_edition"));
+
+    Movie movie = createMovie("kodi_nfo_no_edition");
+    movie.setEdition(MovieEdition.NONE);
+
+    // write it
+    List<MovieNfoNaming> nfoNames = Collections.singletonList(MovieNfoNaming.MOVIE_NFO);
+    MovieToKodiConnector connector = new MovieToKodiConnector(movie);
+    connector.write(nfoNames);
+
+    Path nfoFile = getWorkFolder().resolve("kodi_nfo_no_edition").resolve("movie.nfo");
+    assertThat(Files.exists(nfoFile)).isTrue();
+
+    Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(nfoFile.toFile());
+
+    assertThat(NfoUtils.getSingleElementByTag(document, "videoassettitle")).isNull();
+    assertThat(NfoUtils.getSingleElementByTag(document, "hasvideoversions")).isNull();
   }
 
   @Test

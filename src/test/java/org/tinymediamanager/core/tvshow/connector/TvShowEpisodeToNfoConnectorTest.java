@@ -26,11 +26,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.tinymediamanager.core.MediaAiredStatus;
 import org.tinymediamanager.core.MediaFileHelper;
 import org.tinymediamanager.core.MediaFileType;
+import org.tinymediamanager.core.NfoUtils;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.entities.MediaFileAudioStream;
 import org.tinymediamanager.core.entities.MediaFileSubtitle;
@@ -49,6 +52,8 @@ import org.tinymediamanager.scraper.MediaMetadata;
 import org.tinymediamanager.scraper.entities.MediaCertification;
 import org.tinymediamanager.scraper.entities.MediaEpisodeGroup;
 import org.tinymediamanager.scraper.entities.MediaEpisodeNumber;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 public class TvShowEpisodeToNfoConnectorTest extends BasicTvShowTest {
 
@@ -104,6 +109,56 @@ public class TvShowEpisodeToNfoConnectorTest extends BasicTvShowTest {
       episode.setTvShow(tvShow);
     }
     compareEpisodes(episodes, newEpisodes);
+  }
+
+  @Test
+  public void testKodiNfoEditionTags() throws Exception {
+    Files.createDirectories(getWorkFolder().resolve("kodi_nfo_edition"));
+
+    TvShow tvShow = createTvShow("kodi_nfo_edition");
+    List<TvShowEpisode> episodes = createEpisodes(tvShow, false);
+
+    // write it
+    List<TvShowEpisodeNfoNaming> nfoNames = Collections.singletonList(TvShowEpisodeNfoNaming.FILENAME);
+    TvShowEpisodeToKodiConnector connector = new TvShowEpisodeToKodiConnector(episodes);
+    connector.write(nfoNames);
+
+    Path nfoFile = getWorkFolder().resolve("kodi_nfo_edition/S01E01E02.nfo");
+    assertThat(Files.exists(nfoFile)).isTrue();
+
+    Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(nfoFile.toFile());
+
+    Element videoassettitle = NfoUtils.getSingleElementByTag(document, "videoassettitle");
+    assertThat(videoassettitle).isNotNull();
+    assertThat(videoassettitle.getTextContent()).isEqualTo(TvShowEpisodeEdition.DIRECTORS_CUT.getTitle());
+
+    Element hasvideoversions = NfoUtils.getSingleElementByTag(document, "hasvideoversions");
+    assertThat(hasvideoversions).isNotNull();
+    assertThat(hasvideoversions.getTextContent()).isEqualTo("true");
+  }
+
+  @Test
+  public void testKodiNfoWithoutEditionTags() throws Exception {
+    Files.createDirectories(getWorkFolder().resolve("kodi_nfo_no_edition"));
+
+    TvShow tvShow = createTvShow("kodi_nfo_no_edition");
+    List<TvShowEpisode> episodes = createEpisodes(tvShow, false);
+    for (TvShowEpisode episode : episodes) {
+      episode.setEdition(TvShowEpisodeEdition.NONE);
+    }
+
+    // write it
+    List<TvShowEpisodeNfoNaming> nfoNames = Collections.singletonList(TvShowEpisodeNfoNaming.FILENAME);
+    TvShowEpisodeToKodiConnector connector = new TvShowEpisodeToKodiConnector(episodes);
+    connector.write(nfoNames);
+
+    Path nfoFile = getWorkFolder().resolve("kodi_nfo_no_edition/S01E01E02.nfo");
+    assertThat(Files.exists(nfoFile)).isTrue();
+
+    Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(nfoFile.toFile());
+
+    assertThat(NfoUtils.getSingleElementByTag(document, "videoassettitle")).isNull();
+    assertThat(NfoUtils.getSingleElementByTag(document, "hasvideoversions")).isNull();
   }
 
   private TvShow createTvShow(String path) throws Exception {
