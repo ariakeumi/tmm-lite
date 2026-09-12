@@ -44,6 +44,8 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
@@ -77,6 +79,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -115,6 +118,12 @@ import org.tinymediamanager.scraper.util.UrlUtil;
  */
 public class Utils {
   private static final Logger       LOGGER                      = LoggerFactory.getLogger(Utils.class);
+  /**
+   * datasources whose trash folder has already been created/verified in this session; saves repeated (network) metadata round trips while deleting
+   * many files
+   */
+  private static final Set<String>  VERIFIED_TRASH_ROOTS        = ConcurrentHashMap.newKeySet();
+
   /**
    * the JetBrains Runtime (JBR) only patch behind the "jdk.nio.path.useNormalizationFormD" property (added in 5.0.11 as a macOS workaround for
    * #2687): it stores string-built paths internally in NFD, while filesystem-built paths keep their raw bytes - which silently breaks equals/hashCode
@@ -829,23 +838,27 @@ public class Utils {
 
     if (!srcStr.equals(dstStr)) {
       LOGGER.debug("try to move file '{}' to '{}'", srcFile, destFile);
-      if (!Files.exists(srcFile)) {
+
+      // single metadata read instead of separate exists()/isSymbolicLink()/isDirectory() round trips
+      // (each of those was an expensive file open on remote filesystems, e.g. SMB on Windows)
+      BasicFileAttributes srcAttrs;
+      try {
+        srcAttrs = Files.readAttributes(srcFile, BasicFileAttributes.class);
+      }
+      catch (NoSuchFileException e) {
         // allow moving of symlinks
         // https://github.com/tinyMediaManager/tinyMediaManager/issues/410
         if (!Files.isSymbolicLink(srcFile)) {
           throw new FileNotFoundException("Source '" + srcFile + "' does not exist"); // NOSONAR
         }
+        srcAttrs = null;
       }
-      if (Files.isDirectory(srcFile)) {
+      if (srcAttrs != null && srcAttrs.isDirectory()) {
         throw new IOException("Source '" + srcFile + "' is a directory"); // NOSONAR
       }
-      if (Files.exists(destFile) && !Files.isSameFile(destFile, srcFile)) {
-        // extra check for windows, where the File.equals is case-insensitive
-        // so we know now, that the File is the same, but the absolute name does not match
+      if (destinationExistsAndIsNotSource(srcFile, destFile, srcAttrs)) {
+        // a directory destination can never be the source file itself, so it is covered here as well
         throw new FileExistsException("Destination '" + destFile + "' already exists");
-      }
-      if (Files.isDirectory(destFile)) {
-        throw new IOException("Destination '" + destFile + "' is a directory");
       }
 
       // detect case-only rename for case-insensitive filesystems
@@ -933,6 +946,72 @@ public class Utils {
   }
 
   /**
+   * checks if the destination already exists and is not the source file itself.<br>
+   * reuses already-read {@link BasicFileAttributes} to avoid the extra file opens {@link Files#isSameFile} would cause
+   *
+   * @param srcFile
+   *          the source file
+   * @param destFile
+   *          the destination file
+   * @param srcAttrs
+   *          the already-read attributes of the source file, may be {@code null} (e.g. a broken symlink)
+   * @return true if the destination exists and is another file than the source
+   * @throws IOException
+   *           if an I/O error occurs
+   */
+  private static boolean destinationExistsAndIsNotSource(Path srcFile, Path destFile, BasicFileAttributes srcAttrs) throws IOException {
+    BasicFileAttributes destAttrs;
+    try {
+      destAttrs = Files.readAttributes(destFile, BasicFileAttributes.class);
+    }
+    catch (NoSuchFileException e) {
+      return false; // destination does not exist - all good
+    }
+    return !isTheSameFile(srcAttrs, destAttrs, srcFile, destFile);
+  }
+
+  /**
+   * compares two files by their already-known file key to avoid opening both files via {@link Files#isSameFile}.<br>
+   * falls back to {@link Files#isSameFile} if the filesystem does not provide file keys (e.g. some network mounts)
+   *
+   * @param srcAttrs
+   *          the attributes of the source file, may be {@code null}
+   * @param destAttrs
+   *          the attributes of the destination file, must not be {@code null}
+   * @param srcFile
+   *          the source file
+   * @param destFile
+   *          the destination file
+   * @return true if source and destination are the very same file
+   * @throws IOException
+   *           if an I/O error occurs during the fallback check
+   */
+  private static boolean isTheSameFile(BasicFileAttributes srcAttrs, BasicFileAttributes destAttrs, Path srcFile, Path destFile) throws IOException {
+    if (srcAttrs != null && srcFile.getFileSystem() == destFile.getFileSystem() && srcAttrs.fileKey() != null && destAttrs.fileKey() != null) {
+      return srcAttrs.fileKey().equals(destAttrs.fileKey());
+    }
+    return Files.isSameFile(destFile, srcFile);
+  }
+
+  /**
+   * creates a single directory if it does not exist yet.<br>
+   * avoids the separate {@link Files#exists} check in advance, which is an expensive round trip on remote filesystems (e.g. SMB on Windows)
+   *
+   * @param dir
+   *          the directory to create
+   * @throws IOException
+   *           if the directory could not be created (e.g. its parent is missing)
+   */
+  public static void createDirectoryIfAbsent(Path dir) throws IOException {
+    try {
+      Files.createDirectory(dir);
+    }
+    catch (FileAlreadyExistsException e) {
+      // the directory is already there - all good
+    }
+  }
+
+  /**
    * copy a file, preserving the attributes, but NOT overwrite it
    *
    * @param srcFile
@@ -981,25 +1060,40 @@ public class Utils {
     }
     if (!srcFile.toAbsolutePath().toString().equals(destFile.toAbsolutePath().toString())) {
       LOGGER.debug("try to copy file {} to {}", srcFile, destFile);
-      if (!Files.exists(srcFile)) {
+
+      // single metadata read instead of separate exists()/isDirectory() round trips
+      // (each of those was an expensive file open on remote filesystems, e.g. SMB on Windows)
+      BasicFileAttributes srcAttrs;
+      try {
+        srcAttrs = Files.readAttributes(srcFile, BasicFileAttributes.class);
+      }
+      catch (NoSuchFileException e) {
         LOGGER.debug("file not found - '{}'", srcFile);
         throw new FileNotFoundException("Source '" + srcFile + "' does not exist");
       }
-      if (Files.isDirectory(srcFile)) {
+      if (srcAttrs.isDirectory()) {
         LOGGER.debug("source is a directory - '{}'", srcFile);
         throw new IOException("Source '" + srcFile + "' is a directory");
       }
-      if (!overwrite) {
-        if (Files.exists(destFile) && !Files.isSameFile(destFile, srcFile)) {
+
+      BasicFileAttributes destAttrs = null;
+      try {
+        destAttrs = Files.readAttributes(destFile, BasicFileAttributes.class);
+      }
+      catch (NoSuchFileException e) {
+        // destination does not exist - all good
+      }
+      if (destAttrs != null) {
+        if (!overwrite && !isTheSameFile(srcAttrs, destAttrs, srcFile, destFile)) {
           // extra check for windows, where the File.equals is case-insensitive
           // so we know now, that the File is the same, but the absolute name does not match
           LOGGER.debug("destination exists - '{}'", destFile);
           throw new FileExistsException("Destination '" + destFile + "' already exists");
         }
-      }
-      if (Files.isDirectory(destFile)) {
-        LOGGER.debug("destination is a directory - '{}'", destFile);
-        throw new IOException("Destination '" + destFile + "' is a directory");
+        if (destAttrs.isDirectory()) {
+          LOGGER.debug("destination is a directory - '{}'", destFile);
+          throw new IOException("Destination '" + destFile + "' is a directory");
+        }
       }
 
       // rename folder; try 5 times and wait a sec
@@ -1089,42 +1183,49 @@ public class Utils {
         return false;
       }
 
-      if (Files.isDirectory(file)) {
+      // single metadata read instead of separate isDirectory()/exists() round trips (SMB-performance)
+      BasicFileAttributes attrs = null;
+      try {
+        attrs = Files.readAttributes(file, BasicFileAttributes.class);
+      }
+      catch (NoSuchFileException | NotDirectoryException e) {
+        // this file is no more here - just return "true"
+        return true;
+      }
+      catch (IOException e) {
+        // attributes not determinable; the old exists() check treated this as "file is there" and let the move fail later on
+        LOGGER.warn("Could not get attributes for '{}' - '{}' [{}]", file, e.getMessage(), e.getClass().getSimpleName());
+      }
+      if (attrs != null && attrs.isDirectory()) {
         LOGGER.warn("Could not delete file '{}': file is a directory!", file);
         return false;
       }
 
-      // check if the file exists; if it does not exist anymore we won't need to delete it ;)
-      if (!Files.exists(file)) {
-        // this file is no more here - just return "true"
-        return true;
-      }
-
-      // create backup folder
+      // create backup folder (verified only once per datasource & session to save round trips on remote filesystems)
       Path backup = Paths.get(ds.toAbsolutePath().toString(), Constants.DS_TRASH_FOLDER);
-      try {
-        if (!Files.exists(backup)) {
+      if (VERIFIED_TRASH_ROOTS.add(ds.toAbsolutePath().toString())) {
+        try {
           Files.createDirectories(backup);
-        }
-        if (!Files.exists(backup.resolve(".nomedia"))) {
           Files.createFile(backup.resolve(".nomedia"));
         }
-      }
-      catch (AccessDeniedException e) {
-        // propagate to UI by logging with error
-        LOGGER.error("ACCESS DENIED (create folder) for '{}' - '{}' [{}]", backup, e.getMessage(), e.getClass().getSimpleName());
-      }
-      catch (Exception e) {
-        // ignore
+        catch (FileAlreadyExistsException e) {
+          // the .nomedia marker is already there - all good
+        }
+        catch (AccessDeniedException e) {
+          // propagate to UI by logging with error
+          LOGGER.error("ACCESS DENIED (create folder) for '{}' - '{}' [{}]", backup, e.getMessage(), e.getClass().getSimpleName());
+        }
+        catch (Exception e) {
+          // ignore
+        }
       }
 
       // backup
       try {
         // create path
         backup = Paths.get(ds.toAbsolutePath().toString(), Constants.DS_TRASH_FOLDER, ds.relativize(file).toString());
-        if (!Files.exists(backup.getParent())) {
-          Files.createDirectories(backup.getParent());
-        }
+        // idempotent; no separate exists() check needed
+        Files.createDirectories(backup.getParent());
         // overwrite backup file by deletion prior
         Files.deleteIfExists(backup);
         return moveFileSafe(file, backup);
@@ -1640,6 +1741,29 @@ public class Utils {
   }
 
   /**
+   * deletes the given folders if they are empty.<br>
+   * done once per distinct folder (instead of once per cleaned-up file) to save expensive directory listings on remote filesystems (e.g. SMB on
+   * Windows)
+   *
+   * @param folders
+   *          the affected folders (deduplicated by the caller's set)
+   */
+  public static void deleteEmptyFolders(Collection<Path> folders) {
+    for (Path folder : folders) {
+      try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(folder)) {
+        if (!directoryStream.iterator().hasNext()) {
+          // no iterator = empty
+          LOGGER.debug("Deleting empty Directory {}", folder);
+          Files.delete(folder); // do not use recursive here
+        }
+      }
+      catch (IOException e) {
+        LOGGER.error("Error in cleanup of '{}' - '{}'", folder, e.getMessage());
+      }
+    }
+  }
+
+  /**
    * check whether a folder is empty or not
    *
    * @param folder
@@ -2133,7 +2257,8 @@ public class Utils {
         @NotNull
         @Override
         public FileVisitResult visitFile(Path file, @NotNull BasicFileAttributes attrs) {
-          if (Utils.isRegularFile(file)) {
+          // use the attributes delivered by the walk instead of re-querying them (network round trip per file)
+          if (isRegularFile(attrs)) {
             filesFound.add(normalizeUnicode(file));
           }
           return FileVisitResult.CONTINUE;

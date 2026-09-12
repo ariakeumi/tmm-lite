@@ -19,6 +19,7 @@ import static org.tinymediamanager.core.MediaFileType.SEASON_BANNER;
 import static org.tinymediamanager.core.MediaFileType.SEASON_FANART;
 import static org.tinymediamanager.core.MediaFileType.SEASON_POSTER;
 import static org.tinymediamanager.core.MediaFileType.SEASON_THUMB;
+import static org.tinymediamanager.core.Utils.deleteEmptyFolders;
 
 import java.io.File;
 import java.io.IOException;
@@ -305,10 +306,8 @@ public class TvShowRenamer {
       // move directory if needed
       if (!srcDir.toAbsolutePath().toString().equals(destDir.toAbsolutePath().toString())) {
         try {
-          // create parent if needed
-          if (!Files.exists(destDir.getParent())) {
-            Files.createDirectory(destDir.getParent());
-          }
+          // create parent if needed (single op; avoids an extra network round trip via an exists() check)
+          Utils.createDirectoryIfAbsent(destDir.getParent());
           boolean ok = Utils.moveDirectorySafe(srcDir, destDir);
           if (ok) {
             show.updateMediaFilePath(srcDir, destDir); // TvShow MFs
@@ -436,31 +435,21 @@ public class TvShowRenamer {
     // ## CLEANUP - delete all files marked for cleanup, which are not "needed"
     // ######################################################################
     LOGGER.debug("Cleanup...");
+    Set<Path> affectedFolders = new LinkedHashSet<>();
     for (int i = cleanup.size() - 1; i >= 0; i--) {
       // cleanup files which are not needed
       if (!needed.contains(cleanup.get(i))) {
         MediaFile cl = cleanup.get(i);
-        if (Files.exists(cl.getFileAsPath())) { // unneeded, but for not displaying wrong deletes in logger...
-          LOGGER.debug("Deleting {}", cl.getFileAsPath());
-          Utils.deleteFileWithBackup(cl.getFileAsPath(), tvShow.getDataSource());
-          // also cleanup the cache for deleted mfs
-          if (cl.isGraphic()) {
-            ImageCache.invalidateCachedImage(cl);
-          }
+        LOGGER.debug("Deleting {}", cl.getFileAsPath());
+        Utils.deleteFileWithBackup(cl.getFileAsPath(), tvShow.getDataSource());
+        // also cleanup the cache for deleted mfs
+        if (cl.isGraphic()) {
+          ImageCache.invalidateCachedImage(cl);
         }
-
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(cl.getFileAsPath().getParent())) {
-          if (!directoryStream.iterator().hasNext()) {
-            // no iterator = empty
-            LOGGER.debug("Deleting empty Directory {}", cl.getFileAsPath().getParent());
-            Files.delete(cl.getFileAsPath().getParent()); // do not use recursive her
-          }
-        }
-        catch (IOException e) {
-          LOGGER.error("Error in cleanup of '{}' - '{}'", cl.getFileAsPath(), e.getMessage());
-        }
+        affectedFolders.add(cl.getFileAsPath().getParent());
       }
     }
+    deleteEmptyFolders(affectedFolders);
 
     // delete empty subfolders
     try {
@@ -832,6 +821,7 @@ public class TvShowRenamer {
     // ######################################################################
     LOGGER.debug("Cleanup...");
     List<Path> existingFiles = Utils.listFilesRecursive(tvShow.getPathNIO());
+    Set<Path> affectedFolders = new LinkedHashSet<>();
     for (int i = cleanup.size() - 1; i >= 0; i--) {
       // cleanup files which are not needed
       if (!needed.contains(cleanup.get(i))) {
@@ -850,19 +840,10 @@ public class TvShowRenamer {
             ImageCache.invalidateCachedImage(cl);
           }
         }
-
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(cl.getFileAsPath().getParent())) {
-          if (!directoryStream.iterator().hasNext()) {
-            // no iterator = empty
-            LOGGER.debug("Deleting empty Directory {}", cl.getFileAsPath().getParent());
-            Files.delete(cl.getFileAsPath().getParent()); // do not use recursive her
-          }
-        }
-        catch (IOException e) {
-          LOGGER.error("Error in cleanup of '{}' - '{}'", cl.getFileAsPath(), e.getMessage());
-        }
+        affectedFolders.add(cl.getFileAsPath().getParent());
       }
     }
+    deleteEmptyFolders(affectedFolders);
 
     // delete empty subfolders
     try {
@@ -964,12 +945,11 @@ public class TvShowRenamer {
       String seasonFoldername = getSeasonFoldername(episode.getTvShow(), episode, profile);
       if (StringUtils.isNotBlank(seasonFoldername)) {
         Path seasonFolder = episode.getTvShow().getPathNIO().resolve(seasonFoldername);
-        if (!Files.exists(seasonFolder)) {
-          try {
-            Files.createDirectory(seasonFolder);
-          }
-          catch (IOException ignored) {
-          }
+        try {
+          // single op; avoids an extra network round trip via an exists() check
+          Utils.createDirectoryIfAbsent(seasonFolder);
+        }
+        catch (IOException ignored) {
         }
       }
     }
@@ -1159,27 +1139,17 @@ public class TvShowRenamer {
     // ## CLEANUP - delete all files marked for cleanup, which are not "needed"
     // ######################################################################
     LOGGER.debug("Cleanup...");
+    Set<Path> affectedFolders = new LinkedHashSet<>();
     for (int i = cleanup.size() - 1; i >= 0; i--) {
       // cleanup files which are not needed
       if (!needed.contains(cleanup.get(i))) {
         MediaFile cl = cleanup.get(i);
-        if (Files.exists(cl.getFileAsPath())) { // unneeded, but for not displaying wrong deletes in logger...
-          LOGGER.debug("Deleting {}", cl.getFileAsPath());
-          Utils.deleteFileWithBackup(cl.getFileAsPath(), episode.getTvShow().getDataSource());
-        }
-
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(cl.getFileAsPath().getParent())) {
-          if (!directoryStream.iterator().hasNext()) {
-            // no iterator = empty
-            LOGGER.debug("Deleting empty Directory {}", cl.getFileAsPath().getParent());
-            Files.delete(cl.getFileAsPath().getParent()); // do not use recursive her
-          }
-        }
-        catch (IOException e) {
-          LOGGER.error("Error in cleanup of '{}' - '{}'", cl.getFileAsPath(), e.getMessage());
-        }
+        LOGGER.debug("Deleting {}", cl.getFileAsPath());
+        Utils.deleteFileWithBackup(cl.getFileAsPath(), episode.getTvShow().getDataSource());
+        affectedFolders.add(cl.getFileAsPath().getParent());
       }
     }
+    deleteEmptyFolders(affectedFolders);
 
     // check if there has been _any_ change (or if that EP has already been renamed before that)
     boolean changeDetected = false;
@@ -1269,12 +1239,11 @@ public class TvShowRenamer {
       String seasonFoldername = getSeasonFoldername(episode.getTvShow(), episode, profile);
       if (StringUtils.isNotBlank(seasonFoldername)) {
         seasonFolder = episode.getTvShow().getPathNIO().resolve(seasonFoldername);
-        if (!Files.exists(seasonFolder)) {
-          try {
-            Files.createDirectory(seasonFolder);
-          }
-          catch (IOException ignored) {
-          }
+        try {
+          // single op; avoids an extra network round trip via an exists() check
+          Utils.createDirectoryIfAbsent(seasonFolder);
+        }
+        catch (IOException ignored) {
         }
       }
       else {
@@ -1297,10 +1266,8 @@ public class TvShowRenamer {
       if (!epFolder.toAbsolutePath().toString().equals(newEpFolder.toAbsolutePath().toString())) {
         boolean ok = false;
         try {
-          // create parent if needed
-          if (!Files.exists(newEpFolder.getParent())) {
-            Files.createDirectory(newEpFolder.getParent());
-          }
+          // create parent if needed (single op; avoids an extra network round trip via an exists() check)
+          Utils.createDirectoryIfAbsent(newEpFolder.getParent());
           ok = Utils.moveDirectorySafe(epFolder, newEpFolder);
         }
         catch (Exception e) {
@@ -1357,10 +1324,8 @@ public class TvShowRenamer {
       // move directory if needed
       if (!srcDir.toAbsolutePath().toString().equals(destDir.toAbsolutePath().toString())) {
         try {
-          // create parent if needed
-          if (!Files.exists(destDir.getParent())) {
-            Files.createDirectory(destDir.getParent());
-          }
+          // create parent if needed (single op; avoids an extra network round trip via an exists() check)
+          Utils.createDirectoryIfAbsent(destDir.getParent());
           boolean ok = Utils.moveDirectorySafe(srcDir, destDir);
           if (ok) {
             tvShow.updateMediaFilePath(srcDir, destDir); // TvShow MFs
@@ -1615,10 +1580,8 @@ public class TvShowRenamer {
     try {
       boolean ok = false;
       try {
-        // create parent if needed
-        if (!Files.exists(oldEpFolder.getParent())) {
-          Files.createDirectory(oldEpFolder.getParent());
-        }
+        // create parent if needed (single op; avoids an extra network round trip via an exists() check)
+        Utils.createDirectoryIfAbsent(oldEpFolder.getParent());
         ok = Utils.moveDirectorySafe(newEpFolder, oldEpFolder);
       }
       catch (Exception e) {
@@ -2915,10 +2878,8 @@ public class TvShowRenamer {
    */
   private static boolean moveFile(Path oldFilename, Path newFilename) {
     try {
-      // create parent if needed
-      if (!Files.exists(newFilename.getParent())) {
-        Files.createDirectory(newFilename.getParent());
-      }
+      // create parent if needed (single op; avoids an extra network round trip via an exists() check)
+      Utils.createDirectoryIfAbsent(newFilename.getParent());
       boolean ok = Utils.moveFileSafe(oldFilename, newFilename);
       if (ok) {
         return true;
@@ -2954,10 +2915,8 @@ public class TvShowRenamer {
         return moveFile(oldFilename, newFilename);
       }
       try {
-        // create parent if needed
-        if (!Files.exists(newFilename.getParent())) {
-          Files.createDirectory(newFilename.getParent());
-        }
+        // create parent if needed (single op; avoids an extra network round trip via an exists() check)
+        Utils.createDirectoryIfAbsent(newFilename.getParent());
         Utils.copyFileSafe(oldFilename, newFilename, true);
         return true;
       }

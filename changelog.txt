@@ -6,12 +6,13 @@ Version 5.3.3
 + [Kodi] write Kodi v22 compatible edition tags into the NFO for movies and episodes #3341
 ---
 x [Movie sets] do not scrape unreleased movies
++ [Movie sets] added a confirmation dialog before removing selected movie sets
 x [TV shows] added an action to refresh only the TV show NFO via Kodi RPC #3351
 x [TV shows] enhanced parsing of multi episode file naming patterns #3345
+x [TV shows] enhanced renaming logic for better performance on Windows
 x [UI] do not list unaired special episodes as missing when "display missing specials" is disabled #3355
-x [macOS] fixed some issues with Unicode characters (NFD vs. NFC encoded characters) in file/folder names
 x [UI] registered backspace as delete/remove shortcut for keyboards without a dedicated delete key (default on macOS)
-+ [Movie sets] added a confirmation dialog before removing selected movie sets
+x [macOS] fixed some issues with Unicode characters (NFD vs. NFC encoded characters) in file/folder names
 x [External Services] added a dedicated setting to enable or disable Trakt.tv and Simkl.com support
 
 

@@ -18,8 +18,11 @@ package org.tinymediamanager.core.tvshow.tasks;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,14 +100,21 @@ public class TvShowRenameTask extends TmmThreadPool {
     try {
       LOGGER.info("Renaming '{}' TV shows / '{}' episodes", tvShowsToRename.size(), episodesToRename.size());
 
-      initThreadPool(1, "rename");
+      // renaming within ONE show must stay sequential (shared season folders, multi-episode files, rename history),
+      // but different shows are completely independent -> a fair per-show lock lets those be renamed in parallel,
+      // which is a huge win on high-latency filesystems (e.g. SMB network shares on Windows)
+      initThreadPool(3, "rename");
+
+      // map is only ever touched from this (submitting) thread; episodes of the same show share the very same TvShow instance
+      final Map<TvShow, ReentrantLock> showLocks = new IdentityHashMap<>();
 
       // 1. episodes first (to get the right season folders for moving season artwork)
       for (TvShowEpisode tvEpisodesToRename : episodesToRename) {
         if (cancel) {
           break;
         }
-        submitTask(new RenameEpisodeTask(tvEpisodesToRename, profile));
+        ReentrantLock showLock = showLocks.computeIfAbsent(tvEpisodesToRename.getTvShow(), key -> new ReentrantLock(true));
+        submitTask(new RenameEpisodeTask(tvEpisodesToRename, profile, showLock));
       }
 
       waitForCompletionOrCancel();
@@ -128,18 +138,29 @@ public class TvShowRenameTask extends TmmThreadPool {
   /**
    * ThreadpoolWorker to work off ONE episode
    */
-  private static class RenameEpisodeTask implements Callable<Object> {
+  private class RenameEpisodeTask implements Callable<Object> {
     private final TvShowEpisode        episode;
     private final TvShowRenamerProfile renamerProfile;
+    private final ReentrantLock        showLock;
 
-    public RenameEpisodeTask(TvShowEpisode episode, TvShowRenamerProfile renamerProfile) {
+    public RenameEpisodeTask(TvShowEpisode episode, TvShowRenamerProfile renamerProfile, ReentrantLock showLock) {
       this.episode = episode;
       this.renamerProfile = renamerProfile;
+      this.showLock = showLock;
     }
 
     @Override
     public String call() {
-      TvShowRenamer.renameEpisode(episode, renamerProfile);
+      // the fair lock guarantees episodes of one show are renamed in submission order, like before
+      showLock.lock();
+      try {
+        if (!cancel) {
+          TvShowRenamer.renameEpisode(episode, renamerProfile);
+        }
+      }
+      finally {
+        showLock.unlock();
+      }
       return episode.getTitle();
     }
   }
