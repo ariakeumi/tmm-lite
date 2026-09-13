@@ -81,6 +81,7 @@ public final class Settings extends AbstractSettings {
   private final List<String>                               customAspectRatios           = ObservableCollections.observableList(new ArrayList<>());
 
   private String                                           version                      = "";
+  private int                                              settingsVersion              = 0;
 
   private String                                           proxyHost;
   private String                                           proxyPort;
@@ -94,7 +95,6 @@ public final class Settings extends AbstractSettings {
   private boolean                                          traktTvEnabled               = false;
   private boolean                                          simklComEnabled              = false;
 
-  private boolean                                          kodiEnabled                  = false;
   private String                                           kodiHost                     = "";
   private int                                              kodiHttpPort                 = 8080;
   private int                                              kodiTcpPort                  = 9090;
@@ -354,6 +354,19 @@ public final class Settings extends AbstractSettings {
    */
   public void setVersion(String version) {
     this.version = version;
+  }
+
+  /**
+   * Get the current settings version (incremented on every upgrade of the settings file)
+   * 
+   * @return the current settings version
+   */
+  public int getSettingsVersion() {
+    return settingsVersion;
+  }
+
+  public void setSettingsVersion(int settingsVersion) {
+    this.settingsVersion = settingsVersion;
   }
 
   /**

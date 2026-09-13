@@ -195,9 +195,10 @@ public abstract class UpgradeTasks {
     // (runs on every startup, but is a no-op once the data has been migrated)
     migrateVolatilePropertiesToTmmStore();
 
-    if (StrgUtils.compareVersion(v, "5.3.3") < 0) {
-      Settings settings = Settings.getInstance();
+    // settings upgrades
+    Settings settings = Settings.getInstance();
 
+    if (settings.getSettingsVersion() < 5331) {
       // enable external services if settings are available
       if (StringUtils.isNotBlank(TraktTv.getInstance().getRefreshToken())) {
         settings.setTraktTvEnabled(License.getInstance().isValidLicense());
@@ -231,6 +232,8 @@ public abstract class UpgradeTasks {
           }
         }
       }
+
+      settings.setSettingsVersion(5331);
     }
   }
 
