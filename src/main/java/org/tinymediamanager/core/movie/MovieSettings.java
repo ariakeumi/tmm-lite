@@ -18,6 +18,7 @@ package org.tinymediamanager.core.movie;
 import static org.tinymediamanager.core.movie.MovieRenamerProfile.DEFAULT_RENAMER_PROFILE;
 
 import java.beans.PropertyChangeListener;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -37,9 +38,12 @@ import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.AbstractSettings;
 import org.tinymediamanager.core.CertificationStyle;
 import org.tinymediamanager.core.Constants;
+import org.tinymediamanager.core.DatasourceFolderGuard;
 import org.tinymediamanager.core.DateField;
 import org.tinymediamanager.core.LanguageStyle;
 import org.tinymediamanager.core.MediaFileType;
+import org.tinymediamanager.core.Message;
+import org.tinymediamanager.core.MessageManager;
 import org.tinymediamanager.core.PostProcess;
 import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.TrailerQuality;
@@ -580,7 +584,19 @@ public final class MovieSettings extends AbstractSettings {
 
   @Override
   protected void afterLoading() {
-    // nothing to do here
+    // warn about data sources which are dangerous system folders (added by older versions or hand-edited settings)
+    for (String ds : movieDataSources) {
+      try {
+        if (DatasourceFolderGuard.isDangerous(Paths.get(ds).normalize().toAbsolutePath())) {
+          LOGGER.warn("The movie data source '{}' is a dangerous system folder - please remove it from the settings", ds);
+          MessageManager.getInstance()
+              .pushMessage(new Message(Message.MessageLevel.WARN, "update.datasource", "Settings.datasource.dangerous.found", new String[] { ds }));
+        }
+      }
+      catch (InvalidPathException e) {
+        LOGGER.warn("Invalid movie data source path '{}'", ds);
+      }
+    }
   }
 
   public int getVersion() {
@@ -614,6 +630,11 @@ public final class MovieSettings extends AbstractSettings {
     }
 
     Path newDatasource = Paths.get(path).normalize().toAbsolutePath();
+    if (DatasourceFolderGuard.isDangerous(newDatasource)) {
+      LOGGER.warn("Refusing to add dangerous data source: {}", newDatasource);
+      return false;
+    }
+
     for (String ds : movieDataSources) {
       if (StringUtils.isBlank(ds)) {
         continue;
@@ -643,7 +664,7 @@ public final class MovieSettings extends AbstractSettings {
 
   public void exchangeMovieDatasource(String oldDatasource, String newDatasource) {
     int index = movieDataSources.indexOf(oldDatasource);
-    if (index > -1) {
+    if (index > -1 && !DatasourceFolderGuard.isDangerous(Paths.get(newDatasource).normalize().toAbsolutePath())) {
       movieDataSources.remove(oldDatasource);
       if (!movieDataSources.contains(newDatasource)) {
         // just to prevent adding duplicates

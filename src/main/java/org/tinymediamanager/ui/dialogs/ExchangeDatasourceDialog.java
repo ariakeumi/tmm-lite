@@ -28,6 +28,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextPane;
 
 import org.apache.commons.lang3.StringUtils;
+import org.tinymediamanager.core.DatasourceFolderGuard;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmUIHelper;
@@ -69,6 +70,11 @@ public class ExchangeDatasourceDialog extends TmmDialog {
       btnChooseNewDatasource.addActionListener(e -> {
         Path file = TmmUIHelper.selectDirectory(TmmResourceBundle.getString("Settings.datasource.folderchooser"), datasource);
         if (file != null && Files.isDirectory(file)) {
+          if (DatasourceFolderGuard.isDangerous(file)) {
+            JOptionPane.showMessageDialog(ExchangeDatasourceDialog.this, TmmResourceBundle.getString("Settings.datasource.dangerous"),
+                TmmResourceBundle.getString("Settings.datasource.folderchooser"), JOptionPane.ERROR_MESSAGE);
+            return;
+          }
           lblNewDatasource.setText(file.toString());
         }
       });

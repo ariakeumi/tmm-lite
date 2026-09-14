@@ -32,6 +32,7 @@ import org.jdesktop.beansbinding.AutoBinding.UpdateStrategy;
 import org.jdesktop.beansbinding.BeanProperty;
 import org.jdesktop.swingbinding.JListBinding;
 import org.jdesktop.swingbinding.SwingBindings;
+import org.tinymediamanager.core.DatasourceFolderGuard;
 import org.tinymediamanager.core.TmmProperties;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.movie.MovieModuleManager;
@@ -94,7 +95,10 @@ class MovieSourcePanel extends JPanel {
         String path = TmmProperties.getInstance().getProperty("movie.datasource.path");
         Path file = TmmUIHelper.selectDirectory(TmmResourceBundle.getString("Settings.datasource.folderchooser"), path);
         if (file != null && Files.isDirectory(file)) {
-          if (MovieModuleManager.getInstance().getSettings().addMovieDataSources(file.toAbsolutePath().toString())) {
+          if (DatasourceFolderGuard.isDangerous(file)) {
+            JOptionPane.showMessageDialog(this, TmmResourceBundle.getString("Settings.datasource.dangerous"));
+          }
+          else if (MovieModuleManager.getInstance().getSettings().addMovieDataSources(file.toAbsolutePath().toString())) {
             TmmProperties.getInstance().putProperty("movie.datasource.path", file.toAbsolutePath().toString());
           }
           else {

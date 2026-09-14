@@ -21,6 +21,7 @@ import java.nio.file.Path;
 
 import javax.swing.SwingUtilities;
 
+import org.tinymediamanager.core.DatasourceFolderGuard;
 import org.tinymediamanager.core.Message;
 import org.tinymediamanager.core.Message.MessageLevel;
 import org.tinymediamanager.core.MessageManager;
@@ -30,6 +31,8 @@ import org.tinymediamanager.core.tvshow.TvShowModuleManager;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmUIHelper;
 import org.tinymediamanager.ui.actions.TmmAction;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
+import org.tinymediamanager.ui.tvshows.TvShowUIModule;
 
 /**
  * The {@link TvShowAddDatasourceAction} - to directly add a new data source
@@ -50,12 +53,17 @@ public class TvShowAddDatasourceAction extends TmmAction {
       String path = TmmProperties.getInstance().getProperty("tvshow.datasource.path");
       Path file = TmmUIHelper.selectDirectory(TmmResourceBundle.getString("Settings.tvshowdatasource.folderchooser"), path);
       if (file != null && Files.isDirectory(file)) {
-        if (TvShowModuleManager.getInstance().getSettings().addTvShowDataSources(file.toAbsolutePath().toString())) {
+        if (DatasourceFolderGuard.isDangerous(file)) {
+          MessageManager.getInstance().pushMessage(new Message(MessageLevel.ERROR, "update.datasource", "Settings.datasource.dangerous"));
+          TmmToastManager.showErrorToast(TvShowUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("Settings.datasource.dangerous"));
+        }
+        else if (TvShowModuleManager.getInstance().getSettings().addTvShowDataSources(file.toAbsolutePath().toString())) {
           TvShowModuleManager.getInstance().getSettings().saveSettings();
           TmmProperties.getInstance().putProperty("tvshow.datasource.path", file.toAbsolutePath().toString());
         }
         else {
           MessageManager.getInstance().pushMessage(new Message(MessageLevel.ERROR, "update.datasource", "Settings.datasource.nested"));
+          TmmToastManager.showErrorToast(TvShowUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("Settings.datasource.nested"));
         }
       }
     });

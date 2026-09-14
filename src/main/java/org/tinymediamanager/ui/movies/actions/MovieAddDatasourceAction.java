@@ -21,6 +21,7 @@ import java.nio.file.Path;
 
 import javax.swing.SwingUtilities;
 
+import org.tinymediamanager.core.DatasourceFolderGuard;
 import org.tinymediamanager.core.Message;
 import org.tinymediamanager.core.Message.MessageLevel;
 import org.tinymediamanager.core.MessageManager;
@@ -30,6 +31,8 @@ import org.tinymediamanager.core.movie.MovieModuleManager;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmUIHelper;
 import org.tinymediamanager.ui.actions.TmmAction;
+import org.tinymediamanager.ui.components.toast.TmmToastManager;
+import org.tinymediamanager.ui.movies.MovieUIModule;
 
 /**
  * The {@link MovieAddDatasourceAction} - to directly add a new data source
@@ -50,12 +53,17 @@ public class MovieAddDatasourceAction extends TmmAction {
       String path = TmmProperties.getInstance().getProperty("movie.datasource.path");
       Path file = TmmUIHelper.selectDirectory(TmmResourceBundle.getString("Settings.datasource.folderchooser"), path);
       if (file != null && Files.isDirectory(file)) {
-        if (MovieModuleManager.getInstance().getSettings().addMovieDataSources(file.toAbsolutePath().toString())) {
+        if (DatasourceFolderGuard.isDangerous(file)) {
+          MessageManager.getInstance().pushMessage(new Message(MessageLevel.ERROR, "update.datasource", "Settings.datasource.dangerous"));
+          TmmToastManager.showErrorToast(MovieUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("Settings.datasource.dangerous"));
+        }
+        else if (MovieModuleManager.getInstance().getSettings().addMovieDataSources(file.toAbsolutePath().toString())) {
           MovieModuleManager.getInstance().getSettings().saveSettings();
           TmmProperties.getInstance().putProperty("movie.datasource.path", file.toAbsolutePath().toString());
         }
         else {
           MessageManager.getInstance().pushMessage(new Message(MessageLevel.ERROR, "update.datasource", "Settings.datasource.nested"));
+          TmmToastManager.showErrorToast(MovieUIModule.getInstance().getDetailPanel(), TmmResourceBundle.getString("Settings.datasource.nested"));
         }
       }
     });

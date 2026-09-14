@@ -16,6 +16,7 @@
 package org.tinymediamanager.core.tvshow;
 
 import java.beans.PropertyChangeListener;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -36,9 +37,12 @@ import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.AbstractSettings;
 import org.tinymediamanager.core.CertificationStyle;
 import org.tinymediamanager.core.Constants;
+import org.tinymediamanager.core.DatasourceFolderGuard;
 import org.tinymediamanager.core.DateField;
 import org.tinymediamanager.core.LanguageStyle;
 import org.tinymediamanager.core.MediaFileType;
+import org.tinymediamanager.core.Message;
+import org.tinymediamanager.core.MessageManager;
 import org.tinymediamanager.core.PostProcess;
 import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.TrailerQuality;
@@ -568,7 +572,19 @@ public final class TvShowSettings extends AbstractSettings {
 
   @Override
   protected void afterLoading() {
-    // nothing to do here
+    // warn about data sources which are dangerous system folders (added by older versions or hand-edited settings)
+    for (String ds : tvShowDataSources) {
+      try {
+        if (DatasourceFolderGuard.isDangerous(Paths.get(ds).normalize().toAbsolutePath())) {
+          LOGGER.warn("The TV show data source '{}' is a dangerous system folder - please remove it from the settings", ds);
+          MessageManager.getInstance()
+              .pushMessage(new Message(Message.MessageLevel.WARN, "update.datasource", "Settings.datasource.dangerous.found", new String[] { ds }));
+        }
+      }
+      catch (InvalidPathException e) {
+        LOGGER.warn("Invalid TV show data source path '{}'", ds);
+      }
+    }
   }
 
   public int getVersion() {
@@ -602,6 +618,11 @@ public final class TvShowSettings extends AbstractSettings {
     }
 
     Path newDatasource = Paths.get(path).normalize().toAbsolutePath();
+    if (DatasourceFolderGuard.isDangerous(newDatasource)) {
+      LOGGER.warn("Refusing to add dangerous data source: {}", newDatasource);
+      return false;
+    }
+
     for (String ds : tvShowDataSources) {
       if (StringUtils.isBlank(ds)) {
         continue;
@@ -631,7 +652,7 @@ public final class TvShowSettings extends AbstractSettings {
 
   public void exchangeTvShowDatasource(String oldDatasource, String newDatasource) {
     int index = tvShowDataSources.indexOf(oldDatasource);
-    if (index > -1) {
+    if (index > -1 && !DatasourceFolderGuard.isDangerous(Paths.get(newDatasource).normalize().toAbsolutePath())) {
       tvShowDataSources.remove(oldDatasource);
       if (!tvShowDataSources.contains(newDatasource)) {
         // just to prevent duplicates
