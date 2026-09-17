@@ -15,6 +15,8 @@
  */
 package org.tinymediamanager.core.movie.http;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -23,15 +25,17 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.ExportTemplate;
 import org.tinymediamanager.core.MediaEntityExporter;
 import org.tinymediamanager.core.MediaFileType;
+import org.tinymediamanager.core.PostProcess;
 import org.tinymediamanager.core.TmmResourceBundle;
+import org.tinymediamanager.core.Utils;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.entities.MediaFileSubtitle;
 import org.tinymediamanager.core.http.AbstractCommandHandler;
@@ -39,12 +43,15 @@ import org.tinymediamanager.core.http.AbstractCommandHandler.CommandScope;
 import org.tinymediamanager.core.movie.MovieExporter;
 import org.tinymediamanager.core.movie.MovieList;
 import org.tinymediamanager.core.movie.MovieModuleManager;
+import org.tinymediamanager.core.movie.MoviePostProcessExecutor;
 import org.tinymediamanager.core.movie.MovieRenamerProfile;
 import org.tinymediamanager.core.movie.MovieScraperMetadataConfig;
 import org.tinymediamanager.core.movie.MovieSearchAndScrapeOptions;
 import org.tinymediamanager.core.movie.MovieSettings;
+import org.tinymediamanager.core.movie.connector.MovieNfoParser;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.movie.tasks.MovieARDetectorTask;
+import org.tinymediamanager.core.movie.tasks.MovieAssignMovieSetTask;
 import org.tinymediamanager.core.movie.tasks.MovieFetchRatingsTask;
 import org.tinymediamanager.core.movie.tasks.MovieMissingArtworkDownloadTask;
 import org.tinymediamanager.core.movie.tasks.MovieReloadMediaInformationTask;
@@ -53,6 +60,7 @@ import org.tinymediamanager.core.movie.tasks.MovieScrapeTask;
 import org.tinymediamanager.core.movie.tasks.MovieSubtitleSearchAndDownloadTask;
 import org.tinymediamanager.core.movie.tasks.MovieTrailerDownloadTask;
 import org.tinymediamanager.core.movie.tasks.MovieUpdateDatasourceTask;
+import org.tinymediamanager.core.tasks.CleanUpUnwantedFilesTask;
 import org.tinymediamanager.core.tasks.ExportTask;
 import org.tinymediamanager.core.threading.TmmTask;
 import org.tinymediamanager.core.threading.TmmTaskManager;
@@ -62,6 +70,12 @@ import org.tinymediamanager.scraper.ScraperType;
 import org.tinymediamanager.scraper.entities.MediaLanguages;
 import org.tinymediamanager.scraper.util.ListUtils;
 import org.tinymediamanager.scraper.util.ParserUtils;
+import org.tinymediamanager.scraper.util.VideoPHash;
+import org.tinymediamanager.thirdparty.FFmpeg;
+import org.tinymediamanager.thirdparty.FFprobe;
+import org.tinymediamanager.thirdparty.KodiRPC;
+import org.tinymediamanager.thirdparty.simkl.MovieSyncSimklTask;
+import org.tinymediamanager.thirdparty.trakttv.MovieSyncTraktTvTask;
 
 /**
  * the class {@link MovieCommandTask} handles movie related API calls
@@ -85,13 +99,16 @@ class MovieCommandTask extends TmmThreadPool {
 
   @Override
   protected void doInBackground() {
-    // 1. update commands
+    // 1. update library commands (datasources, NFO, mediainfo)
     updateDataSources();
+    readNfo();
     reloadMediaInfo();
+    calculateChecksum();
     aspectRatioDetection();
 
-    // 2. scrape commands
+    // 2. scrape commands (incl. ratings)
     scrape();
+    assignMovieSet();
 
     // 3. download trailer
     downloadTrailer();
@@ -105,8 +122,20 @@ class MovieCommandTask extends TmmThreadPool {
     // 6. rename
     rename();
 
-    // 7. export
+    // 7. export (export templates + NFO)
     export();
+    writeNfo();
+
+    // 8. cleanup unwanted leftover files
+    cleanup();
+
+    // 9. post process (external scripts)
+    postProcess();
+
+    // 10. notify/sync external services (Kodi, Trakt, Simkl)
+    updateKodi();
+    syncTrakt();
+    syncSimkl();
   }
 
   private void updateDataSources() {
@@ -178,6 +207,158 @@ class MovieCommandTask extends TmmThreadPool {
     }
 
     return dataSources;
+  }
+
+  private void calculateChecksum() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("calculateChecksum".equals(command.action)) {
+        LOGGER.debug("HTTP API: Calculating checksums - '{}'", command);
+
+        String type = StringUtils.defaultIfBlank(command.args.get("type"), "crc32").toLowerCase();
+        boolean crc32 = type.contains("all") || type.contains("crc32");
+        boolean phash = type.contains("all") || type.contains("phash");
+
+        if (phash && !FFprobe.isAvailable() && !FFmpeg.isAvailable()) {
+          LOGGER.warn("Cannot generate perceptual hash - FFprobe/FFmpeg could not be found");
+          phash = false;
+        }
+
+        List<Movie> movies = getMoviesForScope(command.scope);
+        if (movies.isEmpty()) {
+          continue;
+        }
+
+        if (crc32) {
+          calculateCrc32(movies);
+        }
+        if (phash) {
+          calculatePHash(movies);
+        }
+      }
+    }
+  }
+
+  private void calculateCrc32(List<Movie> movies) {
+    String taskName = TmmResourceBundle.getString("checksum.crc32.calculate");
+    setTaskName(taskName);
+    publishState(taskName, getProgressDone());
+
+    int i = 0;
+    for (Movie movie : movies) {
+      MediaFile main = movie.getMainVideoFile();
+      if (main != null && main.getCRC32().isEmpty()) {
+        String crc = Utils.getCRC32(main.getFileAsPath());
+        if (!crc.isEmpty()) {
+          main.setCRC32(crc);
+          movie.saveToDb();
+        }
+      }
+
+      publishState(taskName, ++i);
+      if (cancel) {
+        return;
+      }
+    }
+  }
+
+  private void calculatePHash(List<Movie> movies) {
+    String taskName = TmmResourceBundle.getString("checksum.phash.calculate");
+    setTaskName(taskName);
+    publishState(taskName, getProgressDone());
+
+    int i = 0;
+    for (Movie movie : movies) {
+      MediaFile main = movie.getMainVideoFile();
+      if (main != null && main.getPHash().isEmpty()) {
+        try {
+          String phash = VideoPHash.generate(main.getFileAsPath());
+          if (!phash.isEmpty()) {
+            main.setPHash(phash);
+            movie.saveToDb();
+          }
+        }
+        catch (IOException | InterruptedException e) {
+          LOGGER.debug("Error generating PHASH for movie '{}': {}", movie.getTitle(), e.getMessage());
+        }
+      }
+
+      publishState(taskName, ++i);
+      if (cancel) {
+        return;
+      }
+    }
+  }
+
+  private void readNfo() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("readNfo".equals(command.action)) {
+        LOGGER.debug("HTTP API: Reading NFO files - '{}'", command);
+        List<Movie> movies = getMoviesForScope(command.scope);
+
+        if (!movies.isEmpty()) {
+          setTaskName(TmmResourceBundle.getString("movie.readnfo"));
+          publishState(TmmResourceBundle.getString("movie.readnfo"), getProgressDone());
+
+          int i = 0;
+          for (Movie movie : movies) {
+            Movie tempMovie = null;
+
+            // process all registered NFOs
+            for (MediaFile mf : movie.getMediaFiles(MediaFileType.NFO)) {
+              // at the first NFO we get a movie object
+              if (tempMovie == null) {
+                try {
+                  tempMovie = MovieNfoParser.parseNfo(mf.getFileAsPath()).toMovie();
+                }
+                catch (Exception ignored) {
+                  // just ignore
+                }
+                continue;
+              }
+
+              // every other NFO gets merged into that temp. movie object
+              try {
+                tempMovie.merge(MovieNfoParser.parseNfo(mf.getFileAsPath()).toMovie());
+              }
+              catch (Exception ignored) {
+              }
+            }
+
+            // no MF (yet)? try to find NFO...
+            // it might have been added w/o UDS, and since we FORCE a read...
+            if (tempMovie == null) {
+              MediaFile vid = movie.getMainVideoFile();
+              if (vid != null) {
+                String name = vid.getFilenameWithoutStacking();
+                name = FilenameUtils.getBaseName(name) + ".nfo";
+                Path nfo = vid.getFileAsPath().getParent().resolve(name);
+                if (Files.exists(nfo)) {
+                  movie.addToMediaFiles(new MediaFile(nfo));
+                  try {
+                    tempMovie = MovieNfoParser.parseNfo(nfo).toMovie();
+                  }
+                  catch (Exception ignored) {
+                    // just ignore
+                  }
+                }
+              }
+            }
+
+            // did we get movie data from our NFOs
+            if (tempMovie != null) {
+              // force merge it to the actual movie object
+              movie.forceMerge(tempMovie);
+              movie.saveToDb();
+            }
+
+            publishState(TmmResourceBundle.getString("movie.readnfo"), ++i);
+            if (cancel) {
+              return;
+            }
+          }
+        }
+      }
+    }
   }
 
   private void reloadMediaInfo() {
@@ -277,7 +458,7 @@ class MovieCommandTask extends TmmThreadPool {
           activeTask = task;
           activeTask.run(); // blocking
 
-          // wait for other tmm threads (artwork download et all)
+          // wait for other tmm threads (artwork download et al.)
           while (TmmTaskManager.getInstance().isPoolRunning()) {
             try {
               Thread.sleep(2000);
@@ -286,6 +467,26 @@ class MovieCommandTask extends TmmThreadPool {
               Thread.currentThread().interrupt();
             }
           }
+
+          // done
+          activeTask = null;
+        }
+      }
+    }
+  }
+
+  private void assignMovieSet() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("assignMovieSet".equals(command.action)) {
+        LOGGER.debug("HTTP API: Assigning movies to their movie sets - '{}'", command);
+        List<Movie> movies = getMoviesForScope(command.scope);
+
+        if (!movies.isEmpty()) {
+          setTaskName(TmmResourceBundle.getString("movie.assignmovieset"));
+          publishState(TmmResourceBundle.getString("movie.assignmovieset"), getProgressDone());
+
+          activeTask = new MovieAssignMovieSetTask(movies);
+          activeTask.run(); // blocking
 
           // done
           activeTask = null;
@@ -504,6 +705,10 @@ class MovieCommandTask extends TmmThreadPool {
         }
 
         String templateName = command.args.get("template");
+        if (StringUtils.isBlank(templateName)) {
+          continue;
+        }
+
         ExportTemplate template = MediaEntityExporter.findTemplates(MediaEntityExporter.TemplateType.MOVIE)
             .stream()
             .filter(t -> t.getPath().endsWith(templateName))
@@ -537,6 +742,170 @@ class MovieCommandTask extends TmmThreadPool {
         activeTask = null;
       }
     }
+  }
+
+  private void writeNfo() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("writeNfo".equals(command.action)) {
+        LOGGER.debug("HTTP API: Writing NFO files - '{}'", command);
+        List<Movie> movies = getMoviesForScope(command.scope);
+
+        if (!movies.isEmpty()) {
+          setTaskName(TmmResourceBundle.getString("movie.rewritenfo"));
+          publishState(TmmResourceBundle.getString("movie.rewritenfo"), getProgressDone());
+
+          int i = 0;
+          for (Movie movie : movies) {
+            movie.writeNFO();
+            movie.saveToDb();
+
+            publishState(TmmResourceBundle.getString("movie.rewritenfo"), ++i);
+            if (cancel) {
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void cleanup() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("cleanup".equals(command.action)) {
+        LOGGER.debug("HTTP API: Cleaning up unwanted files - '{}'", command);
+        List<Movie> movies = getMoviesForScope(command.scope);
+
+        if (!movies.isEmpty()) {
+          boolean dryRun = getBoolArg(command, "dryRun", false);
+
+          setTaskName(TmmResourceBundle.getString("cleanupfiles"));
+          publishState(TmmResourceBundle.getString("cleanupfiles"), getProgressDone());
+
+          activeTask = new CleanUpUnwantedFilesTask(movies, dryRun);
+          activeTask.run(); // blocking
+
+          // done
+          activeTask = null;
+        }
+      }
+    }
+  }
+
+  private void postProcess() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("postProcess".equals(command.action)) {
+        LOGGER.debug("HTTP API: Post processing - '{}'", command);
+        List<Movie> movies = getMoviesForScope(command.scope);
+
+        if (!movies.isEmpty()) {
+          for (PostProcess process : new ArrayList<>(settings.getPostProcess())) {
+            if (cancel) {
+              return;
+            }
+
+            setTaskName(TmmResourceBundle.getString("Settings.postprocessing") + " - " + process.getName());
+            publishState(TmmResourceBundle.getString("Settings.postprocessing") + " - " + process.getName(), getProgressDone());
+
+            activeTask = new MoviePostProcessExecutor(process, movies);
+            activeTask.run(); // blocking
+
+            // done
+            activeTask = null;
+          }
+        }
+      }
+    }
+  }
+
+  private void updateKodi() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("updateKodi".equals(command.action)) {
+        LOGGER.debug("HTTP API: Refreshing Kodi library - '{}'", command);
+        List<Movie> movies = getMoviesForScope(command.scope);
+
+        if (!movies.isEmpty()) {
+          setTaskName(TmmResourceBundle.getString("kodi.rpc.refreshnfo"));
+          publishState(TmmResourceBundle.getString("kodi.rpc.refreshnfo"), getProgressDone());
+
+          KodiRPC kodiRPC = KodiRPC.getInstance();
+          int i = 0;
+          for (Movie movie : movies) {
+            kodiRPC.refreshFromNfo(movie);
+
+            publishState(TmmResourceBundle.getString("kodi.rpc.refreshnfo"), ++i);
+            if (cancel) {
+              return;
+            }
+          }
+
+          // we have updated at least one movie, so we need to re-match the movies
+          try {
+            // need some time to propagate the new movieId
+            Thread.sleep(1000);
+          }
+          catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
+          kodiRPC.updateMovieMappings();
+        }
+      }
+    }
+  }
+
+  private void syncTrakt() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("syncTrakt".equals(command.action)) {
+        LOGGER.debug("HTTP API: Syncing to Trakt.tv - '{}'", command);
+        List<Movie> movies = getMoviesForScope(command.scope);
+
+        if (!movies.isEmpty()) {
+          setTaskName(TmmResourceBundle.getString("movie.synctrakt.selected"));
+          publishState(TmmResourceBundle.getString("movie.synctrakt.selected"), getProgressDone());
+
+          MovieSyncTraktTvTask task = new MovieSyncTraktTvTask(movies);
+          task.setSyncCollection(getBoolArg(command, "collection", true));
+          task.setSyncWatched(getBoolArg(command, "watched", true));
+          task.setSyncRating(getBoolArg(command, "rating", true));
+
+          activeTask = task;
+          activeTask.run(); // blocking
+
+          // done
+          activeTask = null;
+        }
+      }
+    }
+  }
+
+  private void syncSimkl() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("syncSimkl".equals(command.action)) {
+        LOGGER.debug("HTTP API: Syncing to Simkl.com - '{}'", command);
+        List<Movie> movies = getMoviesForScope(command.scope);
+
+        if (!movies.isEmpty()) {
+          setTaskName(TmmResourceBundle.getString("movie.syncsimkl.watched"));
+          publishState(TmmResourceBundle.getString("movie.syncsimkl.watched"), getProgressDone());
+
+          MovieSyncSimklTask task = new MovieSyncSimklTask(movies);
+          task.setSyncWatched(true);
+
+          activeTask = task;
+          activeTask.run(); // blocking
+
+          // done
+          activeTask = null;
+        }
+      }
+    }
+  }
+
+  private boolean getBoolArg(AbstractCommandHandler.Command command, String key, boolean defaultValue) {
+    String value = command.args.get(key);
+    if (StringUtils.isBlank(value)) {
+      return defaultValue;
+    }
+    return Boolean.parseBoolean(value);
   }
 
   private List<Movie> getMoviesForScope(CommandScope scope) {
@@ -590,7 +959,7 @@ class MovieCommandTask extends TmmThreadPool {
     }
 
     // filter out locked ones
-    return moviesToProcess.stream().filter(movie -> !movie.isLocked()).collect(Collectors.toList());
+    return moviesToProcess.stream().filter(movie -> !movie.isLocked()).toList();
   }
 
   @Override

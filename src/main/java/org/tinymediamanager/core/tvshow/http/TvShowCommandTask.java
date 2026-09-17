@@ -15,6 +15,8 @@
  */
 package org.tinymediamanager.core.tvshow.http;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -27,34 +29,46 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.ExportTemplate;
 import org.tinymediamanager.core.MediaEntityExporter;
 import org.tinymediamanager.core.MediaFileType;
+import org.tinymediamanager.core.PostProcess;
 import org.tinymediamanager.core.TmmResourceBundle;
+import org.tinymediamanager.core.Utils;
+import org.tinymediamanager.core.entities.MediaEntity;
 import org.tinymediamanager.core.entities.MediaFile;
 import org.tinymediamanager.core.entities.MediaFileSubtitle;
 import org.tinymediamanager.core.http.AbstractCommandHandler;
 import org.tinymediamanager.core.http.AbstractCommandHandler.CommandScope;
+import org.tinymediamanager.core.tasks.CleanUpUnwantedFilesTask;
 import org.tinymediamanager.core.tasks.ExportTask;
 import org.tinymediamanager.core.threading.TmmTask;
 import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.core.threading.TmmThreadPool;
+import org.tinymediamanager.core.tvshow.TvShowEpisodePostProcessExecutor;
 import org.tinymediamanager.core.tvshow.TvShowEpisodeScraperMetadataConfig;
 import org.tinymediamanager.core.tvshow.TvShowEpisodeSearchAndScrapeOptions;
 import org.tinymediamanager.core.tvshow.TvShowExporter;
 import org.tinymediamanager.core.tvshow.TvShowList;
 import org.tinymediamanager.core.tvshow.TvShowModuleManager;
+import org.tinymediamanager.core.tvshow.TvShowPostProcessExecutor;
 import org.tinymediamanager.core.tvshow.TvShowRenamerProfile;
 import org.tinymediamanager.core.tvshow.TvShowScraperMetadataConfig;
 import org.tinymediamanager.core.tvshow.TvShowSearchAndScrapeOptions;
 import org.tinymediamanager.core.tvshow.TvShowSettings;
+import org.tinymediamanager.core.tvshow.connector.TvShowEpisodeNfoParser;
+import org.tinymediamanager.core.tvshow.connector.TvShowNfoParser;
+import org.tinymediamanager.core.tvshow.connector.TvShowSeasonNfoParser;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
+import org.tinymediamanager.core.tvshow.entities.TvShowSeason;
 import org.tinymediamanager.core.tvshow.tasks.TvShowARDetectorTask;
 import org.tinymediamanager.core.tvshow.tasks.TvShowEpisodeScrapeTask;
 import org.tinymediamanager.core.tvshow.tasks.TvShowFetchRatingsTask;
@@ -63,6 +77,7 @@ import org.tinymediamanager.core.tvshow.tasks.TvShowReloadMediaInformationTask;
 import org.tinymediamanager.core.tvshow.tasks.TvShowRenameTask;
 import org.tinymediamanager.core.tvshow.tasks.TvShowScrapeTask;
 import org.tinymediamanager.core.tvshow.tasks.TvShowSubtitleSearchAndDownloadTask;
+import org.tinymediamanager.core.tvshow.tasks.TvShowThemeDownloadTask;
 import org.tinymediamanager.core.tvshow.tasks.TvShowTrailerDownloadTask;
 import org.tinymediamanager.core.tvshow.tasks.TvShowUpdateDatasourceTask;
 import org.tinymediamanager.scraper.MediaScraper;
@@ -70,6 +85,11 @@ import org.tinymediamanager.scraper.ScraperType;
 import org.tinymediamanager.scraper.entities.MediaLanguages;
 import org.tinymediamanager.scraper.util.ListUtils;
 import org.tinymediamanager.scraper.util.ParserUtils;
+import org.tinymediamanager.scraper.util.VideoPHash;
+import org.tinymediamanager.thirdparty.FFmpeg;
+import org.tinymediamanager.thirdparty.FFprobe;
+import org.tinymediamanager.thirdparty.KodiRPC;
+import org.tinymediamanager.thirdparty.simkl.TvShowSyncSimklTask;
 import org.tinymediamanager.thirdparty.trakttv.TvShowSyncTraktTvTask;
 
 /**
@@ -95,9 +115,11 @@ class TvShowCommandTask extends TmmThreadPool {
 
   @Override
   protected void doInBackground() {
-    // 1. update commands
+    // 1. update library commands (datasources, NFO, mediainfo)
     updateDataSources();
+    readNfo();
     reloadMediaInfo();
+    calculateChecksum();
     aspectRatioDetection();
 
     // 2. scrape commands
@@ -115,11 +137,26 @@ class TvShowCommandTask extends TmmThreadPool {
     // 5. download missing artwork
     downloadMissingArtwork();
 
+    // 5.1 download theme
+    downloadTheme();
+
     // 6. rename
     rename();
 
-    // 7. export
+    // 7. export (export templates + NFO)
     export();
+    writeNfo();
+
+    // 8. cleanup unwanted leftover files
+    cleanup();
+
+    // 9. post process (external scripts)
+    postProcess();
+
+    // 10. notify/sync external services (Kodi, Trakt, Simkl)
+    updateKodi();
+    syncTrakt();
+    syncSimkl();
   }
 
   private void updateDataSources() {
@@ -215,6 +252,213 @@ class TvShowCommandTask extends TmmThreadPool {
     return dataSources;
   }
 
+  private void readNfo() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("readNfo".equals(command.action)) {
+        LOGGER.debug("HTTP API: reading NFO files - '{}'", command);
+        List<TvShow> tvShows = getTvShowsForScope(command.scope);
+        List<TvShowEpisode> episodes = getEpisodesForScope(command.scope);
+
+        if (!tvShows.isEmpty() || !episodes.isEmpty()) {
+          setTaskName(TmmResourceBundle.getString("tvshow.readnfo"));
+          publishState(TmmResourceBundle.getString("tvshow.readnfo"), getProgressDone());
+
+          int i = 0;
+          for (TvShow tvShow : tvShows) {
+            boolean dirty = readTvShowNfo(tvShow);
+
+            // and do that for seasons too
+            for (TvShowSeason season : tvShow.getSeasons()) {
+              dirty |= readSeasonNfo(season);
+            }
+
+            if (dirty) {
+              tvShow.saveToDb();
+            }
+
+            publishState(TmmResourceBundle.getString("tvshow.readnfo"), ++i);
+            if (cancel) {
+              return;
+            }
+          }
+
+          if (!episodes.isEmpty()) {
+            setTaskName(TmmResourceBundle.getString("tvshowepisode.readnfo"));
+            publishState(TmmResourceBundle.getString("tvshowepisode.readnfo"), getProgressDone());
+
+            i = 0;
+            for (TvShowEpisode episode : episodes) {
+              if (readEpisodeNfo(episode)) {
+                episode.saveToDb();
+              }
+
+              publishState(TmmResourceBundle.getString("tvshowepisode.readnfo"), ++i);
+              if (cancel) {
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private boolean readTvShowNfo(TvShow tvShow) {
+    TvShow tempTvShow = null;
+
+    // process all registered NFOs
+    for (MediaFile mf : tvShow.getMediaFiles(MediaFileType.NFO)) {
+      // at the first NFO we get a TV show object
+      if (tempTvShow == null) {
+        try {
+          tempTvShow = TvShowNfoParser.parseNfo(mf.getFileAsPath()).toTvShow();
+        }
+        catch (Exception ignored) {
+          // just ignore
+        }
+      }
+      else {
+        // every other NFO gets merged into that temp. TV show object
+        try {
+          tempTvShow.merge(TvShowNfoParser.parseNfo(mf.getFileAsPath()).toTvShow());
+        }
+        catch (Exception ignored) {
+          // just ignore
+        }
+      }
+    }
+
+    // no MF (yet)? try to find NFO...
+    // it might have been added w/o UDS, and since we FORCE a read...
+    if (tempTvShow == null && tvShow.getPathNIO() != null) {
+      Path nfo = tvShow.getPathNIO().resolve("tvshow.nfo");
+      if (Files.exists(nfo)) {
+        tvShow.addToMediaFiles(new MediaFile(nfo));
+        try {
+          tempTvShow = TvShowNfoParser.parseNfo(nfo).toTvShow();
+        }
+        catch (Exception ignored) {
+          // just ignore
+        }
+      }
+    }
+
+    // did we get TV show data from our NFOs
+    if (tempTvShow != null) {
+      // force merge it to the actual TV show object
+      tvShow.forceMerge(tempTvShow);
+      return true;
+    }
+
+    return false;
+  }
+
+  private boolean readSeasonNfo(TvShowSeason season) {
+    TvShowSeason tempSeason = null;
+
+    // process all registered NFOs
+    for (MediaFile mf : season.getMediaFiles(MediaFileType.NFO)) {
+      // at the first NFO we get a season object
+      if (tempSeason == null) {
+        try {
+          tempSeason = TvShowSeasonNfoParser.parseNfo(mf.getFileAsPath()).toTvShowSeason();
+        }
+        catch (Exception ignored) {
+          // just ignore
+        }
+      }
+      else {
+        // every other NFO gets merged into that temp. season object
+        try {
+          tempSeason.merge(TvShowSeasonNfoParser.parseNfo(mf.getFileAsPath()).toTvShowSeason());
+        }
+        catch (Exception ignored) {
+          // just ignore
+        }
+      }
+    }
+
+    // did we get season data from our NFOs
+    if (tempSeason != null) {
+      // force merge it to the actual season object
+      season.forceMerge(tempSeason);
+      return true;
+    }
+
+    return false;
+  }
+
+  private boolean readEpisodeNfo(TvShowEpisode episode) {
+    TvShowEpisode tempEpisode = null;
+
+    // process all registered NFOs
+    for (MediaFile mf : episode.getMediaFiles(MediaFileType.NFO)) {
+      try {
+        List<TvShowEpisode> episodesFromNfo = TvShowEpisodeNfoParser.parseNfo(mf.getFileAsPath()).toTvShowEpisodes();
+
+        // at the first NFO we get a episode object
+        if (tempEpisode == null) {
+          tempEpisode = matchEpisode(episode, episodesFromNfo);
+          continue;
+        }
+
+        // every other NFO gets merged into that temp. episode object
+        // but only if we have detected an episode# at first... (do not match -1 EPs)
+        if (episode.getEpisode() > 0 && episodesFromNfo.size() > 1) {
+          TvShowEpisode fromNfo = matchEpisode(episode, episodesFromNfo);
+          if (fromNfo != null) {
+            tempEpisode.merge(fromNfo);
+          }
+        }
+      }
+      catch (Exception ignored) {
+      }
+    }
+
+    // no MF (yet)? try to find NFO...
+    // it might have been added w/o UDS, and since we FORCE a read...
+    if (tempEpisode == null) {
+      MediaFile vid = episode.getMainVideoFile();
+      if (vid != null) {
+        String name = vid.getFilenameWithoutStacking();
+        name = FilenameUtils.getBaseName(name) + ".nfo";
+        Path nfo = vid.getFileAsPath().getParent().resolve(name);
+        if (Files.exists(nfo)) {
+          try {
+            episode.addToMediaFiles(new MediaFile(nfo));
+            List<TvShowEpisode> episodesFromNfo = TvShowEpisodeNfoParser.parseNfo(nfo).toTvShowEpisodes();
+            tempEpisode = matchEpisode(episode, episodesFromNfo);
+          }
+          catch (Exception ignored) {
+          }
+        }
+      }
+    }
+
+    // did we get episode data from our NFOs
+    if (tempEpisode != null) {
+      // force merge it to the actual episode object
+      episode.forceMerge(tempEpisode);
+      return true;
+    }
+
+    return false;
+  }
+
+  private TvShowEpisode matchEpisode(TvShowEpisode episode, List<TvShowEpisode> episodesFromNfo) {
+    if (episodesFromNfo.size() == 1) {
+      return episodesFromNfo.get(0);
+    }
+
+    for (TvShowEpisode ep : episodesFromNfo) {
+      if (episode.getSeason() == ep.getSeason() && episode.getEpisode() == ep.getEpisode()) {
+        return ep;
+      }
+    }
+
+    return null;
+  }
+
   public void reloadMediaInfo() {
     for (AbstractCommandHandler.Command command : commands) {
       if ("reloadMediaInfo".equals(command.action)) {
@@ -232,6 +476,86 @@ class TvShowCommandTask extends TmmThreadPool {
 
           activeTask = null;
         }
+      }
+    }
+  }
+
+  private void calculateChecksum() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("calculateChecksum".equals(command.action)) {
+        LOGGER.debug("HTTP API: calculating checksums - '{}'", command);
+
+        String type = StringUtils.defaultIfBlank(command.args.get("type"), "crc32").toLowerCase();
+        boolean crc32 = type.contains("all") || type.contains("crc32");
+        boolean phash = type.contains("all") || type.contains("phash");
+
+        if (phash && !FFprobe.isAvailable() && !FFmpeg.isAvailable()) {
+          LOGGER.warn("Cannot generate perceptual hash - FFprobe/FFmpeg could not be found");
+          phash = false;
+        }
+
+        List<TvShowEpisode> episodes = getEpisodesForScope(command.scope);
+        if (episodes.isEmpty()) {
+          continue;
+        }
+
+        if (crc32) {
+          calculateCrc32(episodes);
+        }
+        if (phash) {
+          calculatePHash(episodes);
+        }
+      }
+    }
+  }
+
+  private void calculateCrc32(List<TvShowEpisode> episodes) {
+    String taskName = TmmResourceBundle.getString("checksum.crc32.calculate");
+    setTaskName(taskName);
+    publishState(taskName, getProgressDone());
+
+    int i = 0;
+    for (TvShowEpisode episode : episodes) {
+      MediaFile main = episode.getMainVideoFile();
+      if (main != null && main.getCRC32().isEmpty()) {
+        String crc = Utils.getCRC32(main.getFileAsPath());
+        if (!crc.isEmpty()) {
+          main.setCRC32(crc);
+          episode.saveToDb();
+        }
+      }
+
+      publishState(taskName, ++i);
+      if (cancel) {
+        return;
+      }
+    }
+  }
+
+  private void calculatePHash(List<TvShowEpisode> episodes) {
+    String taskName = TmmResourceBundle.getString("checksum.phash.calculate");
+    setTaskName(taskName);
+    publishState(taskName, getProgressDone());
+
+    int i = 0;
+    for (TvShowEpisode episode : episodes) {
+      MediaFile main = episode.getMainVideoFile();
+      if (main != null && main.getPHash().isEmpty()) {
+        try {
+          String phash = VideoPHash.generate(main.getFileAsPath());
+          if (!phash.isEmpty()) {
+            main.setPHash(phash);
+            episode.saveToDb();
+          }
+        }
+        catch (IOException | InterruptedException e) {
+          LOGGER.debug("Error generating PHASH for episode '{}': {}", episode.getTitle(), e.getMessage());
+        }
+      }
+
+      publishState(taskName, ++i);
+      if (cancel) {
+        return;
       }
     }
   }
@@ -563,6 +887,35 @@ class TvShowCommandTask extends TmmThreadPool {
     }
   }
 
+  private void downloadTheme() {
+    Set<TvShow> tvShowsToProcess = new LinkedHashSet<>();
+    boolean overwrite = false;
+
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("downloadTheme".equals(command.action)) {
+        LOGGER.debug("HTTP API: downloading themes - '{}'", command);
+
+        if (StringUtils.isNotBlank(command.args.get("onlyMissing"))) {
+          overwrite = overwrite || !Boolean.parseBoolean(command.args.get("onlyMissing"));
+        }
+
+        tvShowsToProcess.addAll(getTvShowsForScope(command.scope));
+      }
+    }
+
+    if (!tvShowsToProcess.isEmpty()) {
+      setTaskName(TmmResourceBundle.getString("theme.download"));
+      publishState(TmmResourceBundle.getString("theme.download"), getProgressDone());
+
+      // the task itself skips shows with an existing theme when not overwriting
+      activeTask = new TvShowThemeDownloadTask(new ArrayList<>(tvShowsToProcess), overwrite);
+      activeTask.run(); // blocking
+
+      // done
+      activeTask = null;
+    }
+  }
+
   private void rename() {
     // process all renaming tasks in the order the user wants to
     // we need that to let the user call a rename task with different profile per call
@@ -614,6 +967,10 @@ class TvShowCommandTask extends TmmThreadPool {
         }
 
         String templateName = command.args.get("template");
+        if (StringUtils.isBlank(templateName)) {
+          continue;
+        }
+
         ExportTemplate template = MediaEntityExporter.findTemplates(MediaEntityExporter.TemplateType.TV_SHOW)
             .stream()
             .filter(t -> t.getPath().endsWith(templateName))
@@ -647,6 +1004,243 @@ class TvShowCommandTask extends TmmThreadPool {
         activeTask = null;
       }
     }
+  }
+
+  private void writeNfo() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("writeNfo".equals(command.action)) {
+        LOGGER.debug("HTTP API: writing NFO files - '{}'", command);
+        List<TvShow> tvShows = getTvShowsForScope(command.scope);
+        List<TvShowEpisode> episodes = getEpisodesForScope(command.scope);
+
+        if (!tvShows.isEmpty() || !episodes.isEmpty()) {
+          setTaskName(TmmResourceBundle.getString("tvshow.rewritenfo"));
+          publishState(TmmResourceBundle.getString("tvshow.rewritenfo"), getProgressDone());
+
+          int i = 0;
+          for (TvShow tvShow : tvShows) {
+            // the TV show
+            tvShow.writeNFO();
+
+            // and all seasons
+            for (TvShowSeason season : tvShow.getSeasons()) {
+              if (!season.isDummy()) {
+                season.writeNFO();
+              }
+            }
+
+            tvShow.saveToDb();
+
+            publishState(TmmResourceBundle.getString("tvshow.rewritenfo"), ++i);
+            if (cancel) {
+              return;
+            }
+          }
+
+          if (!episodes.isEmpty()) {
+            setTaskName(TmmResourceBundle.getString("tvshowepisode.rewritenfo"));
+            publishState(TmmResourceBundle.getString("tvshowepisode.rewritenfo"), getProgressDone());
+
+            i = 0;
+            for (TvShowEpisode episode : episodes) {
+              episode.writeNFO();
+              episode.saveToDb();
+
+              publishState(TmmResourceBundle.getString("tvshowepisode.rewritenfo"), ++i);
+              if (cancel) {
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void cleanup() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("cleanup".equals(command.action)) {
+        LOGGER.debug("HTTP API: cleaning up unwanted files - '{}'", command);
+
+        List<MediaEntity> entitiesToProcess = new ArrayList<>();
+        entitiesToProcess.addAll(getTvShowsForScope(command.scope));
+        entitiesToProcess.addAll(getEpisodesForScope(command.scope));
+
+        if (!entitiesToProcess.isEmpty()) {
+          boolean dryRun = getBoolArg(command, "dryRun", false);
+
+          setTaskName(TmmResourceBundle.getString("cleanupfiles"));
+          publishState(TmmResourceBundle.getString("cleanupfiles"), getProgressDone());
+
+          activeTask = new CleanUpUnwantedFilesTask(entitiesToProcess, dryRun);
+          activeTask.run(); // blocking
+
+          // done
+          activeTask = null;
+        }
+      }
+    }
+  }
+
+  private void postProcess() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("postProcess".equals(command.action)) {
+        LOGGER.debug("HTTP API: post processing - '{}'", command);
+        List<TvShow> tvShows = getTvShowsForScope(command.scope);
+        List<TvShowEpisode> episodes = getEpisodesForScope(command.scope);
+
+        for (PostProcess process : new ArrayList<>(settings.getPostProcessTvShow())) {
+          if (cancel) {
+            return;
+          }
+
+          if (!tvShows.isEmpty()) {
+            setTaskName(TmmResourceBundle.getString("Settings.postprocessing") + " - " + process.getName());
+            publishState(TmmResourceBundle.getString("Settings.postprocessing") + " - " + process.getName(), getProgressDone());
+
+            activeTask = new TvShowPostProcessExecutor(process, tvShows);
+            activeTask.run(); // blocking
+
+            // done
+            activeTask = null;
+          }
+        }
+
+        for (PostProcess process : new ArrayList<>(settings.getPostProcessEpisode())) {
+          if (cancel) {
+            return;
+          }
+
+          if (!episodes.isEmpty()) {
+            setTaskName(TmmResourceBundle.getString("Settings.postprocessing") + " - " + process.getName());
+            publishState(TmmResourceBundle.getString("Settings.postprocessing") + " - " + process.getName(), getProgressDone());
+
+            activeTask = new TvShowEpisodePostProcessExecutor(process, episodes);
+            activeTask.run(); // blocking
+
+            // done
+            activeTask = null;
+          }
+        }
+      }
+    }
+  }
+
+  private void updateKodi() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("updateKodi".equals(command.action)) {
+        LOGGER.debug("HTTP API: refreshing Kodi library - '{}'", command);
+        List<TvShow> tvShows = getTvShowsForScope(command.scope);
+        List<TvShowEpisode> episodes = getEpisodesForScope(command.scope);
+
+        if (tvShows.isEmpty() && episodes.isEmpty()) {
+          continue;
+        }
+
+        boolean withEpisodes = getBoolArg(command, "full", true);
+
+        setTaskName(TmmResourceBundle.getString("kodi.rpc.refreshnfo"));
+        publishState(TmmResourceBundle.getString("kodi.rpc.refreshnfo"), getProgressDone());
+
+        KodiRPC kodiRPC = KodiRPC.getInstance();
+        int i = 0;
+
+        // cache of all processed DbIds (better than whole objects)
+        List<UUID> processed = new ArrayList<>(episodes.size());
+
+        boolean remap = false;
+        for (TvShow tvShow : tvShows) {
+          kodiRPC.refreshFromNfo(tvShow, withEpisodes);
+          remap = true;
+          processed.addAll(tvShow.getEpisodes().stream().map(MediaEntity::getDbId).toList());
+
+          publishState(TmmResourceBundle.getString("kodi.rpc.refreshnfo"), ++i);
+          if (cancel) {
+            return;
+          }
+        }
+
+        // update single EP only, but not if we already had it via show...
+        for (TvShowEpisode episode : episodes) {
+          if (!processed.contains(episode.getDbId())) {
+            kodiRPC.refreshFromNfo(episode);
+
+            publishState(TmmResourceBundle.getString("kodi.rpc.refreshnfo"), ++i);
+            if (cancel) {
+              return;
+            }
+          }
+        }
+
+        // if we have updated at least one show (but not episode), we need to re-match the shows
+        if (remap) {
+          try {
+            // need some time to propagate the new showId
+            Thread.sleep(1000);
+          }
+          catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+          }
+          kodiRPC.updateTvShowMappings();
+        }
+      }
+    }
+  }
+
+  private void syncTrakt() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("syncTrakt".equals(command.action)) {
+        LOGGER.debug("HTTP API: syncing to Trakt.tv - '{}'", command);
+        List<TvShow> tvShows = getTvShowsForScope(command.scope);
+
+        if (!tvShows.isEmpty()) {
+          setTaskName(TmmResourceBundle.getString("tvshow.synctrakt.selected"));
+          publishState(TmmResourceBundle.getString("tvshow.synctrakt.selected"), getProgressDone());
+
+          TvShowSyncTraktTvTask task = new TvShowSyncTraktTvTask(tvShows);
+          task.setSyncCollection(getBoolArg(command, "collection", true));
+          task.setSyncWatched(getBoolArg(command, "watched", true));
+          task.setSyncRating(getBoolArg(command, "rating", true));
+
+          activeTask = task;
+          activeTask.run(); // blocking
+
+          // done
+          activeTask = null;
+        }
+      }
+    }
+  }
+
+  private void syncSimkl() {
+    for (AbstractCommandHandler.Command command : commands) {
+      if ("syncSimkl".equals(command.action)) {
+        LOGGER.debug("HTTP API: syncing to Simkl.com - '{}'", command);
+        List<TvShow> tvShows = getTvShowsForScope(command.scope);
+
+        if (!tvShows.isEmpty()) {
+          setTaskName(TmmResourceBundle.getString("tvshow.syncsimkl.watched"));
+          publishState(TmmResourceBundle.getString("tvshow.syncsimkl.watched"), getProgressDone());
+
+          TvShowSyncSimklTask task = new TvShowSyncSimklTask(tvShows);
+          task.setSyncWatched(true);
+
+          activeTask = task;
+          activeTask.run(); // blocking
+
+          // done
+          activeTask = null;
+        }
+      }
+    }
+  }
+
+  private boolean getBoolArg(AbstractCommandHandler.Command command, String key, boolean defaultValue) {
+    String value = command.args.get(key);
+    if (StringUtils.isBlank(value)) {
+      return defaultValue;
+    }
+    return Boolean.parseBoolean(value);
   }
 
   private List<TvShow> getTvShowsForScope(CommandScope scope) {

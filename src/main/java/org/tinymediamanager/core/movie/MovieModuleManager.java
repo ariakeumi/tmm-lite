@@ -53,6 +53,7 @@ import org.tinymediamanager.core.http.TmmHttpServer;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.movie.entities.MovieSet;
 import org.tinymediamanager.core.movie.http.MovieCommandHandler;
+import org.tinymediamanager.core.movie.http.MovieSetCommandHandler;
 import org.tinymediamanager.scraper.util.MetadataUtil;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -180,6 +181,7 @@ public final class MovieModuleManager implements ITmmModule {
 
     try {
       TmmHttpServer.getInstance().createContext("movie", new MovieCommandHandler());
+      TmmHttpServer.getInstance().createContext("movieset", new MovieSetCommandHandler());
     }
     catch (Exception e) {
       LOGGER.warn("Could not register movie API - '{}'", e.getMessage());

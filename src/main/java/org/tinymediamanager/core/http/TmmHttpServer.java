@@ -66,8 +66,9 @@ public class TmmHttpServer {
 
     httpServer = HttpServer.create();
 
-    // default context
+    // default contexts
     createContext("command", new CommandHandler());
+    createContext("docs", new ApiDocsHandler());
 
     updateConfiguration(Settings.getInstance().isEnableHttpServer(), Settings.getInstance().getHttpServerPort(),
         Settings.getInstance().getHttpApiKey());
@@ -104,17 +105,6 @@ public class TmmHttpServer {
       int responseCode;
       String responseMessage;
 
-      if (StringUtils.isNotBlank(this.apiKey)) {
-        // API key check
-        List<String> apiKeyFromRequest = httpExchange.getRequestHeaders().get("api-key");
-        if (apiKeyFromRequest == null || !apiKeyFromRequest.contains(this.apiKey)) {
-          responseCode = 403;
-          responseMessage = "Invalid API key";
-          sendResponse(responseCode, responseMessage, httpExchange);
-          return;
-        }
-      }
-
       // delegate the request to the handler
       try {
         TmmCommandResponse commandResponse = commandHandler.post(httpExchange);
@@ -128,7 +118,23 @@ public class TmmHttpServer {
       }
 
       sendResponse(responseCode, responseMessage, httpExchange);
+    };
 
+    createContext(contextPath, httpHandler);
+  }
+
+  public void createContext(String contextPath, HttpHandler handler) {
+    HttpHandler httpHandler = httpExchange -> {
+      if (StringUtils.isNotBlank(this.apiKey)) {
+        // API key check
+        List<String> apiKeyFromRequest = httpExchange.getRequestHeaders().get("api-key");
+        if (apiKeyFromRequest == null || !apiKeyFromRequest.contains(this.apiKey)) {
+          sendResponse(403, "Invalid API key", httpExchange);
+          return;
+        }
+      }
+
+      handler.handle(httpExchange);
     };
 
     httpServer.createContext(CONTEXT_PREFIX + contextPath, httpHandler);
