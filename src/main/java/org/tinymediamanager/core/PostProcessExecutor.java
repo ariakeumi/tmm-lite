@@ -76,6 +76,26 @@ public abstract class PostProcessExecutor extends TmmTask {
   }
 
   /**
+   * Handles a failed execution for one entity. When abort-on-failure is enabled in the post-process configuration, the task is marked as failed and
+   * the caller should stop processing the remaining entities.
+   *
+   * @param mediaEntity
+   *          the entity for which the execution failed
+   * @param e
+   *          the exception thrown while executing the command
+   * @return true when the execution queue should be aborted
+   */
+  protected boolean handleExecutionFailure(MediaEntity mediaEntity, Exception e) {
+    if (e instanceof InterruptedException || !postProcess.isAbortOnFailure()) {
+      return false;
+    }
+
+    LOGGER.error("Aborting post process '{}' - execution for '{}' failed", postProcess.getName(), mediaEntity.getTitle());
+    setState(TaskState.FAILED);
+    return true;
+  }
+
+  /**
    * execute the given command and return the response
    *
    * @param cmdline

@@ -48,8 +48,11 @@ public class MovieSetMoviePostProcessExecutor extends MoviePostProcessExecutor {
         executeCommand(command, movie);
         LOGGER.info("Successfully executed post process '{}' for movie '{}'", postProcess.getName(), movie.getTitle());
       }
-      catch (Exception ignored) {
-        // already logged in executeCommand
+      catch (Exception e) {
+        if (handleExecutionFailure(movie, e)) {
+          return;
+        }
+        // otherwise already logged in executeCommand
       }
     }
   }

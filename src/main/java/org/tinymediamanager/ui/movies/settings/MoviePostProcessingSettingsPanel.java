@@ -184,6 +184,7 @@ public class MoviePostProcessingSettingsPanel extends JPanel {
       process.setCommand(tfCommand.getText());
       process.setPath(tfPath.getText());
       process.setShowOutput(chkbxShowOutput.isSelected());
+      process.setAbortOnFailure(chkbxAbortOnFailure.isSelected());
 
       MovieModuleManager.getInstance().getSettings().forceSaveSettings();
 

@@ -25,6 +25,7 @@ public class PostProcess extends AbstractModelObject {
   private String  path;
   private String  command;
   private boolean showOutput;
+  private boolean abortOnFailure;
 
   public String getName() {
     return name;
@@ -64,6 +65,27 @@ public class PostProcess extends AbstractModelObject {
     boolean oldValue = this.showOutput;
     this.showOutput = newValue;
     firePropertyChange("showOutput", oldValue, newValue);
+  }
+
+  /**
+   * Gets whether the whole entity queue should be aborted when the execution for one entity fails.
+   *
+   * @return true to abort the queue on failure
+   */
+  public boolean isAbortOnFailure() {
+    return abortOnFailure;
+  }
+
+  /**
+   * Sets whether the whole entity queue should be aborted when the execution for one entity fails.
+   *
+   * @param newValue
+   *          true to abort the queue on failure
+   */
+  public void setAbortOnFailure(boolean newValue) {
+    boolean oldValue = this.abortOnFailure;
+    this.abortOnFailure = newValue;
+    firePropertyChange("abortOnFailure", oldValue, newValue);
   }
 
   @Override

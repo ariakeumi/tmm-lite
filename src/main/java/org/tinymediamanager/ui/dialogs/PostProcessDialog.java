@@ -51,6 +51,7 @@ public abstract class PostProcessDialog extends TmmDialog {
   protected final JTextField tfPath;
   protected final JTextArea  tfCommand;
   protected final JCheckBox  chkbxShowOutput;
+  protected final JCheckBox  chkbxAbortOnFailure;
 
   public PostProcessDialog() {
     super(TmmResourceBundle.getString("Settings.addpostprocess"), "addPostProcess");
@@ -59,7 +60,7 @@ public abstract class PostProcessDialog extends TmmDialog {
     {
       JPanel panelContent = new JPanel();
       getContentPane().add(panelContent, BorderLayout.CENTER);
-      panelContent.setLayout(new MigLayout("", "[][grow][]", "[][][100lp:n][]"));
+      panelContent.setLayout(new MigLayout("", "[][grow][]", "[][][100lp:n][][]"));
 
       // Name
       JLabel lblProcessName = new JLabel(TmmResourceBundle.getString("Settings.processname"));
@@ -107,6 +108,13 @@ public abstract class PostProcessDialog extends TmmDialog {
 
       chkbxShowOutput = new JCheckBox();
       panelContent.add(chkbxShowOutput, "cell 1 3");
+
+      // abort on failure
+      JLabel abortOnFailureLabel = new JLabel(TmmResourceBundle.getString("Settings.abortonfailure"));
+      panelContent.add(abortOnFailureLabel, "cell 0 4,alignx right");
+
+      chkbxAbortOnFailure = new JCheckBox();
+      panelContent.add(chkbxAbortOnFailure, "cell 1 4");
     }
     {
       JButton btnCancel = new JButton(TmmResourceBundle.getString("Button.cancel"));
@@ -127,6 +135,7 @@ public abstract class PostProcessDialog extends TmmDialog {
       this.tfPath.setText(process.getPath());
       this.tfCommand.setText(process.getCommand());
       this.chkbxShowOutput.setSelected(process.isShowOutput());
+      this.chkbxAbortOnFailure.setSelected(process.isAbortOnFailure());
     }
   }
 

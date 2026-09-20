@@ -79,6 +79,14 @@ public abstract class PostProcessTable extends TmmEditorTable {
       addColumn(col);
 
       /*
+       * abort on error
+       */
+      col = new Column(TmmResourceBundle.getString("Settings.abortonfailure"), "abortonfailure", PostProcess::isAbortOnFailure, Boolean.class);
+      col.setColumnResizeable(false);
+      col.setHeaderIcon(IconManager.STOP_HEADER);
+      addColumn(col);
+
+      /*
        * edit
        */
       col = new Column(TmmResourceBundle.getString("Button.edit"), "edit", postProcess -> IconManager.EDIT, ImageIcon.class);

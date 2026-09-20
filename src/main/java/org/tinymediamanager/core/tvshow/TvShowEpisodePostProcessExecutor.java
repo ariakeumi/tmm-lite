@@ -84,6 +84,9 @@ public class TvShowEpisodePostProcessExecutor extends PostProcessExecutor {
         return;
       }
       catch (Exception e) {
+        if (handleExecutionFailure(episode, e)) {
+          return;
+        }
         LOGGER.error("Problem executing post process '{}' - '{}'", postProcess.getName(), e.getMessage());
       }
     }

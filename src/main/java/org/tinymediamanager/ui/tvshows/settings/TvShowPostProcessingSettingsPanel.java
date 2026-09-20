@@ -239,6 +239,7 @@ public class TvShowPostProcessingSettingsPanel extends JPanel {
       process.setCommand(tfCommand.getText());
       process.setPath(tfPath.getText());
       process.setShowOutput(chkbxShowOutput.isSelected());
+      process.setAbortOnFailure(chkbxAbortOnFailure.isSelected());
 
       TvShowModuleManager.getInstance().getSettings().forceSaveSettings();
       setVisible(false);
@@ -265,6 +266,7 @@ public class TvShowPostProcessingSettingsPanel extends JPanel {
       process.setCommand(tfCommand.getText());
       process.setPath(tfPath.getText());
       process.setShowOutput(chkbxShowOutput.isSelected());
+      process.setAbortOnFailure(chkbxAbortOnFailure.isSelected());
 
       TvShowModuleManager.getInstance().getSettings().forceSaveSettings();
       setVisible(false);

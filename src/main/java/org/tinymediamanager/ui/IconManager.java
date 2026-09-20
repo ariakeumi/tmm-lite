@@ -234,6 +234,7 @@ public class IconManager {
   public static final ImageIcon              RUNTIME                      = createTableHeaderIcon("clock.svg");
   public static final ImageIcon              SEASONS                      = createTextIcon("S", 1.4);
   public static final ImageIcon              SOURCE                       = createTableHeaderIcon("location.svg");
+  public static final ImageIcon              STOP_HEADER                  = createTableHeaderIcon("hexagon-exclamation.svg");
   public static final ImageIcon              SUBTITLES                    = createTableHeaderIcon("comments.svg");
   public static final ImageIcon              TRAILER                      = createTableHeaderIcon("film.svg");
   public static final ImageIcon              USER_RATING                  = createTableHeaderIcon("star-solid.svg");

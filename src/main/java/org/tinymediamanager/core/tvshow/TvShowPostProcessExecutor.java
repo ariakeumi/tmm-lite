@@ -65,8 +65,11 @@ public class TvShowPostProcessExecutor extends PostProcessExecutor {
         executeCommand(command, tvShow);
         LOGGER.info("Successfully executed post process '{}' for TV show '{}'", postProcess.getName(), tvShow.getTitle());
       }
-      catch (Exception ignored) {
-        // already logged in executeCommand
+      catch (Exception e) {
+        if (handleExecutionFailure(tvShow, e)) {
+          return;
+        }
+        // otherwise already logged in executeCommand
       }
     }
   }
