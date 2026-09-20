@@ -96,6 +96,7 @@ import org.tinymediamanager.ui.dialogs.TmmSplashScreen;
 import org.tinymediamanager.ui.dialogs.WhatsNewDialog;
 import org.tinymediamanager.ui.images.LogoCircle;
 import org.tinymediamanager.ui.wizard.TinyMediaManagerWizard;
+import org.tinymediamanager.updater.MacAppUpdater;
 
 import ch.qos.logback.classic.LoggerContext;
 
@@ -622,6 +623,9 @@ public final class TinyMediaManager {
     TvShowUpgradeTasks tvShowUpgradeTasks = new TvShowUpgradeTasks();
     tvShowUpgradeTasks.performSettingsUpgrades();
     tvShowUpgradeTasks.performDbUpgrades();
+
+    // macOS only: finish a whole-bundle swap that a detached helper performed while this instance was booting
+    MacAppUpdater.handleFinishedUpdate();
 
     if (newVersion) {
       // do an image cache cleanup

@@ -20,12 +20,15 @@ import static org.tinymediamanager.TinyMediaManager.shutdownLogger;
 
 import java.awt.GraphicsEnvironment;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tinymediamanager.Globals;
 import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.http.TmmHttpServer;
 import org.tinymediamanager.ui.MainWindow;
 import org.tinymediamanager.ui.TmmUIHelper;
+import org.tinymediamanager.updater.MacUpdaterTask;
 import org.tinymediamanager.updater.UpdateCheck;
 import org.tinymediamanager.updater.UpdaterTask;
 
@@ -140,10 +143,26 @@ public class TinyMediaManagerCLI implements Runnable {
       if (new UpdateCheck().isUpdateAvailable()) {
         LOGGER.info("New update available - downloading...");
 
-        UpdaterTask updaterTask = new UpdaterTask();
-        updaterTask.doInBackground();
+        boolean updateDownloaded = false;
+        if (Globals.isBundleUpdatable()) {
+          // macOS .app bundle: swap the whole bundle (getdown file patching would destroy the code signature)
+          MacUpdaterTask macTask = new MacUpdaterTask();
+          macTask.doInBackground();
+          updateDownloaded = macTask.isDownloadSuccessful();
+        }
+        else if (SystemUtils.IS_OS_MAC) {
+          // macOS without an updatable bundle (dev run / translocated) - never run getdown against a .app
+          LOGGER.info("This installation cannot be updated in place - please download the update manually");
+        }
+        else {
+          // Windows/Linux: classic getdown updater - unchanged legacy behavior, intentionally not gated on
+          // isSelfUpdatable() (docker / managed installations rely on --update)
+          UpdaterTask updaterTask = new UpdaterTask();
+          updaterTask.doInBackground();
+          updateDownloaded = updaterTask.isDownloadSuccessful();
+        }
 
-        if (updaterTask.isDownloadSuccessful()) {
+        if (updateDownloaded) {
           LOGGER.info("Update downloaded successful - restart to apply");
         }
       }

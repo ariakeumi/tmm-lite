@@ -40,7 +40,7 @@ import org.tinymediamanager.core.threading.TmmTaskManager;
 import org.tinymediamanager.ui.TmmUIHelper;
 import org.tinymediamanager.ui.components.NoBorderScrollPane;
 import org.tinymediamanager.ui.components.textfield.ReadOnlyTextPane;
-import org.tinymediamanager.updater.UpdaterTask;
+import org.tinymediamanager.updater.UpdaterFactory;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -95,12 +95,12 @@ public class UpdateDialog extends TmmDialog {
 
       JButton btnUpdate = new JButton(TmmResourceBundle.getString("Button.update"));
       btnUpdate.addActionListener(arg0 -> {
-        if (Globals.isSelfUpdatable()) {
-          // the installation is self updatable
+        if (UpdaterFactory.isInPlaceUpdatePossible()) {
+          // the installation can be updated in place
           setVisible(false);
           LOGGER.info("Updating...");
 
-          TmmTaskManager.getInstance().addDownloadTask(new UpdaterTask());
+          TmmTaskManager.getInstance().addDownloadTask(UpdaterFactory.createTask());
         }
         else {
           // redirect to the downloads page for the download of the new version
@@ -114,7 +114,7 @@ public class UpdateDialog extends TmmDialog {
       });
 
       // deactivate the update button if we cannot self update and we do have a base url
-      if (Globals.isDocker() || (!Globals.isSelfUpdatable() && StringUtils.isBlank(baseurl))) {
+      if (Globals.isDocker() || (!UpdaterFactory.isInPlaceUpdatePossible() && StringUtils.isBlank(baseurl))) {
         btnUpdate.setEnabled(false);
       }
 

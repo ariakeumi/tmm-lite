@@ -52,7 +52,6 @@ import org.apache.commons.lang3.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tinymediamanager.Globals;
 import org.tinymediamanager.ReleaseInfo;
 import org.tinymediamanager.core.Message;
 import org.tinymediamanager.core.MessageManager;
@@ -68,7 +67,7 @@ import org.tinymediamanager.ui.dialogs.UpdateDialog;
 import org.tinymediamanager.ui.plaf.dark.TmmDarkLaf;
 import org.tinymediamanager.ui.plaf.light.TmmLightLaf;
 import org.tinymediamanager.updater.UpdateCheck;
-import org.tinymediamanager.updater.UpdaterTask;
+import org.tinymediamanager.updater.UpdaterFactory;
 
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.util.SystemFileChooser;
@@ -694,10 +693,10 @@ public class TmmUIHelper {
           LOGGER.info("Update available");
 
           // we might need this somewhen...
-          if (Globals.isSelfUpdatable() && updateCheck.isForcedUpdate()) {
+          if (UpdaterFactory.isInPlaceUpdatePossible() && updateCheck.isForcedUpdate()) {
             LOGGER.info("Updating (forced)...");
             // start the updater task
-            TmmTaskManager.getInstance().addDownloadTask(new UpdaterTask());
+            TmmTaskManager.getInstance().addDownloadTask(UpdaterFactory.createTask());
             return;
           }
 
@@ -707,7 +706,7 @@ public class TmmUIHelper {
               UpdateDialog dialog = new UpdateDialog(updateCheck.getChangelog(), updateCheck.getBaseUrl());
               dialog.setVisible(true);
             }
-            else if (Globals.isSelfUpdatable()) {
+            else if (UpdaterFactory.isInPlaceUpdatePossible()) {
               // do the update without changelog popup
               Object[] options = { TmmResourceBundle.getString("Button.yes"), TmmResourceBundle.getString("Button.no") };
               int answer = JOptionPane.showOptionDialog(MainWindow.getInstance(), TmmResourceBundle.getString("tmm.update.message"),
@@ -716,7 +715,7 @@ public class TmmUIHelper {
                 LOGGER.info("Updating...");
 
                 // start the updater task
-                TmmTaskManager.getInstance().addDownloadTask(new UpdaterTask());
+                TmmTaskManager.getInstance().addDownloadTask(UpdaterFactory.createTask());
               }
             }
           });

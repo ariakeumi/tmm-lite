@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.tinymediamanager.updater.MacAppUpdater;
 
 /**
  * The Class Globals. used to hold global information/fields for the whole application
@@ -247,6 +248,28 @@ public final class Globals {
     }
 
     return true;
+  }
+
+  /**
+   * check if the macOS installation can be updated in place by swapping the whole {@code .app} bundle<br>
+   * <br>
+   * this is the macOS counterpart to {@link #isSelfUpdatable()} (which intentionally stays {@code false} on macOS because the getdown file-patching
+   * would destroy the code signature). here we replace the complete signed+notarized bundle instead – see {@code MacAppUpdater}.
+   *
+   * @return true if the running {@code .app} bundle can be exchanged by {@code MacUpdaterTask}
+   */
+  public static boolean isBundleUpdatable() {
+    // env param -Dtmm.noupdate=true has been set
+    if (Boolean.parseBoolean(System.getProperty("tmm.noupdate"))) {
+      return false;
+    }
+
+    // only on macOS and never inside docker / a managed installation
+    if (!SystemUtils.IS_OS_MAC || isDocker() || Files.exists(Paths.get(".managed"))) {
+      return false;
+    }
+
+    return MacAppUpdater.isSupported();
   }
 
   /**
