@@ -52,13 +52,15 @@ public class TvShowToJellyfinConnector extends TvShowToKodiConnector {
     Date latestAiredDate = null;
 
     for (TvShowEpisode episode : tvShow.getEpisodes()) {
-      if (episode.getFirstAired() != null && (latestAiredDate == null || latestAiredDate.before(episode.getFirstAired()))) {
+      if (episode.getAiredSeason() > 0 && episode.getFirstAired() != null
+          && (latestAiredDate == null || latestAiredDate.before(episode.getFirstAired()))) {
         latestAiredDate = episode.getFirstAired();
       }
     }
 
     for (TvShowEpisode episode : tvShow.getDummyEpisodes()) {
-      if (episode.getFirstAired() != null && (latestAiredDate == null || latestAiredDate.before(episode.getFirstAired()))) {
+      if (episode.getAiredSeason() > 0 && episode.getFirstAired() != null
+          && (latestAiredDate == null || latestAiredDate.before(episode.getFirstAired()))) {
         latestAiredDate = episode.getFirstAired();
       }
     }
