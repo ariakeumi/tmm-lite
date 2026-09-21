@@ -22,6 +22,7 @@ x [API] added an OpenAPI compatible API description to the HTTP API (/api/docs)
 x [Jellyfin] fixed writing enddate to the NFO for ended TV shows
 x [macOS] fixed some issues with Unicode characters (NFD vs. NFC encoded characters) in file/folder names
 x [External Services] added a dedicated setting to enable or disable Trakt.tv and Simkl.com support
+x [omdpapi] fix error when parsing years #3360
 
 
 Version 5.3.2
