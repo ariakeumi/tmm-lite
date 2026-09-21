@@ -1166,8 +1166,8 @@ public final class TvShowSettings extends AbstractSettings {
   }
 
   public void setTitle(boolean newValue) {
-    boolean oldValue = this.node;
-    this.node = newValue;
+    boolean oldValue = this.title;
+    this.title = newValue;
     firePropertyChange("title", oldValue, newValue);
   }
 
