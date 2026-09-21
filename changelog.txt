@@ -5,6 +5,7 @@ Version 5.3.3
 + [UI] re-added the "new" indicator used in tinyMediaManager v3.x
 + [macOS] re-added automatic updates
 + [Post-processing] added a new option "abort on failure" to stop the queue as soon as an action fails for one of the selected movies/TV shows/episodes
++ [Post-processing] added the tokens "index" and "itemCount" to provide more information about the current item in the queue
 + [Kodi] write Kodi v22 compatible edition tags into the NFO for movies and episodes #3341
 ---
 x [Movie sets] do not scrape unreleased movies

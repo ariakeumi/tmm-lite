@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.PostProcess;
 import org.tinymediamanager.core.PostProcessExecutor;
-import org.tinymediamanager.core.entities.MediaEntity;
 import org.tinymediamanager.core.jmte.JmteUtils;
 import org.tinymediamanager.core.jmte.TmmModelAdaptor;
 import org.tinymediamanager.core.tvshow.entities.TvShow;
@@ -37,7 +36,9 @@ import com.floreysoft.jmte.Engine;
  */
 public class TvShowPostProcessExecutor extends PostProcessExecutor {
   private static final Logger LOGGER = LoggerFactory.getLogger(TvShowPostProcessExecutor.class);
+
   private final Engine        engine;
+  private final int           itemCount;
 
   public TvShowPostProcessExecutor(PostProcess postProcess, List<TvShow> tvShows) {
     super(postProcess, tvShows);
@@ -45,19 +46,21 @@ public class TvShowPostProcessExecutor extends PostProcessExecutor {
     TvShowRenamerProfile renamerProfile = new TvShowRenamerProfile(TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
     engine = TvShowRenamer.createEngine(renamerProfile);
     engine.setModelAdaptor(new TmmModelAdaptor());
+    itemCount = getTvShows().size();
   }
 
   @Override
   protected void execute() {
-    for (MediaEntity mediaEntity : entities) {
-      if (!(mediaEntity instanceof TvShow tvShow)) {
-        continue;
-      }
+    int index = 0;
+    for (TvShow tvShow : getTvShows()) {
+      index++;
 
       LOGGER.info("Executing post process '{}' for TV show '{}'", postProcess.getName(), tvShow.getTitle());
 
       Map<String, Object> mappings = new HashMap<>();
       mappings.put("tvShow", tvShow);
+      mappings.put("itemCount", itemCount);
+      mappings.put("index", index);
 
       String[] command = substituteTokens(mappings);
 
@@ -72,6 +75,10 @@ public class TvShowPostProcessExecutor extends PostProcessExecutor {
         // otherwise already logged in executeCommand
       }
     }
+  }
+
+  private List<TvShow> getTvShows() {
+    return entities.stream().filter(e -> e instanceof TvShow).map(e -> (TvShow) e).toList();
   }
 
   private String[] substituteTokens(Map<String, Object> mappings) {

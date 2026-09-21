@@ -36,7 +36,7 @@ import org.tinymediamanager.core.PostProcess;
 import org.tinymediamanager.core.Settings;
 import org.tinymediamanager.core.TmmResourceBundle;
 import org.tinymediamanager.core.movie.MovieModuleManager;
-import org.tinymediamanager.core.movie.MovieSetMoviePostProcessExecutor;
+import org.tinymediamanager.core.movie.MoviePostProcessExecutor;
 import org.tinymediamanager.core.movie.MovieSetPostProcessExecutor;
 import org.tinymediamanager.core.movie.entities.Movie;
 import org.tinymediamanager.core.movie.entities.MovieSet;
@@ -344,7 +344,7 @@ public class MovieSetUIModule extends AbstractTmmUIModule {
         if (!moviePostProcesses.isEmpty()) {
           postProcessingMenu.add(new TmmMenuLabel(TmmResourceBundle.getString("metatag.movie")));
           for (PostProcess process : moviePostProcesses) {
-            MovieSetMoviePostProcessExecutor executor = new MovieSetMoviePostProcessExecutor(process,
+            MoviePostProcessExecutor executor = new MoviePostProcessExecutor(process,
                 MovieSetUIModule.getInstance().getSelectionModel().getSelectedMoviesRecursive(true)) {
               @Override
               protected void finish() {

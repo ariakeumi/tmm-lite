@@ -23,28 +23,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.PostProcess;
 import org.tinymediamanager.core.PostProcessExecutor;
-import org.tinymediamanager.core.entities.MediaEntity;
 import org.tinymediamanager.core.jmte.JmteUtils;
-import org.tinymediamanager.core.jmte.NamedArrayRenderer;
-import org.tinymediamanager.core.jmte.NamedArrayUniqueRenderer;
-import org.tinymediamanager.core.jmte.NamedBitrateRenderer;
-import org.tinymediamanager.core.jmte.NamedDateRenderer;
-import org.tinymediamanager.core.jmte.NamedFilesizeRenderer;
-import org.tinymediamanager.core.jmte.NamedFramerateRenderer;
-import org.tinymediamanager.core.jmte.NamedLowerCaseRenderer;
-import org.tinymediamanager.core.jmte.NamedNumberRenderer;
-import org.tinymediamanager.core.jmte.NamedReplacementRenderer;
-import org.tinymediamanager.core.jmte.NamedSplitRenderer;
-import org.tinymediamanager.core.jmte.NamedTitleCaseRenderer;
-import org.tinymediamanager.core.jmte.NamedUpperCaseRenderer;
-import org.tinymediamanager.core.jmte.RegexpProcessor;
 import org.tinymediamanager.core.jmte.TmmModelAdaptor;
-import org.tinymediamanager.core.jmte.ZeroNumberRenderer;
-import org.tinymediamanager.core.tvshow.TvShowRenamer.TvShowNamedFirstCharacterRenderer;
 import org.tinymediamanager.core.tvshow.entities.TvShowEpisode;
 
 import com.floreysoft.jmte.Engine;
-import com.floreysoft.jmte.extended.ChainedNamedRenderer;
 
 /**
  * the class {@link TvShowEpisodePostProcessExecutor} executes post process steps for movies
@@ -52,19 +35,25 @@ import com.floreysoft.jmte.extended.ChainedNamedRenderer;
  * @author Wolfgang Janes
  */
 public class TvShowEpisodePostProcessExecutor extends PostProcessExecutor {
-
   private static final Logger LOGGER = LoggerFactory.getLogger(TvShowEpisodePostProcessExecutor.class);
+
+  private final Engine        engine;
+  private final int           itemCount;
 
   public TvShowEpisodePostProcessExecutor(PostProcess postProcess, List<TvShowEpisode> episodes) {
     super(postProcess, episodes);
+    // copy to make it immutable
+    TvShowRenamerProfile renamerProfile = new TvShowRenamerProfile(TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
+    engine = TvShowRenamer.createEngine(renamerProfile);
+    engine.setModelAdaptor(new TmmModelAdaptor());
+    itemCount = getEpisodes().size();
   }
 
   @Override
   protected void execute() {
-    for (MediaEntity mediaEntity : entities) {
-      if (!(mediaEntity instanceof TvShowEpisode episode)) {
-        continue;
-      }
+    int index = 0;
+    for (TvShowEpisode episode : getEpisodes()) {
+      index++;
 
       LOGGER.info("Executing post process '{}' for episode '{}'", postProcess.getName(), episode.getTitle());
 
@@ -72,6 +61,8 @@ public class TvShowEpisodePostProcessExecutor extends PostProcessExecutor {
       mappings.put("tvShow", episode.getTvShow());
       mappings.put("season", episode.getTvShowSeason());
       mappings.put("episode", episode);
+      mappings.put("itemCount", itemCount);
+      mappings.put("index", index);
 
       String[] command = substituteTokens(mappings);
 
@@ -92,28 +83,11 @@ public class TvShowEpisodePostProcessExecutor extends PostProcessExecutor {
     }
   }
 
+  private List<TvShowEpisode> getEpisodes() {
+    return entities.stream().filter(e -> e instanceof TvShowEpisode).map(e -> (TvShowEpisode) e).toList();
+  }
+
   private String[] substituteTokens(Map<String, Object> mappings) {
-    Engine engine = Engine.createEngine();
-    engine.registerRenderer(Number.class, new ZeroNumberRenderer());
-    engine.registerNamedRenderer(new NamedArrayRenderer());
-    engine.registerNamedRenderer(new NamedArrayUniqueRenderer());
-    engine.registerNamedRenderer(new NamedBitrateRenderer());
-    engine.registerNamedRenderer(new NamedDateRenderer());
-    engine.registerNamedRenderer(new NamedFilesizeRenderer());
-    engine.registerNamedRenderer(new NamedFramerateRenderer());
-    engine.registerNamedRenderer(new NamedLowerCaseRenderer());
-    engine.registerNamedRenderer(new NamedNumberRenderer());
-    engine.registerNamedRenderer(new NamedReplacementRenderer());
-    engine.registerNamedRenderer(new NamedSplitRenderer());
-    engine.registerNamedRenderer(new NamedTitleCaseRenderer());
-    engine.registerNamedRenderer(new NamedUpperCaseRenderer());
-    engine.registerNamedRenderer(new TvShowNamedFirstCharacterRenderer(TvShowModuleManager.getInstance().getSettings().getDefaultRenamerProfile()));
-    engine.registerNamedRenderer(new ChainedNamedRenderer(engine.getAllNamedRenderers()));
-
-    engine.registerAnnotationProcessor(new RegexpProcessor());
-
-    engine.setModelAdaptor(new TmmModelAdaptor());
-
     if (postProcess.getPath() == null || postProcess.getPath().isEmpty()) {
       // scripting mode - transform as single string
       String transformed = engine.transform(JmteUtils.morphTemplate(postProcess.getCommand(), TvShowRenamer.getTokenMap()), mappings);

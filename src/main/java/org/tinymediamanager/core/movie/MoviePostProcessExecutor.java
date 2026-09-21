@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.PostProcess;
 import org.tinymediamanager.core.PostProcessExecutor;
-import org.tinymediamanager.core.entities.MediaEntity;
 import org.tinymediamanager.core.jmte.JmteUtils;
 import org.tinymediamanager.core.jmte.TmmModelAdaptor;
 import org.tinymediamanager.core.movie.entities.Movie;
@@ -37,7 +36,9 @@ import com.floreysoft.jmte.Engine;
  */
 public class MoviePostProcessExecutor extends PostProcessExecutor {
   private static final Logger LOGGER = LoggerFactory.getLogger(MoviePostProcessExecutor.class);
+
   private final Engine        engine;
+  private final int           itemCount;
 
   public MoviePostProcessExecutor(PostProcess postProcess, List<Movie> movies) {
     super(postProcess, movies);
@@ -45,17 +46,18 @@ public class MoviePostProcessExecutor extends PostProcessExecutor {
     MovieRenamerProfile renamerProfile = new MovieRenamerProfile(MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
     engine = MovieRenamer.createEngine(renamerProfile);
     engine.setModelAdaptor(new TmmModelAdaptor());
+    itemCount = movies.size();
   }
 
   @Override
   protected void execute() {
-    for (MediaEntity entity : entities) {
-      if (!(entity instanceof Movie movie)) {
-        continue;
-      }
+    int index = 0;
+
+    for (Movie movie : getMovies()) {
+      index++;
 
       LOGGER.info("Executing post process '{}' for movie '{}'", postProcess.getName(), movie.getTitle());
-      String[] command = substituteMovieTokens(movie);
+      String[] command = substituteMovieTokens(movie, index);
       try {
         executeCommand(command, movie);
         LOGGER.info("Successfully executed post process '{}' for movie '{}'", postProcess.getName(), movie.getTitle());
@@ -69,9 +71,15 @@ public class MoviePostProcessExecutor extends PostProcessExecutor {
     }
   }
 
-  protected String[] substituteMovieTokens(Movie movie) {
+  protected List<Movie> getMovies() {
+    return entities.stream().filter(e -> e instanceof Movie).map(e -> (Movie) e).toList();
+  }
+
+  protected String[] substituteMovieTokens(Movie movie, int index) {
     Map<String, Object> root = new HashMap<>();
     root.put("movie", movie);
+    root.put("itemCount", itemCount);
+    root.put("index", index);
 
     if (postProcess.getPath() == null || postProcess.getPath().isEmpty()) {
       // scripting mode - transform as single string

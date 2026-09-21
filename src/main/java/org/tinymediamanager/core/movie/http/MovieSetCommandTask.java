@@ -35,10 +35,10 @@ import org.tinymediamanager.core.http.AbstractCommandHandler;
 import org.tinymediamanager.core.http.AbstractCommandHandler.CommandScope;
 import org.tinymediamanager.core.movie.MovieList;
 import org.tinymediamanager.core.movie.MovieModuleManager;
+import org.tinymediamanager.core.movie.MoviePostProcessExecutor;
 import org.tinymediamanager.core.movie.MovieRenamerProfile;
 import org.tinymediamanager.core.movie.MovieSetArtworkHelper;
 import org.tinymediamanager.core.movie.MovieSetExporter;
-import org.tinymediamanager.core.movie.MovieSetMoviePostProcessExecutor;
 import org.tinymediamanager.core.movie.MovieSetPostProcessExecutor;
 import org.tinymediamanager.core.movie.MovieSetScraperMetadataConfig;
 import org.tinymediamanager.core.movie.MovieSetSearchAndScrapeOptions;
@@ -374,7 +374,7 @@ class MovieSetCommandTask extends TmmThreadPool {
             setTaskName(TmmResourceBundle.getString("Settings.postprocessing") + " - " + process.getName());
             publishState(TmmResourceBundle.getString("Settings.postprocessing") + " - " + process.getName(), getProgressDone());
 
-            activeTask = new MovieSetMoviePostProcessExecutor(process, setMovies);
+            activeTask = new MoviePostProcessExecutor(process, setMovies);
             activeTask.run(); // blocking
 
             // done

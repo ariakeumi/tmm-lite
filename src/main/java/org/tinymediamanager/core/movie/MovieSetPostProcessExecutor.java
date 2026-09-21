@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tinymediamanager.core.PostProcess;
 import org.tinymediamanager.core.PostProcessExecutor;
-import org.tinymediamanager.core.entities.MediaEntity;
 import org.tinymediamanager.core.jmte.TmmModelAdaptor;
 import org.tinymediamanager.core.movie.entities.MovieSet;
 
@@ -36,7 +35,9 @@ import com.floreysoft.jmte.Engine;
  */
 public class MovieSetPostProcessExecutor extends PostProcessExecutor {
   private static final Logger       LOGGER = LoggerFactory.getLogger(MovieSetPostProcessExecutor.class);
+
   private final MovieRenamerProfile renamerProfile;
+  private final int                 itemCount;
 
   /**
    * Creates a new movie set post-process executor.
@@ -50,17 +51,17 @@ public class MovieSetPostProcessExecutor extends PostProcessExecutor {
     super(postProcess, movieSets);
     // copy to make it immutable
     this.renamerProfile = new MovieRenamerProfile(MovieModuleManager.getInstance().getSettings().getDefaultRenamerProfile());
+    this.itemCount = getMovieSets().size();
   }
 
   @Override
   public void execute() {
-    for (MediaEntity mediaEntity : entities) {
-      if (!(mediaEntity instanceof MovieSet movieSet)) {
-        continue;
-      }
+    int index = 0;
+    for (MovieSet movieSet : getMovieSets()) {
+      index++;
 
       LOGGER.info("Executing post process '{}' for movie set '{}'", postProcess.getName(), movieSet.getTitle());
-      String[] command = substituteMovieSetTokens(movieSet);
+      String[] command = substituteMovieSetTokens(movieSet, index);
       try {
         executeCommand(command, movieSet);
         LOGGER.info("Successfully executed post process '{}' for movie set '{}'", postProcess.getName(), movieSet.getTitle());
@@ -74,12 +75,18 @@ public class MovieSetPostProcessExecutor extends PostProcessExecutor {
     }
   }
 
-  private String[] substituteMovieSetTokens(MovieSet movieSet) {
+  private List<MovieSet> getMovieSets() {
+    return entities.stream().filter(e -> e instanceof MovieSet).map(e -> (MovieSet) e).toList();
+  }
+
+  private String[] substituteMovieSetTokens(MovieSet movieSet, int index) {
     Engine engine = MovieRenamer.createEngine(renamerProfile);
     engine.setModelAdaptor(new TmmModelAdaptor());
 
     Map<String, Object> root = new HashMap<>();
     root.put("movieSet", movieSet);
+    root.put("itemCount", itemCount);
+    root.put("index", index);
 
     if (postProcess.getPath() == null || postProcess.getPath().isEmpty()) {
       // scripting mode - transform as single string
