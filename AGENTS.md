@@ -20,3 +20,6 @@ tinyMediaManager is a Java media management tool that organizes metadata, artwor
 - Testing: [docs/TESTING.md](docs/TESTING.md)
 - Web UI (React/TypeScript): [docs/WEB_UI.md](docs/WEB_UI.md)
 - Git workflow and commit format: [docs/GIT.md](docs/GIT.md)
+
+Always answer in the language of the question. Code and comments must be in English. Use English for all commit
+messages, PRs, and issues.
