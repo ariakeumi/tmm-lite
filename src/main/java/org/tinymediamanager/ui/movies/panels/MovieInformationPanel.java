@@ -64,6 +64,7 @@ import org.tinymediamanager.ui.movies.MovieSelectionModel;
 import org.tinymediamanager.ui.panels.InformationPanel;
 import org.tinymediamanager.ui.panels.MediaInformationLogosPanel;
 import org.tinymediamanager.ui.panels.RatingPanel;
+import org.tinymediamanager.ui.panels.ScrollablePanel;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -308,7 +309,7 @@ public class MovieInformationPanel extends InformationPanel {
       }
     }
     {
-      JPanel panelRight = new JPanel();
+      JPanel panelRight = new ScrollablePanel();
       panelRight
           .setLayout(new MigLayout("insets n 0 n n, hidemode 3", "[100lp,grow]", "[shrink 0][][shrink 0][][][][][]15lp[][grow,top][shrink 0][]"));
 
@@ -415,7 +416,7 @@ public class MovieInformationPanel extends InformationPanel {
 
       {
         ratingPanel = new RatingPanel();
-        panelRight.add(ratingPanel, "flowx,cell 0 2,aligny center");
+        panelRight.add(ratingPanel, "cell 0 2,growx,wmin 0,aligny center");
       }
 
       {

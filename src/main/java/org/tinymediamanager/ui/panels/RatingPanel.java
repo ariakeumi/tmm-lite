@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -32,6 +33,7 @@ import org.tinymediamanager.core.entities.MediaRating;
 import org.tinymediamanager.scraper.MediaMetadata;
 import org.tinymediamanager.ui.IconManager;
 import org.tinymediamanager.ui.TmmFontHelper;
+import org.tinymediamanager.ui.WrapLayout;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -44,7 +46,8 @@ public class RatingPanel extends JPanel {
   private final Locale defaultLocale = Locale.getDefault();
 
   public RatingPanel() {
-    setLayout(new FlowLayout(FlowLayout.LEFT, 15, 0));
+    // no horizontal gap in the flow itself - the gap is done by the border of the containers to avoid an indent on the first item
+    setLayout(new WrapLayout(FlowLayout.LEFT, 0, 5));
     setOpaque(false);
   }
 
@@ -160,7 +163,8 @@ public class RatingPanel extends JPanel {
   private class RatingContainer extends JPanel {
     public RatingContainer(MediaRating rating) {
       setOpaque(false);
-      setLayout(new MigLayout("", "[]10lp[center]", "[]"));
+      setLayout(new MigLayout("insets 0", "[]10lp[center]", "[]"));
+      setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 15));
 
       JLabel logo = null;
       JLabel value = null;

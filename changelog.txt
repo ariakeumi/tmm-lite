@@ -18,6 +18,7 @@ x [UI] do not list unaired special episodes as missing when "display missing spe
 x [UI] registered backspace as delete/remove shortcut for keyboards without a dedicated delete key (default on macOS)
 x [UI] fixed showing/hiding post-process output for episodes
 x [UI] fixed storing of the quick search filter "title" for TV shows #3359
+x [UI] wrap ratings and mediainfo logos on demand in the information panel #3358
 x [API] added some more endpoints (re-read NFO, calculate checksums, cleanup,post-process, etc.)
 x [API] added an OpenAPI compatible API description to the HTTP API (/api/docs)
 x [Jellyfin] fixed writing enddate to the NFO for ended TV shows

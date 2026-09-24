@@ -70,6 +70,7 @@ import org.tinymediamanager.ui.images.MultiIcon;
 import org.tinymediamanager.ui.panels.InformationPanel;
 import org.tinymediamanager.ui.panels.MediaInformationLogosPanel;
 import org.tinymediamanager.ui.panels.RatingPanel;
+import org.tinymediamanager.ui.panels.ScrollablePanel;
 import org.tinymediamanager.ui.tvshows.TvShowEpisodeSelectionModel;
 
 import net.miginfocom.swing.MigLayout;
@@ -298,7 +299,7 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
       }
     }
     {
-      JPanel panelRight = new JPanel();
+      JPanel panelRight = new ScrollablePanel();
       panelRight.setLayout(new MigLayout("insets 0 0 n n, hidemode 2", "[100lp,grow]", "[][shrink 0][][shrink 0][][shrink 0][][][][]"));
 
       scrollPane = new NoBorderScrollPane(panelRight);
@@ -359,7 +360,7 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
       }
       {
         ratingPanel = new RatingPanel();
-        panelRight.add(ratingPanel, "flowx,cell 0 2,aligny center");
+        panelRight.add(ratingPanel, "cell 0 2,growx,wmin 0,aligny center");
       }
       {
         sepLogos = new JSeparator();
@@ -367,7 +368,7 @@ public class TvShowEpisodeInformationPanel extends InformationPanel {
       }
       {
         panelLogos = new MediaInformationLogosPanel();
-        panelRight.add(panelLogos, "cell 0 4,growx");
+        panelRight.add(panelLogos, "cell 0 4,growx,wmin 0");
       }
       {
         panelRight.add(new JSeparator(), "cell 0 5,growx");

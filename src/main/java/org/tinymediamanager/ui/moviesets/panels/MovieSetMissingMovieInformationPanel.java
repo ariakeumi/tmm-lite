@@ -57,6 +57,7 @@ import org.tinymediamanager.ui.converter.RatingConverter;
 import org.tinymediamanager.ui.converter.RuntimeConverter;
 import org.tinymediamanager.ui.converter.ZeroIdConverter;
 import org.tinymediamanager.ui.movies.MovieSelectionModel;
+import org.tinymediamanager.ui.panels.ScrollablePanel;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -207,7 +208,7 @@ public class MovieSetMissingMovieInformationPanel extends JPanel {
       }
     }
     {
-      JPanel panelRight = new JPanel();
+      JPanel panelRight = new ScrollablePanel();
       panelRight.setLayout(new MigLayout("insets n 0 n n, hidemode 2", "[100lp,grow]", "[shrink 0][][shrink 0][][][grow,top][][]"));
 
       scrollPane = new NoBorderScrollPane(panelRight);

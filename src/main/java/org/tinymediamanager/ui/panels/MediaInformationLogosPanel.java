@@ -56,7 +56,7 @@ public class MediaInformationLogosPanel extends JPanel {
   private final JLabel      lblHfr;
 
   public MediaInformationLogosPanel() {
-    setLayout(new WrapLayout(FlowLayout.LEFT));
+    setLayout(new WrapLayout(FlowLayout.LEFT, 5, 10));
 
     lblVideoFormat = new JLabel();
     lblAspectRatio = new JLabel();
