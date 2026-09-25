@@ -30,6 +30,10 @@ import javax.swing.SwingUtilities;
  * @author Manuel Laggner
  */
 public class WrapLayout extends FlowLayout {
+  // guards the ancestor walk below against cyclic size queries: some components (e.g. the check
+  // comboboxes) override getSize() and ask for their preferred size, which would re-enter layoutSize
+  private static boolean ancestorWalkActive;
+
   /**
    * Constructs a new <code>FlowLayout</code> with the specified alignment and a default 5-unit horizontal and vertical gap. The value of the
    * alignment argument must be one of <code>WrapLayout</code>, <code>WrapLayout</code>, or <code>WrapLayout</code>.
@@ -99,13 +103,23 @@ public class WrapLayout extends FlowLayout {
       // has not yet been calculated. This happens when nesting panels (e.g. in a scroll pane),
       // so ask the first parent which already has a width to not assume an unlimited width.
 
-      Container container = target;
+      int targetWidth = target.getSize().width;
 
-      while (container.getSize().width == 0 && container.getParent() != null) {
-        container = container.getParent();
+      if (targetWidth == 0 && !ancestorWalkActive) {
+        ancestorWalkActive = true;
+        try {
+          Container container = target;
+
+          while (container.getSize().width == 0 && container.getParent() != null) {
+            container = container.getParent();
+          }
+
+          targetWidth = container.getSize().width;
+        }
+        finally {
+          ancestorWalkActive = false;
+        }
       }
-
-      int targetWidth = container.getSize().width;
 
       if (targetWidth == 0) {
         targetWidth = Integer.MAX_VALUE;
