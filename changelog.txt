@@ -13,6 +13,7 @@ x [Movie sets] do not scrape unreleased movies
 x [TV shows] added an action to refresh only the TV show NFO via Kodi RPC #3351
 x [TV shows] enhanced parsing of multi episode file naming patterns #3345
 x [TV shows] enhanced renaming logic for better performance on Windows
+x [Core] fixed reading of the JVM param tmm.mvstore.buffersize
 x [UI] block adding critical system folders as data sources
 x [UI] do not list unaired special episodes as missing when "display missing specials" is disabled #3355
 x [UI] registered backspace as delete/remove shortcut for keyboards without a dedicated delete key (default on macOS)

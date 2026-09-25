@@ -106,7 +106,7 @@ public final class MovieModuleManager implements ITmmModule {
     lock = new ReentrantReadWriteLock();
 
     // check if a custom autocommit buffer size has been set via jvm args
-    int bufferSize = Integer.getInteger("tmm.mvstore.buffersize", 8);
+    int bufferSize = Integer.getInteger(System.getProperty("tmm.mvstore.buffersize"), 8);
     if (2 <= bufferSize && bufferSize <= 64) {
       autoCommitBufferSize = 1024 * bufferSize;
     }
