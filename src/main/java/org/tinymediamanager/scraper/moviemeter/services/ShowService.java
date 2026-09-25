@@ -15,20 +15,17 @@
  */
 package org.tinymediamanager.scraper.moviemeter.services;
 
-import java.util.List;
-
 import org.tinymediamanager.scraper.moviemeter.entities.MMFilm;
-import org.tinymediamanager.scraper.moviemeter.entities.MMSeries;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
-import retrofit2.http.Query;
+import retrofit2.http.Path;
 
-public interface SearchService {
-  @GET("film/")
-  Call<List<MMFilm>> searchFilm(@Query("q") String query);
+// same url as movies - but with additional param. Oh boy...
+public interface ShowService {
+  @GET("film/{id}?entity=show ")
+  Call<MMFilm> getMovieInfo(@Path("id") int id);
 
-  // YES - film url for show, just a param... pfff
-  @GET("film/?entity=show")
-  Call<List<MMSeries>> searchSeries(@Query("q") String query);
+  @GET("film/{imdbId}?entity=show ")
+  Call<MMFilm> getMovieInfoByImdbId(@Path("imdbId") String imdbId);
 }

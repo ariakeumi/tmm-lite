@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.tinymediamanager.scraper.moviemeter.services;
+package org.tinymediamanager.scraper.moviemeter.entities;
 
-import java.util.List;
+public class MMSeries extends MMFilm {
+  // Series DO have the same structure, but not the same types... oh boy, who designed that...?
+  public String id          = "";
+  public String votes_count = "";
+  public String average     = "";
 
-import org.tinymediamanager.scraper.moviemeter.entities.MMFilm;
-import org.tinymediamanager.scraper.moviemeter.entities.MMSeries;
-
-import retrofit2.Call;
-import retrofit2.http.GET;
-import retrofit2.http.Query;
-
-public interface SearchService {
-  @GET("film/")
-  Call<List<MMFilm>> searchFilm(@Query("q") String query);
-
-  // YES - film url for show, just a param... pfff
-  @GET("film/?entity=show")
-  Call<List<MMSeries>> searchSeries(@Query("q") String query);
+  // new ones
+  public String year_start  = "";
+  public String year_end    = "";
 }
