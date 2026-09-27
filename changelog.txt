@@ -1,31 +1,31 @@
 Version 5.3.3
 =======================
-+ [TV shows] added more rating sources for TV shows #3347
++ [TV shows] added more rating sources #3347
 + [UI] modernized confirmation dialogs and message toasts
 + [UI] re-added the "new" indicator used in tinyMediaManager v3.x
 + [macOS] re-added automatic updates
 + [Post-processing] added a new option "abort on failure" to stop the queue as soon as an action fails for one of the selected movies/TV shows/episodes
 + [Post-processing] added the tokens "index" and "itemCount" to provide more information about the current item in the queue
-+ [Kodi] write Kodi v22 compatible edition tags into the NFO for movies and episodes #3341
++ [Kodi] write Kodi v22-compatible edition tags into the NFO for movies and episodes #3341
 ---
-x [Movie sets] do not scrape unreleased movies
+x [Movie sets] unreleased movies are no longer scraped
 + [Movie sets] added a confirmation dialog before removing selected movie sets
 x [TV shows] added an action to refresh only the TV show NFO via Kodi RPC #3351
-x [TV shows] enhanced parsing of multi episode file naming patterns #3345
-x [TV shows] enhanced renaming logic for better performance on Windows
-x [Core] fixed reading of the JVM param tmm.mvstore.buffersize
-x [UI] block adding critical system folders as data sources
-x [UI] do not list unaired special episodes as missing when "display missing specials" is disabled #3355
-x [UI] registered backspace as delete/remove shortcut for keyboards without a dedicated delete key (default on macOS)
-x [UI] fixed showing/hiding post-process output for episodes
-x [UI] fixed storing of the quick search filter "title" for TV shows #3359
-x [UI] wrap ratings and mediainfo logos on demand in the information panel #3358
-x [API] added some more endpoints (re-read NFO, calculate checksums, cleanup,post-process, etc.)
-x [API] added an OpenAPI compatible API description to the HTTP API (/api/docs)
-x [Jellyfin] fixed writing enddate to the NFO for ended TV shows
+x [TV shows] enhanced parsing of multi-episode file naming patterns #3345
+x [TV shows] improved renaming performance on Windows
+x [Core] fixed the JVM parameter tmm.mvstore.buffersize not being read
+x [UI] adding critical system folders as data sources is now blocked
+x [UI] unaired special episodes are now only listed as missing when "display missing specials" is enabled #3355
+x [UI] registered the Backspace key as a delete shortcut for keyboards without a dedicated Delete key (default on macOS)
+x [UI] fixed an issue where the post-process output for episodes was not shown or hidden correctly
+x [UI] fixed an issue where the quick search filter "title" for TV shows was not saved #3359
+x [UI] ratings and media information logos now wrap correctly in the information panel #3358
+x [API] added more endpoints (re-read NFO, calculate checksums, cleanup, post-process, etc.)
+x [API] added an OpenAPI-compatible API description to the HTTP API (/api/docs)
+x [Jellyfin] fixed the enddate not being written to the NFO for ended TV shows
 x [macOS] fixed some issues with Unicode characters (NFD vs. NFC encoded characters) in file/folder names
 x [External Services] added a dedicated setting to enable or disable Trakt.tv and Simkl.com support
-x [omdpapi] fix error when parsing years #3360
+x [omdbapi] fixed an error when parsing years #3360
 
 
 Version 5.3.2
