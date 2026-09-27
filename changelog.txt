@@ -1,5 +1,6 @@
 Version 5.3.4
 =======================
+x [UI] improved updating of the progress bar after task completion
 
 
 Version 5.3.3

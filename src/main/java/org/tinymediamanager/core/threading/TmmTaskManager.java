@@ -119,9 +119,13 @@ public class TmmTaskManager implements TmmTaskListener {
       @Override
       protected void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
-        if (imageDownloadHandle != null) {
-          processTaskEvent(imageDownloadHandle);
-        }
+        // afterExecute() is still called while the worker holds its lock, so getActiveCount() would
+        // still count the just finished task as running -> notify listeners a bit later to deliver the real state
+        scheduler.schedule(() -> {
+          if (imageDownloadHandle != null) {
+            processTaskEvent(imageDownloadHandle);
+          }
+        }, 250, TimeUnit.MILLISECONDS);
       }
     };
     executor.allowCoreThreadTimeOut(true);
@@ -146,9 +150,13 @@ public class TmmTaskManager implements TmmTaskListener {
       @Override
       protected void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
-        if (imageCacheHandle != null) {
-          processTaskEvent(imageCacheHandle);
-        }
+        // afterExecute() is still called while the worker holds its lock, so getActiveCount() would
+        // still count the just finished task as running -> notify listeners a bit later to deliver the real state
+        scheduler.schedule(() -> {
+          if (imageCacheHandle != null) {
+            processTaskEvent(imageCacheHandle);
+          }
+        }, 250, TimeUnit.MILLISECONDS);
       }
     };
     executor.allowCoreThreadTimeOut(true);
