@@ -56,7 +56,7 @@ public class TmmToast extends JComponent {
   private static final int                           TICK_MS   = 1000 / FPS;
   private static final int                           MARGIN    = 16;
   private static final int                           GAP       = 12;
-  private static final int                           MAX_WIDTH = 400;
+  private static final int                           MAX_WIDTH = 275;
   private static final int                           PADDING_H = 16;
   private static final int                           PADDING_V = 12;
   private static final int                           ARC       = 8;
@@ -349,9 +349,15 @@ public class TmmToast extends JComponent {
       int windowWidth = getWidth();
       int y = MARGIN;
 
+      // always use a fixed uniform width so toasts never resize when others fade in/out
+      int toastWidth = Math.min(MAX_WIDTH, windowWidth - 2 * MARGIN);
+      if (toastWidth <= 0) {
+        return;
+      }
+
       synchronized (toasts) {
         for (ToastMessage toast : toasts) {
-          Dimension size = calculateToastSize(g2, toast);
+          Dimension size = calculateToastSize(g2, toast, toastWidth);
           int x = windowWidth - MARGIN - size.width;
 
           // slide in from right with easing (ease-out cubic)
@@ -371,49 +377,40 @@ public class TmmToast extends JComponent {
   }
 
   /**
-   * Calculate the size needed for a toast message.
+   * Calculate the size of a toast message for a given fixed width.
+   * <p>
+   * The width is uniform across all visible toasts; only the height is calculated from the wrapped text.
+   * </p>
    *
    * @param g2
    *          the graphics context
    * @param toast
    *          the toast message
+   * @param toastWidth
+   *          the uniform toast width including padding
    * @return the dimensions
    */
-  private Dimension calculateToastSize(Graphics2D g2, ToastMessage toast) {
+  private Dimension calculateToastSize(Graphics2D g2, ToastMessage toast, int toastWidth) {
     FontMetrics fm = g2.getFontMetrics();
     Font titleFont = g2.getFont().deriveFont(g2.getFont().getStyle() | Font.BOLD);
     FontMetrics tfm = g2.getFontMetrics(titleFont);
 
-    int windowWidth = getWidth();
-    int maxTextWidth = Math.min(MAX_WIDTH - 2 * PADDING_H, windowWidth - 2 * (MARGIN + PADDING_H));
+    int maxTextWidth = toastWidth - 2 * PADDING_H;
 
-    // calculate text dimensions with word wrapping
     List<String> messageLines = wrapText(toast.message, fm, maxTextWidth);
     int messageTextHeight = messageLines.size() * fm.getHeight();
-    int messageTextWidth = 0;
-    for (String line : messageLines) {
-      messageTextWidth = Math.max(messageTextWidth, fm.stringWidth(line));
-    }
 
     int titleTextHeight = 0;
-    int titleTextWidth = 0;
     if (toast.title != null && !toast.title.trim().isEmpty()) {
-      List<String> titleLines = wrapText(toast.title, tfm, maxTextWidth);
-      titleTextHeight = titleLines.size() * tfm.getHeight();
-      for (String line : titleLines) {
-        titleTextWidth = Math.max(titleTextWidth, tfm.stringWidth(line));
-      }
+      titleTextHeight = wrapText(toast.title, tfm, maxTextWidth).size() * tfm.getHeight();
     }
-
-    int contentWidth = Math.max(messageTextWidth, titleTextWidth);
-    int width = Math.min(MAX_WIDTH, contentWidth + 2 * PADDING_H);
 
     int height = messageTextHeight + 2 * PADDING_V;
     if (titleTextHeight > 0) {
       height += titleTextHeight + TITLE_GAP;
     }
 
-    return new Dimension(width, height);
+    return new Dimension(toastWidth, height);
   }
 
   /**
@@ -578,13 +575,13 @@ public class TmmToast extends JComponent {
       boolean dark = isDarkTheme();
       switch (this) {
         case SUCCESS:
-          return dark ? new Color(46, 125, 50) : new Color(200, 230, 201);
+          return dark ? new Color(27, 94, 32) : new Color(209, 231, 221);
 
         case WARNING:
-          return dark ? new Color(120, 56, 0) : new Color(255, 248, 225);
+          return dark ? new Color(120, 56, 0) : new Color(255, 243, 205);
 
         case ERROR:
-          return dark ? new Color(109, 26, 26) : new Color(255, 205, 210);
+          return dark ? new Color(109, 26, 26) : new Color(248, 215, 218);
 
         case INFO:
         default:
@@ -613,13 +610,13 @@ public class TmmToast extends JComponent {
       boolean dark = isDarkTheme();
       switch (this) {
         case SUCCESS:
-          return dark ? new Color(56, 142, 60) : new Color(165, 214, 167);
+          return dark ? new Color(56, 142, 60) : new Color(183, 228, 199);
 
         case WARNING:
-          return dark ? new Color(160, 80, 0) : new Color(255, 224, 130);
+          return dark ? new Color(160, 80, 0) : new Color(255, 230, 156);
 
         case ERROR:
-          return dark ? new Color(142, 36, 36) : new Color(239, 154, 154);
+          return dark ? new Color(142, 36, 36) : new Color(245, 194, 203);
 
         default:
           return new Color(0, 0, 0, 100);
@@ -635,13 +632,13 @@ public class TmmToast extends JComponent {
       boolean dark = isDarkTheme();
       switch (this) {
         case SUCCESS:
-          return dark ? new Color(200, 230, 201) : new Color(46, 125, 50);
+          return dark ? new Color(200, 230, 201) : new Color(15, 81, 50);
 
         case WARNING:
-          return dark ? new Color(255, 204, 128) : new Color(230, 81, 0);
+          return dark ? new Color(255, 204, 128) : new Color(102, 77, 3);
 
         case ERROR:
-          return dark ? new Color(239, 154, 154) : new Color(183, 28, 28);
+          return dark ? new Color(239, 154, 154) : new Color(88, 21, 28);
 
         case INFO:
         default:
