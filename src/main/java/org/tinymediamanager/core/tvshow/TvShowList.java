@@ -1424,9 +1424,8 @@ public final class TvShowList extends AbstractModelObject {
    */
   public TvShow getTvShowByPath(Path path) {
     // iterate over all tv shows and check whether this path is being owned by one
-    Path pathNfc = Utils.normalizeUnicode(path.toAbsolutePath());
     for (TvShow tvShow : this.tvShows) {
-      if (tvShow.getPathNIO().compareTo(pathNfc) == 0) {
+      if (tvShow.getPathNIO().compareTo(path.toAbsolutePath()) == 0) {
         return tvShow;
       }
     }
@@ -1447,12 +1446,11 @@ public final class TvShowList extends AbstractModelObject {
     if (file == null) {
       return episodes;
     }
-    Path fileNfc = Utils.normalizeUnicode(file);
 
     // check if that file is in this tv show/episode (iterating thread safe)
     for (TvShowEpisode episode : new ArrayList<>(tvShow.getEpisodes())) {
       for (MediaFile mediaFile : new ArrayList<>(episode.getMediaFiles())) {
-        if (fileNfc.equals(mediaFile.getFile())) {
+        if (file.equals(mediaFile.getFile())) {
           episodes.add(episode);
         }
       }

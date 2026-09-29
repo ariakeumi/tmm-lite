@@ -390,7 +390,7 @@ public abstract class MediaEntity extends AbstractModelObject implements IPrinta
     if (StringUtils.isBlank(path)) {
       return null;
     }
-    return Utils.normalizeUnicode(Paths.get(path).toAbsolutePath());
+    return Paths.get(path).toAbsolutePath();
   }
 
   /**

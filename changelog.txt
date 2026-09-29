@@ -1,6 +1,7 @@
 Version 5.3.4
 =======================
 x [UI] improved updating of the progress bar after task completion
+x [macOS] reverted the Unicode normalization to NFC for file/folder names, as it caused issues with NAS file systems #3365
 
 
 Version 5.3.3

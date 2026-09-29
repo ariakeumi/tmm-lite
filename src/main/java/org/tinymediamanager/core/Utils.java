@@ -57,7 +57,6 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.security.CodeSource;
 import java.text.CharacterIterator;
 import java.text.DateFormat;
-import java.text.Normalizer;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.text.StringCharacterIterator;
@@ -118,18 +117,13 @@ import org.tinymediamanager.scraper.util.UrlUtil;
  */
 public class Utils {
   private static final Logger       LOGGER                      = LoggerFactory.getLogger(Utils.class);
+
   /**
    * datasources whose trash folder has already been created/verified in this session; saves repeated (network) metadata round trips while deleting
    * many files
    */
   private static final Set<String>  VERIFIED_TRASH_ROOTS        = ConcurrentHashMap.newKeySet();
 
-  /**
-   * the JetBrains Runtime (JBR) only patch behind the "jdk.nio.path.useNormalizationFormD" property (added in 5.0.11 as a macOS workaround for
-   * #2687): it stores string-built paths internally in NFD, while filesystem-built paths keep their raw bytes - which silently breaks equals/hashCode
-   * consistency between those two kinds of paths (toString() shows NFC on both sides, so this is invisible in logs).
-   */
-  private static final boolean      PATH_NFD_PATCH              = "true".equalsIgnoreCase(System.getProperty("jdk.nio.path.useNormalizationFormD"));
   private static final Pattern      localePattern               = Pattern.compile("messages_(.{2})_?(.{2,4})?\\.properties",
       Pattern.CASE_INSENSITIVE);
 
@@ -2176,41 +2170,6 @@ public class Utils {
   }
 
   /**
-   * macOS filesystems (HFS+/APFS) hand out filenames in Unicode NFD form, while paths from the database, NFO files or the settings are usually NFC.
-   * Since {@link Path} comparisons are done character-by-character, this leads to mismatches for names containing umlauts and the like. As APFS/HFS+
-   * resolve filenames normalization-insensitive, we can safely normalize all paths to NFC on macOS (for comparisons <b>and</b> file access). On all
-   * other platforms this is a no-op.
-   *
-   * @param path
-   *          the path to normalize
-   * @return the path in NFC form on macOS, the untouched path otherwise
-   */
-  public static Path normalizeUnicode(Path path) {
-    if (path == null || !SystemUtils.IS_OS_MAC) {
-      return path;
-    }
-    return toNfc(path);
-  }
-
-  /**
-   * convert the string representation of the given path to its Unicode NFC form. Use {@link #normalizeUnicode(Path)} in all places which deal with
-   * filesystem-derived paths; this method is the platform-independent building block of it.
-   *
-   * @param path
-   *          the path to convert
-   * @return a new path in NFC form (or the same instance if it already is NFC and no JVM normalization patch is active)
-   */
-  static Path toNfc(Path path) {
-    String s = path.toString();
-    boolean alreadyNfc = Normalizer.isNormalized(s, Normalizer.Form.NFC);
-    if (alreadyNfc && !PATH_NFD_PATCH) {
-      return path;
-    }
-    // always rebuild from the string, so that all paths go through the exact same construction route (important with PATH_NFD_PATCH)
-    return path.getFileSystem().getPath(alreadyNfc ? s : Normalizer.normalize(s, Normalizer.Form.NFC));
-  }
-
-  /**
    * get all files from the given path
    *
    * @param root
@@ -2225,7 +2184,7 @@ public class Utils {
     try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(root)) {
       for (Path path : directoryStream) {
         if (Utils.isRegularFile(path)) {
-          filesFound.add(normalizeUnicode(path));
+          filesFound.add(path);
         }
       }
     }
@@ -2257,9 +2216,8 @@ public class Utils {
         @NotNull
         @Override
         public FileVisitResult visitFile(Path file, @NotNull BasicFileAttributes attrs) {
-          // use the attributes delivered by the walk instead of re-querying them (network round trip per file)
-          if (isRegularFile(attrs)) {
-            filesFound.add(normalizeUnicode(file));
+          if (Utils.isRegularFile(file)) {
+            filesFound.add(file);
           }
           return FileVisitResult.CONTINUE;
         }

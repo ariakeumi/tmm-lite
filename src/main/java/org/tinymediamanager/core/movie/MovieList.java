@@ -738,7 +738,7 @@ public final class MovieList extends AbstractModelObject {
    * @return normalized absolute path
    */
   private Path normalizePath(Path p) {
-    Path np = Utils.normalizeUnicode(p.toAbsolutePath().normalize());
+    Path np = p.toAbsolutePath().normalize();
     // handle case-insensitive FS by lowercasing string representation on Windows/macOS if needed
     if (SystemUtils.IS_OS_WINDOWS) {
       return Paths.get(np.toString().toLowerCase(Locale.ROOT));

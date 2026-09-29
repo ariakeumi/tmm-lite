@@ -146,7 +146,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
     List<Path> foldersToUpdate = new ArrayList<>();
     for (String ds : settings.getTvShowDataSource()) {
       if (StringUtils.isNotBlank(ds)) {
-        foldersToUpdate.add(Utils.normalizeUnicode(Paths.get(ds)));
+        foldersToUpdate.add(Paths.get(ds));
       }
     }
 
@@ -194,13 +194,13 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
     List<Path> datasourcesFromSettings = new ArrayList<>();
     for (String ds : settings.getTvShowDataSource()) {
       if (StringUtils.isNotBlank(ds)) {
-        datasourcesFromSettings.add(Utils.normalizeUnicode(Paths.get(ds).normalize().toAbsolutePath()));
+        datasourcesFromSettings.add(Paths.get(ds).normalize().toAbsolutePath());
       }
     }
 
     // classify each folder
     for (Path folder : ListUtils.nullSafe(folders)) {
-      Path normalizedFolder = Utils.normalizeUnicode(folder.normalize().toAbsolutePath());
+      Path normalizedFolder = folder.normalize().toAbsolutePath();
 
       // first check if this folder matches an existing TV show - if so, treat it as a folderToUpdate
       // (even if it is also a configured data source, the TV show takes priority)
@@ -424,7 +424,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
       if (!nestedDataSources.isEmpty()) {
         List<TvShow> showsToRemove = new ArrayList<>();
         for (TvShow tvShow : new ArrayList<>(tvShowList.getTvShows())) {
-          Path tvShowDs = Utils.normalizeUnicode(Paths.get(tvShow.getDataSource()).normalize().toAbsolutePath());
+          Path tvShowDs = Paths.get(tvShow.getDataSource()).normalize().toAbsolutePath();
           if (!nestedDataSources.contains(tvShowDs)) {
             continue;
           }
@@ -856,7 +856,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
       publishState(showDir.toString());
 
       fileLock.writeLock().lock();
-      filesFound.add(Utils.normalizeUnicode(showDir.toAbsolutePath())); // our global cache
+      filesFound.add(showDir.toAbsolutePath()); // our global cache
       filesFound.addAll(allFiles); // our global cache
       fileLock.writeLock().unlock();
 
@@ -1712,7 +1712,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
           LOGGER.debug("Skipping: {}", path);
         }
         else {
-          fileNames.add(Utils.normalizeUnicode(path.toAbsolutePath()));
+          fileNames.add(path.toAbsolutePath());
         }
       }
     }
@@ -1783,7 +1783,7 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
         }
         String fn = path.getFileName().toString().toUpperCase(Locale.ROOT);
         if (!SKIP_FOLDERS.contains(fn) && !fn.matches(SKIP_REGEX) && !isInSkipFolder(path)) {
-          fileNames.add(Utils.normalizeUnicode(path.toAbsolutePath()));
+          fileNames.add(path.toAbsolutePath());
         }
         else {
           LOGGER.debug("Skipping: {}", path);
@@ -1819,8 +1819,6 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
       if (cancel) {
         return TERMINATE;
       }
-
-      file = Utils.normalizeUnicode(file);
 
       if (file.getFileName() == null) {
         return CONTINUE;
@@ -1885,8 +1883,6 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
         return TERMINATE;
       }
 
-      dir = Utils.normalizeUnicode(dir);
-
       incPreDir();
 
       filesPerDir.put(dir, new ArrayList<>());
@@ -1923,8 +1919,6 @@ public class TvShowUpdateDatasourceTask extends TmmThreadPool {
       if (cancel) {
         return TERMINATE;
       }
-
-      dir = Utils.normalizeUnicode(dir);
 
       List<Path> filesInCurrentDir = filesPerDir.get(dir);
       boolean skipFound = false;

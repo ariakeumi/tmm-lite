@@ -4,10 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -15,7 +13,6 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.junit.Test;
 import org.tinymediamanager.scraper.util.LanguageUtils;
 import org.tinymediamanager.scraper.util.StrgUtils;
@@ -388,54 +385,5 @@ public class UtilsTest extends BasicTest {
     assertThat(StrgUtils.replaceFilesystemSeparatorCharacters(StrgUtils.replaceForbiddenFilesystemCharacters("*\\\"'/:<>?"))).isEqualTo("⚹∖″ˈ⁄∶‹›❓");
     assertThat(StrgUtils.replaceFilesystemSeparatorCharacters(StrgUtils.replaceForbiddenFilesystemCharacters("\"This\" is a test: \\<'>/")))
         .isEqualTo("″This″ is a test∶ ∖‹ˈ›⁄");
-  }
-
-  @Test
-  public void testToNfc() {
-    // "ö" precomposed (NFC, usual DB/NFO form) vs. "o" + combining diaeresis (NFD, what macOS hands out)
-    Path nfc = Paths.get("/Videos/Harry Potter und der Orden des Ph\u00F6nix (2007)");
-    Path nfd = Paths.get("/Videos/Harry Potter und der Orden des Pho\u0308nix (2007)");
-
-    assertThat(nfc).isNotEqualTo(nfd);
-
-    assertThat(Utils.toNfc(nfd)).isEqualTo(nfc);
-    assertThat(Utils.toNfc(nfc)).isSameAs(nfc);
-
-    Path normalized = Utils.toNfc(nfd);
-    assertThat(Utils.toNfc(normalized)).isSameAs(normalized);
-
-    Set<Path> set = new HashSet<>();
-    set.add(nfc);
-    assertThat(set).contains(Utils.toNfc(nfd));
-  }
-
-  @Test
-  public void testToNfcNoOpForPlainAscii() {
-    Path ascii = Paths.get("/Videos/Sub Folder (2007)/movie.mkv");
-    assertThat(Utils.toNfc(ascii)).isSameAs(ascii);
-  }
-
-  @Test
-  public void testListFilesReturnsNfcOnMacOs() throws Exception {
-    org.junit.Assume.assumeTrue(SystemUtils.IS_OS_MAC);
-
-    Path root = Files.createTempDirectory("tmm-nfc");
-    try {
-      // "ö" in decomposed (NFD) form - as a user would copy it from a Mac filesystem
-      Path nfdFile = root.resolve("Harry Potter und der Orden des Pho\u0308nix (2007).mkv");
-      Files.createFile(nfdFile);
-
-      List<Path> files = Utils.listFiles(root);
-      assertThat(files).hasSize(1);
-
-      Path listed = files.get(0);
-      assertThat(Normalizer.isNormalized(listed.toString(), Normalizer.Form.NFC)).isTrue();
-      assertThat(listed.getFileName().toString()).isEqualTo("Harry Potter und der Orden des Ph\u00F6nix (2007).mkv");
-      // APFS/HFS+ resolve normalization-insensitive -> the NFC path still points to the real file
-      assertThat(Files.exists(listed)).isTrue();
-    }
-    finally {
-      Utils.deleteDirectorySafely(root);
-    }
   }
 }
