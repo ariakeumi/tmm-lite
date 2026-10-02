@@ -1,7 +1,7 @@
-# Development images: builds and pushes a branch-tagged image to ghcr.io
-# whenever media-manager-lite/ changes on main/devel. Latest-stable
-# `latest`/semver tags are reserved for the tag-triggered docker-release
-# workflow.
+# Development images: every push to main/devel that touches
+# media-manager-lite/ builds and pushes the image tagged with the branch
+# name, a branch-<sha> pin, and :latest (so pulling :latest always yields
+# the most recent build without cutting a release tag).
 
 name: docker-dev
 
@@ -62,6 +62,7 @@ jobs:
           tags: |
             type=ref,event=branch
             type=sha,prefix={{branch}}-
+            type=raw,value=latest
 
       - name: Build and push
         uses: docker/build-push-action@v6

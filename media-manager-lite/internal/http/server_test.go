@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"log/slog"
 	"net/http"
@@ -9,11 +10,14 @@ import (
 	"path/filepath"
 	"testing"
 
+	"media-manager-lite/internal/artwork"
 	"media-manager-lite/internal/config"
 	"media-manager-lite/internal/database"
 	"media-manager-lite/internal/library"
 	"media-manager-lite/internal/media"
 	"media-manager-lite/internal/movie"
+	"media-manager-lite/internal/nfo"
+	"media-manager-lite/internal/renamer"
 	"media-manager-lite/internal/scanner"
 	"media-manager-lite/internal/settings"
 	"media-manager-lite/internal/task"
@@ -61,6 +65,17 @@ func newTestServerWithDeps(t *testing.T, logOut io.Writer, tmdbBaseURL string) (
 	settingsStore := settings.NewStore(db.DB)
 	movies := movie.NewStore(db.DB)
 	tmdbSvc := tmdb.NewService(settingsStore, "test-key-1234567890", tmdbBaseURL)
+	artworkSvc := artwork.NewService(tmdbSvc, mediaStore, movies, tvStore, libs)
+	nfoSvc := nfo.NewService(mediaStore, movies, settingsStore, tmdbSvc, tvStore, libs)
+	renamerSvc := renamer.NewService(mediaStore, movies, libs, settingsStore, tvStore)
+	tvScrape := tv.NewScrapeService(tvStore, tmdbSvc, func(ctx context.Context) string {
+		v, _ := settingsStore.String(ctx, "certification_country", "US")
+		return v
+	})
+
+	runner.Register("download_artwork", artwork.DownloadHandler(mediaStore, artworkSvc))
+	runner.Register("download_tv_artwork", artwork.TVDownloadHandler(tvStore, artworkSvc))
+	runner.Register("scrape_tv_episodes", tv.EnrichHandler(tvStore, tvScrape))
 
 	deps := Deps{
 		Libraries: libs,
@@ -71,6 +86,11 @@ func newTestServerWithDeps(t *testing.T, logOut io.Writer, tmdbBaseURL string) (
 		Settings:  settingsStore,
 		Movies:    movies,
 		TMDB:      tmdbSvc,
+		Artwork:   artworkSvc,
+		NFO:       nfoSvc,
+		Renamer:   renamerSvc,
+		TV:        tvStore,
+		TVScrape:  tvScrape,
 	}
 	srv, err := New(cfg, log, db, deps)
 	if err != nil {
@@ -88,9 +108,11 @@ func TestPagesRender(t *testing.T) {
 		path     string
 		contains []string
 	}{
-		{"/", []string{"Dashboard", "Media Manager", "Libraries"}},
-		{"/libraries", []string{"Add Library", "library-panel"}},
-		{"/settings", []string{"Settings", "Placeholder"}},
+		{"/", []string{"仪表盘", "Media Manager", "媒体库"}},
+		{"/libraries", []string{"添加媒体库", "library-panel"}},
+		{"/settings", []string{"设置", "占位"}},
+		{"/movies", []string{"电影"}},
+		{"/tvshows", []string{"电视剧"}},
 	}
 	for _, tc := range cases {
 		t.Run(tc.path, func(t *testing.T) {

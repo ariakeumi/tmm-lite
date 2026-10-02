@@ -17,7 +17,7 @@
 
 services:
   media-manager:
-    image: ${MEDIA_MANAGER_IMAGE:-ghcr.io/ariakeumi/media-manager-lite:latest}
+    image: ${MEDIA_MANAGER_IMAGE:-ghcr.io/ariakeumi/tmm-lite:latest}
     container_name: media-manager-lite
     ports:
       - "8080:8080"

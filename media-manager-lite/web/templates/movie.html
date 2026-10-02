@@ -1,13 +1,13 @@
 {{define "content"}}
-<h1>{{if .Movie}}{{.Movie.Title}}{{if .Movie.Year}} ({{.Movie.Year}}){{end}}{{else}}Movie{{end}}</h1>
+<h1>{{if .Movie}}{{.Movie.Title}}{{if .Movie.Year}} ({{.Movie.Year}}){{end}}{{else}}电影{{end}}</h1>
 
 <section class="panel">
-  <h2>Workflow</h2>
+  <h2>工作流</h2>
   <table class="libraries">
     <tbody>
-      <tr><th>File</th><td class="path">{{.Item.Path}}</td></tr>
-      <tr><th>Status</th><td>{{.Item.Status}}</td></tr>
-      <tr><th>Parsed</th><td>
+      <tr><th>文件</th><td class="path">{{.Item.Path}}</td></tr>
+      <tr><th>状态</th><td>{{.Item.Status}}</td></tr>
+      <tr><th>解析结果</th><td>
         {{if .Item.Parsed}}
           {{.Item.Parsed.Title}}{{if .Item.Parsed.Year}} ({{.Item.Parsed.Year}}){{end}}
           {{if .Item.Parsed.Resolution}} · {{.Item.Parsed.Resolution}}{{end}}
@@ -18,10 +18,10 @@
       {{if .Movie}}
       <tr><th>TMDB</th><td>{{.Movie.TMDBID}} · {{.Movie.Title}}{{if .Movie.OriginalTitle}} ({{.Movie.OriginalTitle}}){{end}}</td></tr>
       {{if .Movie.Artwork}}{{if .Movie.Artwork.PosterURL}}
-      <tr><th>Poster</th><td><img src="{{.Movie.Artwork.PosterURL}}" alt="poster" style="max-width: 90px; border-radius: 4px;"></td></tr>
+      <tr><th>海报</th><td><img src="{{.Movie.Artwork.PosterURL}}" alt="poster" style="max-width: 90px; border-radius: 4px;"></td></tr>
       {{end}}{{end}}
-      <tr><th>Rating</th><td>{{if .Movie.Rating}}{{printf "%.1f" .Movie.Rating}} ({{.Movie.Votes}} votes){{end}}</td></tr>
-      <tr><th>Artwork</th><td>{{.Movie.ArtworkStatus}}{{if .Movie.Artwork}} — <span class="path">{{.Movie.Artwork.PosterFile}}</span>{{end}}</td></tr>
+      <tr><th>评分</th><td>{{if .Movie.Rating}}{{printf "%.1f" .Movie.Rating}} ({{.Movie.Votes}} 票){{end}}</td></tr>
+      <tr><th>海报</th><td>{{.Movie.ArtworkStatus}}{{if .Movie.Artwork}} — <span class="path">{{.Movie.Artwork.PosterFile}}</span>{{end}}</td></tr>
       <tr><th>NFO</th><td>{{.Movie.NfoStatus}}</td></tr>
       {{end}}
     </tbody>
@@ -29,13 +29,13 @@
   <div class="actions" style="margin-top: .75rem; display: flex; gap: .5rem;">
     {{if .Movie}}
     <form method="post" action="/api/movies/{{.Item.ID}}/artwork" hx-post="/api/movies/{{.Item.ID}}/artwork" hx-target="#rename-panel" hx-swap="outerHTML">
-      <button type="submit">Download Artwork</button>
+      <button type="submit">下载海报</button>
     </form>
     <form method="post" action="/api/movies/{{.Item.ID}}/nfo" hx-post="/api/movies/{{.Item.ID}}/nfo" hx-target="#rename-panel" hx-swap="outerHTML">
-      <button type="submit">Write NFO</button>
+      <button type="submit">写入 NFO</button>
     </form>
     {{else}}
-    <p class="muted">Match this item from the <a href="/libraries/{{.Item.LibraryID}}/match">match page</a> first.</p>
+    <p class="muted">请先在<a href="/libraries/{{.Item.LibraryID}}/match">匹配页</a>确认该条目的匹配。</p>
     {{end}}
   </div>
 </section>
@@ -46,27 +46,27 @@
 {{define "rename_panel"}}
 <div id="rename-panel">
   <section class="panel">
-    <h2>Rename</h2>
+    <h2>重命名</h2>
     {{if .Error}}<div class="error">{{.Error}}</div>{{end}}
     {{if .Message}}<div class="muted">{{.Message}}</div>{{end}}
     {{if .Plan}}
       {{if .Plan.Valid}}
-        <p class="muted">Plan ({{len .Plan.Actions}} action{{if ne (len .Plan.Actions) 1}}s{{end}}):</p>
+        <p class="muted">计划(共 {{len .Plan.Actions}} 项操作):</p>
         <table class="libraries">
-          <thead><tr><th>Kind</th><th>Op</th><th>From</th><th>To</th></tr></thead>
+          <thead><tr><th>类型</th><th>操作</th><th>源路径</th><th>目标路径</th></tr></thead>
           <tbody>
             {{range .Plan.Actions}}
             <tr><td>{{.Kind}}</td><td>{{.Op}}</td><td class="path">{{.From}}</td><td class="path">{{.To}}</td></tr>
             {{else}}
-            <tr><td colspan="4" class="muted">nothing to do — already named correctly</td></tr>
+            <tr><td colspan="4" class="muted">无需操作——命名已正确</td></tr>
             {{end}}
           </tbody>
         </table>
         <form method="post" action="/api/movies/{{.Item.ID}}/rename"
               hx-post="/api/movies/{{.Item.ID}}/rename"
-              hx-confirm="Execute the rename plan? Files will be moved on disk."
+              hx-confirm="执行重命名计划?文件将在磁盘上被移动。"
               hx-target="#rename-panel" hx-swap="outerHTML">
-          <button type="submit">Execute rename</button>
+          <button type="submit">执行重命名</button>
         </form>
       {{else}}
         <div class="error">
@@ -75,7 +75,7 @@
       {{end}}
     {{end}}
     <p class="muted">
-      <a href="/api/movies/{{.Item.ID}}/rename">Plan JSON (dry-run — read-only)</a>
+      <a href="/api/movies/{{.Item.ID}}/rename">计划 JSON(dry-run——只读)</a>
     </p>
   </section>
 </div>

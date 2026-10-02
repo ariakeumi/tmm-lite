@@ -38,9 +38,10 @@ GHCR by GitHub CI — pull:
 docker pull ghcr.io/ariakeumi/media-manager-lite:latest
 ```
 
-Images are built automatically: `docker-release.yml` on `v*` tags
-(`:latest` + semver tags) and `docker-dev.yml` keeps branch images current
-for `main`/`devel` (`.github/workflows/`). `make docker` builds the same
+Images are built automatically: `docker-dev.yml` builds on every push to
+`main`/`devel` touching `media-manager-lite/` (tags `:latest`, `:devel`,
+`:devel-<sha>`), and `docker-release.yml` cuts `:latest` + semver tags on
+`v*` release tags. The web UI is in Chinese (简体中文). `make docker` builds the same
 multi-arch image locally (~26 MB distroless).
 
 ### Volumes
@@ -140,7 +141,8 @@ The key is stored in SQLite and never echoed back.
 ## HTTP surface
 
 Interactive pages: `/`, `/libraries`, `/libraries/{id}/match`,
-`/movies/{id}`, `/tv`, `/tv/shows/{id}`, `/settings`. JSON API endpoints
+`/movies`, `/movies/{id}`, `/tv` (`/tvshows` alias), `/tv/shows/{id}`,
+`/settings`. JSON API endpoints
 are listed in `docs/decisions.md` and the security-relevant ones in
 `scripts/release-verification/README.md`. All writes go through the task
 queue; rename previews are read-only.

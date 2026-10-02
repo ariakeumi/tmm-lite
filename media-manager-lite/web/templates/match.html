@@ -1,15 +1,15 @@
 {{define "content"}}
-<h1>Match · {{.Library.Name}}</h1>
-<p class="muted">Search TMDB with the parsed filename, review the ranked
-candidates and confirm a match — nothing is written until you confirm.</p>
+<h1>匹配 · {{.Library.Name}}</h1>
+<p class="muted">使用解析出的文件名搜索 TMDB,查看按评分排序的候选并确认匹配——
+在你确认之前不会写入任何内容。</p>
 
 {{if not .Rows}}
-  <section class="panel"><p class="muted empty">No media items yet — scan the
-  library from the <a href="/libraries">Libraries</a> page first.</p></section>
+  <section class="panel"><p class="muted empty">还没有媒体文件——请先在
+  <a href="/libraries">媒体库</a>页面扫描该库。</p></section>
 {{else}}
 <table class="libraries">
   <thead>
-    <tr><th>File</th><th>Parsed</th><th>Status</th><th>Candidates</th></tr>
+    <tr><th>文件</th><th>解析结果</th><th>状态</th><th>候选</th></tr>
   </thead>
   <tbody>
     {{range .Rows}}{{template "match_row" .}}{{end}}
@@ -25,20 +25,20 @@ candidates and confirm a match — nothing is written until you confirm.</p>
     {{if .Item.ParsedTitle}}
       {{.Item.ParsedTitle}}{{if .Item.ParsedYear}} <span class="muted">({{.Item.ParsedYear}})</span>{{end}}
     {{else}}
-      <span class="muted">unparsed</span>
+      <span class="muted">未解析</span>
     {{end}}
   </td>
   <td>{{.Item.Status}}</td>
   <td>
     {{if eq .Item.Status "matched"}}
-      matched ✓
+      已匹配 ✓
       <div class="postmatch">
         <button type="button"
           hx-post="/api/movies/{{.Item.ID}}/artwork"
-          hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">Artwork</button>
+          hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">下载海报</button>
         <button type="button"
           hx-post="/api/movies/{{.Item.ID}}/nfo"
-          hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">Write NFO</button>
+          hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">写入 NFO</button>
       </div>
     {{else}}
       {{template "match_candidates" .}}
@@ -51,7 +51,7 @@ candidates and confirm a match — nothing is written until you confirm.</p>
 <div id="candidates-{{.Item.ID}}" class="candidates">
   <button type="button"
     hx-post="/api/movies/{{.Item.ID}}/search"
-    hx-target="#candidates-{{.Item.ID}}" hx-swap="outerHTML">Search TMDB</button>
+    hx-target="#candidates-{{.Item.ID}}" hx-swap="outerHTML">搜索 TMDB</button>
   {{range .Candidates}}
   <div class="candidate">
     <span class="score">{{printf "%.2f" .Score}}</span>
@@ -60,14 +60,14 @@ candidates and confirm a match — nothing is written until you confirm.</p>
     <button type="button"
       hx-post="/api/movies/{{$.Item.ID}}/match"
       hx-vals='{"tmdbId": {{.Candidate.TMDBID}}}'
-      hx-target="#item-{{$.Item.ID}}" hx-swap="outerHTML">Match</button>
+      hx-target="#item-{{$.Item.ID}}" hx-swap="outerHTML">匹配</button>
   </div>
   {{else}}
-  <div class="muted small">no candidates yet — run a search</div>
+  <div class="muted small">还没有候选——请先执行搜索</div>
   {{end}}
   <button type="button" class="danger"
     hx-post="/api/movies/{{.Item.ID}}/match"
     hx-vals='{"unmatched": true}'
-    hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">Mark unmatched</button>
+    hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">标记为未匹配</button>
 </div>
 {{end}}

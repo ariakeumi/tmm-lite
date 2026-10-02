@@ -138,7 +138,7 @@ func TestMilestone1EndToEnd(t *testing.T) {
 	}
 	body, _ := io.ReadAll(resp.Body)
 	resp.Body.Close()
-	if resp.StatusCode != http.StatusOK || !strings.Contains(string(body), "Dashboard") {
+	if resp.StatusCode != http.StatusOK || !strings.Contains(string(body), "仪表盘") {
 		t.Fatalf("dashboard status=%d body=%q", resp.StatusCode, body)
 	}
 
@@ -448,6 +448,18 @@ func TestMilestone3MatchFlow(t *testing.T) {
 	mov := getJSON(t, a.ts.URL+"/api/movies?libraryId="+libID)
 	if mov["count"].(float64) != 1 {
 		t.Errorf("movies count = %v, want 1", mov["count"])
+	}
+
+	// The /movies page lists the matched movie; /tvshows aliases /tv.
+	moviesPage := getBody(t, a.ts.URL+"/movies")
+	if !strings.Contains(moviesPage, "大电影 2019") {
+		t.Errorf("/movies page missing matched movie title")
+	}
+	if !strings.Contains(moviesPage, "go to match page") && !strings.Contains(moviesPage, "No matched movies") {
+		t.Log("pending section absent — all items matched")
+	}
+	if code := getStatusCode(t, a.ts.URL+"/tvshows"); code != http.StatusOK {
+		t.Errorf("/tvshows alias status = %d, want 200", code)
 	}
 
 	// Match survives a restart.
@@ -1229,7 +1241,7 @@ func TestMilestone8TVNfoRename(t *testing.T) {
 	}
 
 	// Pages render.
-	if page := getBody(t, a.ts.URL+"/tv/shows/"+showID); !strings.Contains(page, "episode_rename_panel") && !strings.Contains(page, "Write NFO") {
+	if page := getBody(t, a.ts.URL+"/tv/shows/"+showID); !strings.Contains(page, "episode_rename_panel") && !strings.Contains(page, "写入 NFO") {
 		t.Error("tv show page missing workflow elements")
 	}
 
@@ -1349,4 +1361,14 @@ func mustMkdirAll(path string) string {
 		panic(err)
 	}
 	return path
+}
+
+func getStatusCode(t *testing.T, url string) int {
+	t.Helper()
+	resp, err := http.Get(url)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	return resp.StatusCode
 }

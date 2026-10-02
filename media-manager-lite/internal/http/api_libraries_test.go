@@ -293,7 +293,7 @@ func TestDeleteLibraryHTMXFragment(t *testing.T) {
 	if resp2.StatusCode != http.StatusOK {
 		t.Errorf("status = %d, want 200", resp2.StatusCode)
 	}
-	if !strings.Contains(body.String(), "No libraries yet") {
+	if !strings.Contains(body.String(), "还没有媒体库") {
 		t.Errorf("fragment should show empty list, got: %s", body.String())
 	}
 }

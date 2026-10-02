@@ -89,6 +89,8 @@ func (s *Server) routes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /libraries", s.handleLibrariesPage)
 	mux.HandleFunc("GET /settings", s.handleSettingsPage)
 	mux.HandleFunc("GET /libraries/{id}/match", s.handleMatchPage)
+	mux.HandleFunc("GET /movies", s.handleMoviesPage)
+	mux.HandleFunc("GET /tvshows", s.handleTVPage)
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(web.Static())))
 
 	// JSON API.

@@ -35,7 +35,7 @@ type templates struct {
 
 func newTemplates() (*templates, error) {
 	t := &templates{pages: map[string]*template.Template{}}
-	for _, name := range []string{"dashboard", "libraries", "settings", "match", "movie", "tv", "tvshow"} {
+	for _, name := range []string{"dashboard", "libraries", "settings", "match", "movie", "movies", "tv", "tvshow"} {
 		set, err := template.New("layout.html").Funcs(templateFuncs).
 			ParseFS(web.Pages(), "layout.html", name+".html")
 		if err != nil {

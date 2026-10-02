@@ -1,26 +1,25 @@
 {{define "content"}}
-<h1>Libraries</h1>
+<h1>媒体库</h1>
 
 <section class="panel">
-  <h2>Add library</h2>
+  <h2>添加媒体库</h2>
   <form class="library-form" hx-post="/api/libraries" hx-target="#library-panel" hx-swap="outerHTML">
-    <label>Name
-      <input type="text" name="name" required maxlength="255" placeholder="Movies">
+    <label>名称
+      <input type="text" name="name" required maxlength="255" placeholder="电影">
     </label>
-    <label>Path
+    <label>路径
       <input type="text" name="path" required placeholder="/media/movies">
     </label>
-    <label>Type
+    <label>类型
       <select name="type">
-        <option value="movie">Movie</option>
-        <option value="tv">TV Show</option>
+        <option value="movie">电影</option>
+        <option value="tv">电视剧</option>
       </select>
     </label>
-    <button type="submit">Add Library</button>
+    <button type="submit">添加媒体库</button>
   </form>
-  <p class="muted">Adding a library stores a database record only — no files are
-  read, moved or deleted. The path must be an existing, readable directory
-  visible to this server (e.g. a mounted volume).</p>
+  <p class="muted">添加媒体库只会在数据库中登记一条记录——不会读取、移动或删除任何文件。
+  路径必须是本服务器可见、已存在且可读的目录(例如挂载的卷)。</p>
 </section>
 
 {{template "libraries_panel" .}}
@@ -30,28 +29,28 @@
 <div id="library-panel">
   {{if .Error}}<div id="library-error" class="error">{{.Error}}</div>{{end}}
   {{if not .Libraries}}
-    <p class="muted empty">No libraries yet.</p>
+    <p class="muted empty">还没有媒体库。</p>
   {{else}}
   <table class="libraries">
     <thead>
-      <tr><th>Name</th><th>Path</th><th>Type</th><th>Created</th><th></th></tr>
+      <tr><th>名称</th><th>路径</th><th>类型</th><th>创建时间</th><th></th></tr>
     </thead>
     <tbody>
       {{range .Libraries}}
       <tr>
         <td>{{.Name}}</td>
         <td class="path">{{.Path}}</td>
-        <td>{{.Type}}</td>
+        <td>{{if eq .Type "movie"}}电影{{else if eq .Type "tv"}}电视剧{{else}}{{.Type}}{{end}}</td>
         <td>{{prettyDate .CreatedAt}}</td>
         <td class="actions">
-          <a href="/libraries/{{.ID}}/match">Match</a>
+          <a href="/libraries/{{.ID}}/match">匹配</a>
           <button type="button"
             hx-post="/api/libraries/{{.ID}}/scan"
-            hx-target="#library-panel" hx-swap="outerHTML">Scan</button>
+            hx-target="#library-panel" hx-swap="outerHTML">扫描</button>
           <button type="button" class="danger"
             hx-delete="/api/libraries/{{.ID}}"
-            hx-confirm="Delete library {{.Name}}? Only the database record is removed — no media files are touched."
-            hx-target="#library-panel" hx-swap="outerHTML">Delete</button>
+            hx-confirm="确认删除媒体库 {{.Name}}?仅删除数据库记录——不会动任何媒体文件。"
+            hx-target="#library-panel" hx-swap="outerHTML">删除</button>
         </td>
       </tr>
       {{end}}

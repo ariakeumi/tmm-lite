@@ -1,5 +1,5 @@
 {{define "layout"}}<!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,10 +11,11 @@
 <header class="topbar">
   <a class="brand" href="/">Media Manager <span>Lite</span></a>
   <nav>
-    <a href="/" {{if eq .Nav "dashboard"}}class="active"{{end}}>Dashboard</a>
-    <a href="/libraries" {{if eq .Nav "libraries"}}class="active"{{end}}>Libraries</a>
-    <a href="/tv" {{if eq .Nav "tv"}}class="active"{{end}}>TV Shows</a>
-    <a href="/settings" {{if eq .Nav "settings"}}class="active"{{end}}>Settings</a>
+    <a href="/" {{if eq .Nav "dashboard"}}class="active"{{end}}>仪表盘</a>
+    <a href="/libraries" {{if eq .Nav "libraries"}}class="active"{{end}}>媒体库</a>
+    <a href="/movies" {{if eq .Nav "movies"}}class="active"{{end}}>电影</a>
+    <a href="/tv" {{if eq .Nav "tv"}}class="active"{{end}}>电视剧</a>
+    <a href="/settings" {{if eq .Nav "settings"}}class="active"{{end}}>设置</a>
   </nav>
 </header>
 <main class="container">

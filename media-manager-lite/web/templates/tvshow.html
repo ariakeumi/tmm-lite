@@ -9,77 +9,81 @@
   {{if .Error}}<div class="error">{{.Error}}</div>{{end}}
 
   <section class="panel">
-    <h2>Show</h2>
+    <h2>剧集</h2>
     <table class="libraries">
       <tbody>
-        <tr><th>Local title</th><td>{{.Show.Title}}</td></tr>
-        <tr><th>TMDB</th><td>{{if .Show.TMDBID}}{{.Show.TMDBID}} (matched){{else}}<span class="muted">unmatched</span>{{end}}</td></tr>
-        <tr><th>Seasons / Episodes</th><td>{{.Show.SeasonCount}} / {{.Show.EpisodeCount}}</td></tr>
+        <tr><th>本地标题</th><td>{{.Show.Title}}</td></tr>
+        <tr><th>TMDB</th><td>{{if .Show.TMDBID}}{{.Show.TMDBID}}(已匹配){{else}}<span class="muted">未匹配</span>{{end}}</td></tr>
+        <tr><th>季数 / 集数</th><td>{{.Show.SeasonCount}} / {{.Show.EpisodeCount}}</td></tr>
+        {{if .Show.TMDBID}}<tr><th>海报</th><td>{{if .Show.ArtworkStatus}}{{.Show.ArtworkStatus}}{{else}}无{{end}}</td></tr>{{end}}
       </tbody>
     </table>
     <div style="margin-top: .75rem; display: flex; gap: .5rem;">
       <button type="button"
         hx-post="/api/tv/shows/{{.Show.ID}}/search"
-        hx-target="#tvshow-panel" hx-swap="outerHTML">Search TMDB</button>
+        hx-target="#tvshow-panel" hx-swap="outerHTML">搜索 TMDB</button>
       {{if .Show.TMDBID}}
       <button type="button" class="danger"
         hx-post="/api/tv/shows/{{.Show.ID}}/match"
         hx-vals='{"unmatched": true}'
-        hx-target="#tvshow-panel" hx-swap="outerHTML">Mark unmatched</button>
+        hx-target="#tvshow-panel" hx-swap="outerHTML">标记为未匹配</button>
       <button type="button"
         hx-post="/api/tv/shows/{{.Show.ID}}/nfo"
-        hx-target="#tvshow-panel" hx-swap="outerHTML">Write NFO</button>
+        hx-target="#tvshow-panel" hx-swap="outerHTML">写入 NFO</button>
+      <button type="button"
+        hx-post="/api/tv/shows/{{.Show.ID}}/artwork"
+        hx-target="#tvshow-panel" hx-swap="outerHTML">下载海报</button>
       {{end}}
     </div>
   </section>
 
   {{if .Candidates}}
   <section class="panel">
-    <h2>Candidates</h2>
+    <h2>候选</h2>
     {{range .Candidates}}
     <div class="candidate">
       <span class="score">{{printf "%.2f" .Score}}</span>
       <strong>{{.Name}}</strong>{{if .Year}} <span class="muted">({{.Year}})</span>{{end}}
-      {{if .IDMatch}}<span class="muted">id match</span>{{end}}
+      {{if .IDMatch}}<span class="muted">ID 命中</span>{{end}}
       <button type="button"
         hx-post="/api/tv/shows/{{$.Show.ID}}/match"
         hx-vals='{"tmdbId": {{.TMDBID}}}'
-        hx-target="#tvshow-panel" hx-swap="outerHTML">Match</button>
+        hx-target="#tvshow-panel" hx-swap="outerHTML">匹配</button>
     </div>
     {{end}}
   </section>
   {{end}}
 
   <section class="panel">
-    <h2>Seasons</h2>
+    <h2>季</h2>
     {{range .Seasons}}
-    <h3>{{if .Title}}{{.Title}}{{else}}Season {{.Number}}{{end}}</h3>
+    <h3>{{if .Title}}{{.Title}}{{else}}第 {{.Number}} 季{{end}}</h3>
     <table class="libraries">
-      <thead><tr><th>S</th><th>E</th><th>Title</th><th>Actions</th></tr></thead>
+      <thead><tr><th>季</th><th>集</th><th>标题</th><th>操作</th></tr></thead>
       <tbody>
         {{range .Episodes}}
         <tr>
           <td>{{.SeasonNumber}}</td><td>{{.EpisodeNumber}}</td>
-          <td>{{if .Title}}{{.Title}}{{else}}<span class="muted">unscraped</span>{{end}}</td>
+          <td>{{if .Title}}{{.Title}}{{else}}<span class="muted">未刮削</span>{{end}}</td>
           <td class="actions">
             {{if .ItemID}}
             <button type="button"
               hx-get="/api/episodes/{{.ItemID}}/rename"
-              hx-target="#ep-rename-{{.ItemID}}" hx-swap="innerHTML">Preview</button>
+              hx-target="#ep-rename-{{.ItemID}}" hx-swap="innerHTML">预览</button>
             <button type="button"
               hx-post="/api/episodes/{{.ItemID}}/rename"
-              hx-confirm="Execute the rename for this episode?"
-              hx-target="#ep-rename-{{.ItemID}}" hx-swap="innerHTML">Execute</button>
+              hx-confirm="执行该集的重命名?"
+              hx-target="#ep-rename-{{.ItemID}}" hx-swap="innerHTML">执行</button>
             {{end}}
           </td>
         </tr>
         {{else}}
-        <tr><td colspan="4" class="muted">no episodes scanned</td></tr>
+        <tr><td colspan="4" class="muted">尚未扫描到剧集</td></tr>
         {{end}}
       </tbody>
     </table>
     {{else}}
-    <p class="muted">No seasons scanned yet.</p>
+    <p class="muted">尚未扫描到季。</p>
     {{end}}
   </section>
 </div>
@@ -93,7 +97,7 @@
       {{range .Plan.Actions}}
       <div class="path">{{.Op}} {{.Kind}}: {{.From}} → {{.To}}</div>
       {{end}}
-      {{if not .Plan.Actions}}<div class="muted">nothing to do</div>{{end}}
+      {{if not .Plan.Actions}}<div class="muted">无需操作</div>{{end}}
     {{else}}
       <div class="error">{{range .Plan.Invalid}}<div>{{.}}</div>{{end}}</div>
     {{end}}

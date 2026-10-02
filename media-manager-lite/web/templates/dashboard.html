@@ -1,30 +1,31 @@
 {{define "content"}}
-<h1>Dashboard</h1>
-<p class="muted">Media metadata manager for Jellyfin / Emby / Kodi libraries.</p>
+<h1>仪表盘</h1>
+<p class="muted">为 Jellyfin / Emby / Kodi 媒体库设计的轻量级媒体元数据管理器。</p>
 
 <section class="cards">
   <a class="card" href="/libraries">
     <div class="card-value">{{.Counts.Libraries}}</div>
-    <div class="card-label">Libraries</div>
+    <div class="card-label">媒体库</div>
+  </a>
+  <a class="card" href="/movies">
+    <div class="card-value">{{.Counts.Movies}}</div>
+    <div class="card-label">电影</div>
+  </a>
+  <a class="card" href="/tv">
+    <div class="card-value">{{.Counts.TvShows}}</div>
+    <div class="card-label">电视剧</div>
   </a>
   <div class="card">
-    <div class="card-value">{{.Counts.Movies}}</div>
-    <div class="card-label">Movies</div>
-  </div>
-  <div class="card">
-    <div class="card-value">{{.Counts.TvShows}}</div>
-    <div class="card-label">TV Shows</div>
-  </div>
-  <div class="card">
     <div class="card-value">{{.Counts.ActiveTasks}}</div>
-    <div class="card-label">Tasks</div>
+    <div class="card-label">任务</div>
   </div>
 </section>
 
 <section class="panel">
-  <h2>Getting started</h2>
-  <p>Add a movie or TV library on the <a href="/libraries">Libraries</a> page.
-  Scanning, TMDB scraping, artwork, NFO writing and renaming arrive in upcoming
-  milestones — this build manages library registration only.</p>
+  <h2>使用流程</h2>
+  <p>在<a href="/libraries">媒体库</a>页添加电影或电视剧目录并<b>扫描</b>;然后进入各库的
+  <b>匹配</b>页,搜索 TMDB 并确认匹配(确认前不会写入任何内容);匹配完成后可依次
+  <b>下载海报</b>、<b>写入 NFO</b>、<b>预览并执行重命名</b>。所有文件操作都只读媒体目录中
+  的既有文件,绝不删除用户文件。</p>
 </section>
 {{end}}
