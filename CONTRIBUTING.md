@@ -4,7 +4,7 @@
 
 When considering [reporting an issue/bug][1], first do a thorough search to determine if it has already been addressed or a workaround has been described. Interactions between users and developers occur in multiple places:
 
-* [GitLab Issue Tracker][2] For use when you are relatively certain that a developer's attention is required (don't
+* [Issue Tracker][2] For use when you are relatively certain that a developer's attention is required (don't
   forget to search the closed reports in addition to those currently open, first)
 * [Reddit community][3] If you aren't certain if your issue is due to a peculiarity in your setup or an actual flaw in
   the program, creating a topic here will often allow more experienced users to help you to make that determination.
@@ -38,15 +38,15 @@ If you want to help us translating tinyMediaManager, please register at [Weblate
 
 Feature requests are also accepted via the [Issue Tracker][2] when made politely and a good case is made for how it will benefit a relatively broad portion of the userbase.
 
-[1]: https://gitlab.com/tinyMediaManager/tinyMediaManager/-/work_items/new?description_template=Default
+[1]: https://github.com/ariakeumi/tmm-lite/issues/new
 
-[2]: https://gitlab.com/tinyMediaManager/tinyMediaManager/-/work_items?sort=updated_desc&state=all&first_page_size=100
+[2]: https://github.com/ariakeumi/tmm-lite/issues
 
 [3]: https://www.reddit.com/r/tinyMediaManager/
 
 [4]: https://www.tinymediamanager.org/docs/
 [5]: https://www.tinymediamanager.org/help/faq
-[7]: https://gitlab.com/tinyMediaManager/tinyMediaManager/forks/new
-[8]: https://gitlab.com/tinyMediaManager/tinyMediaManager/merge_requests
-[9]: https://gitlab.com/tinyMediaManager/tinyMediaManager/blob/devel/changelog.txt
+[7]: https://github.com/ariakeumi/tmm-lite/fork
+[8]: https://github.com/ariakeumi/tmm-lite/pulls
+[9]: https://github.com/ariakeumi/tmm-lite/blob/devel/changelog.txt
 [10]: https://hosted.weblate.org/projects/tinymediamanager/

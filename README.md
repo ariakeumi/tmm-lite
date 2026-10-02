@@ -56,7 +56,7 @@ tinyMediaManager is compiled using Apache's build automation tool, [Maven][15]. 
 1. Clone this repository to your computer
 
    ```bash
-   git clone https://gitlab.com/tinyMediaManager/tinyMediaManager.git
+   git clone https://github.com/ariakeumi/tmm-lite.git
    ```
 
 2. Build using maven. Since we use some different repositories, you need to adopt your maven settings.xml (usually

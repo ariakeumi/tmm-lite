@@ -52,16 +52,6 @@
             <post>https://www.reddit.com/r/tinyMediaManager/</post>
         </mailingList>
     </mailingLists>
-    <scm>
-        <url>https://gitlab.com/tinyMediaManager/${project.artifactId}</url>
-        <connection>scm:git:git@gitlab.com:tinyMediaManager/${project.artifactId}.git</connection>
-        <developerConnection>scm:git:git@gitlab.com:tinyMediaManager/${project.artifactId}.git</developerConnection>
-        <tag>HEAD</tag>
-    </scm>
-    <ciManagement>
-        <system>GitLab CI</system>
-        <url>https://gitlab.com/tinyMediaManager/${project.artifactId}/pipelines</url>
-    </ciManagement>
     <properties>
         <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -364,31 +354,10 @@
     </dependencies>
     <repositories>
         <repository>
-            <id>gitlab-maven</id>
-            <url>https://gitlab.com/api/v4/projects/9945251/packages/maven</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-        <repository>
             <id>tinyMediaManager</id>
             <url>https://repo.tinymediamanager.org/maven/repo</url>
         </repository>
     </repositories>
-    <distributionManagement>
-        <repository>
-            <id>gitlab-maven</id>
-            <url>https://gitlab.com/api/v4/projects/9945251/packages/maven</url>
-        </repository>
-        <snapshotRepository>
-            <id>gitlab-maven</id>
-            <url>https://gitlab.com/api/v4/projects/9945251/packages/maven</url>
-        </snapshotRepository>
-    </distributionManagement>
     <build>
         <resources>
             <resource>
