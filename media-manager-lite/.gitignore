@@ -1,6 +1,6 @@
-data/
-config/
-bin/
+/data/
+/config/
+/bin/
 *.db
 *.db-wal
 *.db-shm
