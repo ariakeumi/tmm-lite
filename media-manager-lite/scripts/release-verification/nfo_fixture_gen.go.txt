@@ -1,0 +1,103 @@
+// Command _gen writes the real-import NFO fixtures (all three flavors)
+// used for the v1.0 Jellyfin/Emby verification. It lives under an
+// underscore directory so `go build ./...` ignores it; run with
+//
+//	go run ./reltest/_gen
+package main
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"media-manager-lite/internal/nfo"
+)
+
+var posterPNG = []byte{
+	0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+	0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+	0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
+	0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
+	0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49,
+	0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+}
+
+func mustWrite(path string, data []byte) {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		panic(err)
+	}
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		panic(err)
+	}
+	fmt.Println("wrote", path)
+}
+
+func main() {
+	nfo.SetStamp("2026-10-01 12:00:00")
+
+	movieData := nfo.MovieData{
+		Title: "盗梦空间", OriginalTitle: "Inception", Year: 2010,
+		Rating: 8.4, Votes: 35000,
+		SetName: "诺兰合集", SetTMDBID: 119,
+		Plot: "一名造梦师，深入他人梦境窃取机密。", Tagline: "你的梦，是他人的现实。",
+		Runtime: 148, Certification: "PG-13", CertCountry: "US",
+		TMDBID: 27205, IMDBID: "tt1375666", Premiered: "2010-07-16",
+		Genres:  []string{"动作", "科幻"},
+		Studios: []string{"Warner Bros. Pictures"},
+		Writers: []string{"Christopher Nolan"}, Directors: []string{"Christopher Nolan"},
+		Actors: []nfo.Actor{{Name: "莱昂纳多·迪卡普里奥", Role: "Cobb", Thumb: "http://image.example/h632/leo.jpg"}},
+		UserData: nfo.UserData{
+			Watched: true, Playcount: 3, LastPlayed: "2026-09-30 22:15:00",
+			DateAdded: "2026-09-01 08:00:00", UserRating: 9.0,
+		},
+	}
+
+	show := nfo.TVShowData{
+		Title: "北斗剧集", OriginalTitle: "北斗", Year: 2021,
+		Rating: 8.1, Votes: 99, Plot: "一部关于北方星辰的剧集。",
+		Status: "Returning Series", Certification: "TV-MA", CertCountry: "US",
+		TMDBID: 555, IMDBID: "tt555", Premiered: "2021-05-01",
+		Genres: []string{"Drama"}, Studios: []string{"Example Studios"},
+		UserData: nfo.UserData{DateAdded: "2026-09-01 08:00:00"},
+	}
+	season := nfo.SeasonData{
+		SeasonNumber: 1, Title: "Season 1", ShowTitle: "北斗剧集",
+		ShowYear: 2021, TMDBID: 555, IMDBID: "tt555",
+		UserData: nfo.UserData{DateAdded: "2026-09-01 08:00:00"},
+	}
+	ep1 := nfo.EpisodeData{
+		Title: "启程", ShowTitle: "北斗剧集", Season: 1, Episodes: []int{1},
+		AirDate: "2021-05-01", Runtime: 45, Rating: 7.5, Votes: 10,
+		Plot: "故事从北方开始。", EpisodeTMDBID: 9001, ShowTMDBID: 555, ShowIMDBID: "tt555",
+		UserData: nfo.UserData{Watched: true, Playcount: 2, DateAdded: "2026-09-01 08:00:00"},
+	}
+	multi := nfo.EpisodeData{
+		Title: "连续两集", ShowTitle: "北斗剧集", Season: 1, Episodes: []int{2, 3},
+		AirDate: "2021-05-08", Runtime: 47, Rating: 8.0, Votes: 12,
+		Plot: "两个连续的集数。", EpisodeTMDBID: 9002, ShowTMDBID: 555, ShowIMDBID: "tt555",
+		UserData: nfo.UserData{DateAdded: "2026-09-01 08:00:00"},
+	}
+
+	flavors := map[string]nfo.Flavor{
+		"kodi": nfo.Kodi, "emby": nfo.Emby, "jellyfin": nfo.Jellyfin,
+	}
+	for name, f := range flavors {
+		// Movies.
+		md := movieData
+		dir := filepath.Join("reltest", "jfmedia", "movie_"+name, "Inception (2010)")
+		mustWrite(filepath.Join(dir, "movie.nfo"), []byte(nfo.Build(md, f)))
+		mustWrite(filepath.Join(dir, "poster.jpg"), posterPNG)
+		mustWrite(filepath.Join(dir, "fanart.jpg"), posterPNG)
+
+		// TV: show + season (both naming variants) + episodes.
+		showDir := filepath.Join("reltest", "jfmedia", "tv_"+name, "北斗剧集")
+		seasonDir := filepath.Join(showDir, "Season 01")
+		mustWrite(filepath.Join(showDir, "tvshow.nfo"), []byte(nfo.BuildTVShow(show, f)))
+		mustWrite(filepath.Join(seasonDir, "season.nfo"), []byte(nfo.BuildSeason(season, f)))
+		mustWrite(filepath.Join(seasonDir, "season01.nfo"), []byte(nfo.BuildSeason(season, f)))
+		mustWrite(filepath.Join(seasonDir, "poster.jpg"), posterPNG)
+		mustWrite(filepath.Join(seasonDir, "北斗剧集 - S01E01 - 启程.nfo"), []byte(nfo.BuildEpisodes(ep1, f)))
+		mustWrite(filepath.Join(seasonDir, "北斗剧集 - S01E02-E03 - 连续两集.nfo"), []byte(nfo.BuildEpisodes(multi, f)))
+	}
+	fmt.Println("fixtures complete")
+}

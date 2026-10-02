@@ -1,0 +1,35 @@
+# Media Manager Lite — GHCR image deployment.
+#
+#   docker compose up -d
+#
+# The image is built for linux/amd64 and linux/arm64 by GitHub CI and
+# published to ghcr.io. Override with MEDIA_MANAGER_IMAGE=... when testing
+# a locally built image:
+#
+#   MEDIA_MANAGER_IMAGE=media-manager-lite:dev docker compose up -d
+#
+# The container runs as ROOT by default so it can write to typical NAS
+# media trees and any /config volume ownership. To drop privileges, add:
+#
+#     user: "65532:65532"
+#
+# and make /config writable by that UID.
+
+services:
+  media-manager:
+    image: ${MEDIA_MANAGER_IMAGE:-ghcr.io/ariakeumi/media-manager-lite:latest}
+    container_name: media-manager-lite
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config:/config
+      # Mount your media directories here; library paths must be visible
+      # inside the container:
+      # - /media/movies:/media/movies
+      # - /media/tv:/media/tv
+    environment:
+      MEDIA_MANAGER_HTTP_ADDR: ":8080"
+      MEDIA_MANAGER_DB: /config/media-manager.db
+      MEDIA_MANAGER_LOG_LEVEL: info
+      # MEDIA_MANAGER_TMDB_API_KEY: bootstrap key (settings table wins)
+    restart: unless-stopped

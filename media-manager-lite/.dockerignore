@@ -1,0 +1,11 @@
+.git
+data/
+config/
+bin/
+*.db
+*.db-wal
+*.db-shm
+.DS_Store
+docker-compose.yml
+README.md
+docs/

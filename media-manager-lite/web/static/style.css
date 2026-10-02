@@ -1,0 +1,170 @@
+/* Media Manager Lite — minimal, responsive, light theme. */
+:root {
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --text: #1c2733;
+  --muted: #687582;
+  --accent: #2563eb;
+  --accent-soft: #eef4ff;
+  --border: #dde3ea;
+  --danger: #b91c1c;
+  --danger-soft: #fef2f2;
+  --danger-border: #fecaca;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-decoration: none;
+  color: var(--text);
+}
+.brand span { color: var(--accent); }
+
+.topbar nav { display: flex; gap: 0.5rem; }
+.topbar nav a {
+  text-decoration: none;
+  color: var(--muted);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+}
+.topbar nav a.active,
+.topbar nav a:hover { color: var(--accent); background: var(--accent-soft); }
+
+.container { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+
+h1 { font-size: 1.4rem; margin: 0.2rem 0 1rem; }
+h2 { font-size: 1.05rem; margin: 0 0 0.75rem; }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  text-decoration: none;
+  color: var(--text);
+  display: block;
+}
+.card-value { font-size: 1.6rem; font-weight: 700; }
+.card-label { color: var(--muted); font-size: 0.85rem; }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.library-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+.library-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+input, select {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+  min-width: 180px;
+  background: #fff;
+  color: var(--text);
+}
+
+button {
+  font: inherit;
+  padding: 0.45rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+button.danger {
+  background: #fff;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+button:hover { filter: brightness(1.05); }
+
+table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+th, td {
+  text-align: left;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+td.path {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  word-break: break-all;
+}
+td.actions { text-align: right; white-space: nowrap; }
+
+.error {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  margin: 0.75rem 0;
+}
+
+.muted { color: var(--muted); }
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  background: var(--accent-soft);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+.footer { color: var(--muted); font-size: 0.85rem; padding-top: 0.5rem; }
+.footer a { color: var(--muted); }
+
+@media (max-width: 600px) {
+  .library-form label { width: 100%; }
+  input, select { width: 100%; min-width: 0; }
+  td.actions { text-align: left; }
+}

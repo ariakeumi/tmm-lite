@@ -1,0 +1,102 @@
+{{define "content"}}
+<h1>{{.Show.Title}}</h1>
+
+{{template "tvshow_panel" .}}
+{{end}}
+
+{{define "tvshow_panel"}}
+<div id="tvshow-panel">
+  {{if .Error}}<div class="error">{{.Error}}</div>{{end}}
+
+  <section class="panel">
+    <h2>Show</h2>
+    <table class="libraries">
+      <tbody>
+        <tr><th>Local title</th><td>{{.Show.Title}}</td></tr>
+        <tr><th>TMDB</th><td>{{if .Show.TMDBID}}{{.Show.TMDBID}} (matched){{else}}<span class="muted">unmatched</span>{{end}}</td></tr>
+        <tr><th>Seasons / Episodes</th><td>{{.Show.SeasonCount}} / {{.Show.EpisodeCount}}</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top: .75rem; display: flex; gap: .5rem;">
+      <button type="button"
+        hx-post="/api/tv/shows/{{.Show.ID}}/search"
+        hx-target="#tvshow-panel" hx-swap="outerHTML">Search TMDB</button>
+      {{if .Show.TMDBID}}
+      <button type="button" class="danger"
+        hx-post="/api/tv/shows/{{.Show.ID}}/match"
+        hx-vals='{"unmatched": true}'
+        hx-target="#tvshow-panel" hx-swap="outerHTML">Mark unmatched</button>
+      <button type="button"
+        hx-post="/api/tv/shows/{{.Show.ID}}/nfo"
+        hx-target="#tvshow-panel" hx-swap="outerHTML">Write NFO</button>
+      {{end}}
+    </div>
+  </section>
+
+  {{if .Candidates}}
+  <section class="panel">
+    <h2>Candidates</h2>
+    {{range .Candidates}}
+    <div class="candidate">
+      <span class="score">{{printf "%.2f" .Score}}</span>
+      <strong>{{.Name}}</strong>{{if .Year}} <span class="muted">({{.Year}})</span>{{end}}
+      {{if .IDMatch}}<span class="muted">id match</span>{{end}}
+      <button type="button"
+        hx-post="/api/tv/shows/{{$.Show.ID}}/match"
+        hx-vals='{"tmdbId": {{.TMDBID}}}'
+        hx-target="#tvshow-panel" hx-swap="outerHTML">Match</button>
+    </div>
+    {{end}}
+  </section>
+  {{end}}
+
+  <section class="panel">
+    <h2>Seasons</h2>
+    {{range .Seasons}}
+    <h3>{{if .Title}}{{.Title}}{{else}}Season {{.Number}}{{end}}</h3>
+    <table class="libraries">
+      <thead><tr><th>S</th><th>E</th><th>Title</th><th>Actions</th></tr></thead>
+      <tbody>
+        {{range .Episodes}}
+        <tr>
+          <td>{{.SeasonNumber}}</td><td>{{.EpisodeNumber}}</td>
+          <td>{{if .Title}}{{.Title}}{{else}}<span class="muted">unscraped</span>{{end}}</td>
+          <td class="actions">
+            {{if .ItemID}}
+            <button type="button"
+              hx-get="/api/episodes/{{.ItemID}}/rename"
+              hx-target="#ep-rename-{{.ItemID}}" hx-swap="innerHTML">Preview</button>
+            <button type="button"
+              hx-post="/api/episodes/{{.ItemID}}/rename"
+              hx-confirm="Execute the rename for this episode?"
+              hx-target="#ep-rename-{{.ItemID}}" hx-swap="innerHTML">Execute</button>
+            {{end}}
+          </td>
+        </tr>
+        {{else}}
+        <tr><td colspan="4" class="muted">no episodes scanned</td></tr>
+        {{end}}
+      </tbody>
+    </table>
+    {{else}}
+    <p class="muted">No seasons scanned yet.</p>
+    {{end}}
+  </section>
+</div>
+{{end}}
+
+{{define "episode_rename_panel"}}
+<div class="rename-plan">
+  {{if .Message}}<div class="muted">{{.Message}}</div>{{end}}
+  {{if .Plan}}
+    {{if .Plan.Valid}}
+      {{range .Plan.Actions}}
+      <div class="path">{{.Op}} {{.Kind}}: {{.From}} → {{.To}}</div>
+      {{end}}
+      {{if not .Plan.Actions}}<div class="muted">nothing to do</div>{{end}}
+    {{else}}
+      <div class="error">{{range .Plan.Invalid}}<div>{{.}}</div>{{end}}</div>
+    {{end}}
+  {{end}}
+</div>
+{{end}}

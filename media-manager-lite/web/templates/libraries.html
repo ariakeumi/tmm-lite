@@ -1,0 +1,62 @@
+{{define "content"}}
+<h1>Libraries</h1>
+
+<section class="panel">
+  <h2>Add library</h2>
+  <form class="library-form" hx-post="/api/libraries" hx-target="#library-panel" hx-swap="outerHTML">
+    <label>Name
+      <input type="text" name="name" required maxlength="255" placeholder="Movies">
+    </label>
+    <label>Path
+      <input type="text" name="path" required placeholder="/media/movies">
+    </label>
+    <label>Type
+      <select name="type">
+        <option value="movie">Movie</option>
+        <option value="tv">TV Show</option>
+      </select>
+    </label>
+    <button type="submit">Add Library</button>
+  </form>
+  <p class="muted">Adding a library stores a database record only — no files are
+  read, moved or deleted. The path must be an existing, readable directory
+  visible to this server (e.g. a mounted volume).</p>
+</section>
+
+{{template "libraries_panel" .}}
+{{end}}
+
+{{define "libraries_panel"}}
+<div id="library-panel">
+  {{if .Error}}<div id="library-error" class="error">{{.Error}}</div>{{end}}
+  {{if not .Libraries}}
+    <p class="muted empty">No libraries yet.</p>
+  {{else}}
+  <table class="libraries">
+    <thead>
+      <tr><th>Name</th><th>Path</th><th>Type</th><th>Created</th><th></th></tr>
+    </thead>
+    <tbody>
+      {{range .Libraries}}
+      <tr>
+        <td>{{.Name}}</td>
+        <td class="path">{{.Path}}</td>
+        <td>{{.Type}}</td>
+        <td>{{prettyDate .CreatedAt}}</td>
+        <td class="actions">
+          <a href="/libraries/{{.ID}}/match">Match</a>
+          <button type="button"
+            hx-post="/api/libraries/{{.ID}}/scan"
+            hx-target="#library-panel" hx-swap="outerHTML">Scan</button>
+          <button type="button" class="danger"
+            hx-delete="/api/libraries/{{.ID}}"
+            hx-confirm="Delete library {{.Name}}? Only the database record is removed — no media files are touched."
+            hx-target="#library-panel" hx-swap="outerHTML">Delete</button>
+        </td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+  {{end}}
+</div>
+{{end}}

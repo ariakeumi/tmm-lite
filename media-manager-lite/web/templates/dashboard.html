@@ -1,0 +1,30 @@
+{{define "content"}}
+<h1>Dashboard</h1>
+<p class="muted">Media metadata manager for Jellyfin / Emby / Kodi libraries.</p>
+
+<section class="cards">
+  <a class="card" href="/libraries">
+    <div class="card-value">{{.Counts.Libraries}}</div>
+    <div class="card-label">Libraries</div>
+  </a>
+  <div class="card">
+    <div class="card-value">{{.Counts.Movies}}</div>
+    <div class="card-label">Movies</div>
+  </div>
+  <div class="card">
+    <div class="card-value">{{.Counts.TvShows}}</div>
+    <div class="card-label">TV Shows</div>
+  </div>
+  <div class="card">
+    <div class="card-value">{{.Counts.ActiveTasks}}</div>
+    <div class="card-label">Tasks</div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>Getting started</h2>
+  <p>Add a movie or TV library on the <a href="/libraries">Libraries</a> page.
+  Scanning, TMDB scraping, artwork, NFO writing and renaming arrive in upcoming
+  milestones — this build manages library registration only.</p>
+</section>
+{{end}}

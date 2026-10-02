@@ -1,0 +1,8 @@
+data/
+config/
+bin/
+*.db
+*.db-wal
+*.db-shm
+.DS_Store
+reltest/

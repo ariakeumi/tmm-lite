@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- created on 2026-10-01 12:00:00 by Media Manager Lite for JELLYFIN -->
+<episodedetails>
+  <title>启程</title>
+  <showtitle>北斗剧集</showtitle>
+  <season>1</season>
+  <episode>1</episode>
+  <ratings>
+    <rating name="themoviedb" max="10" default="true">
+      <value>7.5</value>
+      <votes>10</votes>
+    </rating>
+  </ratings>
+  <plot>故事从北方开始。</plot>
+  <runtime>45</runtime>
+  <aired>2021-05-01</aired>
+  <premiered>2021-05-01</premiered>
+  <watched>true</watched>
+  <playcount>1</playcount>
+  <dateadded>2026-10-01 12:00:00</dateadded>
+</episodedetails>

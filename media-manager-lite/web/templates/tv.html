@@ -1,0 +1,22 @@
+{{define "content"}}
+<h1>TV Shows</h1>
+{{if not .Shows}}
+  <section class="panel"><p class="muted empty">No TV shows yet — scan a TV
+  library from the <a href="/libraries">Libraries</a> page.</p></section>
+{{else}}
+<table class="libraries">
+  <thead><tr><th>Title</th><th>Seasons</th><th>Episodes</th><th>TMDB</th><th>Status</th></tr></thead>
+  <tbody>
+    {{range .Shows}}
+    <tr>
+      <td><a href="/tv/shows/{{.ID}}">{{.Title}}</a></td>
+      <td>{{.SeasonCount}}</td>
+      <td>{{.EpisodeCount}}</td>
+      <td>{{if .TMDBID}}{{.TMDBID}}{{else}}<span class="muted">unmatched</span>{{end}}</td>
+      <td>{{.AiredStatus}}</td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+{{end}}
+{{end}}

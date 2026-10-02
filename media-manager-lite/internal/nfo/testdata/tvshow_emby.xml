@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- created on 2026-10-01 12:00:00 by Media Manager Lite for EMBY -->
+<tvshow>
+  <title>北斗剧集</title>
+  <originaltitle>北斗</originaltitle>
+  <showtitle>北斗剧集</showtitle>
+  <year>2021</year>
+  <ratings>
+    <rating name="themoviedb" max="10" default="true">
+      <value>8.1</value>
+      <votes>99</votes>
+    </rating>
+  </ratings>
+  <userrating>8.0</userrating>
+  <plot>一部关于北方星辰的剧集。</plot>
+  <status>Returning Series</status>
+  <mpaa>TV-MA</mpaa>
+  <certification>US:TV-MA</certification>
+  <id></id>
+  <tmdbid>555</tmdbid>
+  <imdbid>tt555</imdbid>
+  <uniqueid type="imdb" default="true">tt555</uniqueid>
+  <uniqueid type="tmdb">555</uniqueid>
+  <premiered>2021-05-01</premiered>
+  <watched>true</watched>
+  <playcount>2</playcount>
+  <lastplayed>2026-10-01 11:00:00</lastplayed>
+  <genre>Drama</genre>
+  <studio>Example Studios</studio>
+  <lockdata>true</lockdata>
+  <dateadded>2026-10-01 12:00:00</dateadded>
+</tvshow>

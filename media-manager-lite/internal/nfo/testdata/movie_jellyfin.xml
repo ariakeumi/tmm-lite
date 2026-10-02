@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- created on 2026-10-01 12:00:00 by Media Manager Lite for JELLYFIN -->
+<movie>
+  <title>盗梦空间</title>
+  <originaltitle>Inception</originaltitle>
+  <year>2010</year>
+  <ratings>
+    <rating name="themoviedb" max="10" default="true">
+      <value>8.4</value>
+      <votes>35000</votes>
+    </rating>
+  </ratings>
+  <userrating>9.0</userrating>
+  <set tmdbcolid="119">
+    <name>盗梦空间合集</name>
+  </set>
+  <plot>一名造梦师，深入他人梦境窃取机密。</plot>
+  <tagline>你的梦，是他人的现实。</tagline>
+  <runtime>148</runtime>
+  <thumb aspect="poster">http://image.example/original/inc.jpg</thumb>
+  <fanart>
+    <thumb>http://image.example/original/inc-fan.jpg</thumb>
+  </fanart>
+  <mpaa>PG-13</mpaa>
+  <certification>US:PG-13</certification>
+  <id>tt1375666</id>
+  <tmdbid>27205</tmdbid>
+  <uniqueid type="imdb" default="true">tt1375666</uniqueid>
+  <uniqueid type="tmdb">27205</uniqueid>
+  <premiered>2010-09-01</premiered>
+  <watched>true</watched>
+  <playcount>2</playcount>
+  <lastplayed>2026-10-01 11:00:00</lastplayed>
+  <genre>动作</genre>
+  <genre>科幻</genre>
+  <studio>Warner Bros. Pictures</studio>
+  <credits>Christopher Nolan</credits>
+  <director>Christopher Nolan</director>
+  <actor>
+    <name>莱昂纳多·迪卡普里奥</name>
+    <role>Cobb</role>
+    <thumb>http://image.example/h632/leo.jpg</thumb>
+  </actor>
+  <actor>
+    <name>约瑟夫·高登-莱维特</name>
+    <role>Arthur</role>
+  </actor>
+  <collectionnumber>119</collectionnumber>
+  <dateadded>2026-10-01 12:00:00</dateadded>
+  <resume><position>0</position><total>8880</total></resume>
+  <epbookmark />
+  <fileinfo><streamdetails><video><codec>h264</codec></video></streamdetails></fileinfo>
+  <customtag source="legacy &amp;amp; &amp;lt;old&amp;gt;">keeps &amp; &lt;special&gt; chars</customtag>
+</movie>

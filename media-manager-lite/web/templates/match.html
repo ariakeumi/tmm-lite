@@ -1,0 +1,73 @@
+{{define "content"}}
+<h1>Match · {{.Library.Name}}</h1>
+<p class="muted">Search TMDB with the parsed filename, review the ranked
+candidates and confirm a match — nothing is written until you confirm.</p>
+
+{{if not .Rows}}
+  <section class="panel"><p class="muted empty">No media items yet — scan the
+  library from the <a href="/libraries">Libraries</a> page first.</p></section>
+{{else}}
+<table class="libraries">
+  <thead>
+    <tr><th>File</th><th>Parsed</th><th>Status</th><th>Candidates</th></tr>
+  </thead>
+  <tbody>
+    {{range .Rows}}{{template "match_row" .}}{{end}}
+  </tbody>
+</table>
+{{end}}
+{{end}}
+
+{{define "match_row"}}
+<tr id="item-{{.Item.ID}}">
+  <td class="path"><a href="/movies/{{.Item.ID}}">{{.Item.Filename}}</a></td>
+  <td>
+    {{if .Item.ParsedTitle}}
+      {{.Item.ParsedTitle}}{{if .Item.ParsedYear}} <span class="muted">({{.Item.ParsedYear}})</span>{{end}}
+    {{else}}
+      <span class="muted">unparsed</span>
+    {{end}}
+  </td>
+  <td>{{.Item.Status}}</td>
+  <td>
+    {{if eq .Item.Status "matched"}}
+      matched ✓
+      <div class="postmatch">
+        <button type="button"
+          hx-post="/api/movies/{{.Item.ID}}/artwork"
+          hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">Artwork</button>
+        <button type="button"
+          hx-post="/api/movies/{{.Item.ID}}/nfo"
+          hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">Write NFO</button>
+      </div>
+    {{else}}
+      {{template "match_candidates" .}}
+    {{end}}
+  </td>
+</tr>
+{{end}}
+
+{{define "match_candidates"}}
+<div id="candidates-{{.Item.ID}}" class="candidates">
+  <button type="button"
+    hx-post="/api/movies/{{.Item.ID}}/search"
+    hx-target="#candidates-{{.Item.ID}}" hx-swap="outerHTML">Search TMDB</button>
+  {{range .Candidates}}
+  <div class="candidate">
+    <span class="score">{{printf "%.2f" .Score}}</span>
+    <strong>{{.Candidate.Title}}</strong>{{if .Candidate.Year}} <span class="muted">({{.Candidate.Year}})</span>{{end}}
+    {{if .Candidate.Overview}}<div class="muted small">{{truncate .Candidate.Overview 140}}</div>{{end}}
+    <button type="button"
+      hx-post="/api/movies/{{$.Item.ID}}/match"
+      hx-vals='{"tmdbId": {{.Candidate.TMDBID}}}'
+      hx-target="#item-{{$.Item.ID}}" hx-swap="outerHTML">Match</button>
+  </div>
+  {{else}}
+  <div class="muted small">no candidates yet — run a search</div>
+  {{end}}
+  <button type="button" class="danger"
+    hx-post="/api/movies/{{.Item.ID}}/match"
+    hx-vals='{"unmatched": true}'
+    hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">Mark unmatched</button>
+</div>
+{{end}}
