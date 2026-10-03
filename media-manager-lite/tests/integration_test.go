@@ -64,7 +64,8 @@ func newAppWithConfig(t *testing.T, cfgFn func() config.Config) *app {
 	libs := library.NewService(library.NewStore(db.DB))
 	mediaStore := media.NewStore(db.DB)
 	tvStore := tv.NewStore(db.DB)
-	scanSvc := scanner.NewService(mediaStore, tvStore)
+	movies := movie.NewStore(db.DB)
+	scanSvc := scanner.NewService(mediaStore, tvStore, movies)
 	tasks := task.NewStore(db.DB)
 	runner := task.NewRunner(tasks, log, 64)
 	runner.Register("scan_library", scanner.ScanHandler(libs, scanSvc))
@@ -72,7 +73,6 @@ func newAppWithConfig(t *testing.T, cfgFn func() config.Config) *app {
 		t.Fatalf("start runner: %v", err)
 	}
 	settingsStore := settings.NewStore(db.DB)
-	movies := movie.NewStore(db.DB)
 	tmdbSvc := tmdb.NewService(settingsStore, cfg.TMDBAPIKey, cfg.TMDBBaseURL)
 	artworkSvc := artwork.NewService(tmdbSvc, mediaStore, movies, tvStore, libs)
 	nfoSvc := nfo.NewService(mediaStore, movies, settingsStore, tmdbSvc, tvStore, libs)
@@ -900,6 +900,11 @@ func TestMilestone5RenameWorkflow(t *testing.T) {
 		}
 	}
 
+	// A same-directory subtitle moves along with the video.
+	if err := os.WriteFile(filepath.Join(mediaDir, "Movie.One.2019.1080p.BluRay.x264.zh.srt"), []byte("SUB"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
 	// Execute: files move on disk, the DB follows.
 	executed := postJSONBody(t, a.ts.URL+"/api/movies/"+itemID+"/rename", `{}`)
 	if executed["executed"] == nil {
@@ -915,6 +920,11 @@ func TestMilestone5RenameWorkflow(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(newDir, "poster.jpg")); err != nil {
 		t.Errorf("poster missing after folder move: %v", err)
+	}
+
+	// The subtitle renames to the new basename (language suffix preserved).
+	if _, err := os.Stat(filepath.Join(newDir, "大电影 2019 (2019).zh.srt")); err != nil {
+		t.Errorf("renamed subtitle missing: %v", err)
 	}
 
 	// media_items.path follows the rename.

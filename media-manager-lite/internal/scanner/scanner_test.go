@@ -11,10 +11,11 @@ import (
 	"media-manager-lite/internal/database"
 	"media-manager-lite/internal/library"
 	"media-manager-lite/internal/media"
+	"media-manager-lite/internal/movie"
 	"media-manager-lite/internal/tv"
 )
 
-func newTestMediaStore(t *testing.T) (*media.Store, *tv.Store, *sql.DB) {
+func newTestMediaStore(t *testing.T) (*media.Store, *tv.Store, *movie.Store, *sql.DB) {
 	t.Helper()
 	db, err := database.Open(filepath.Join(t.TempDir(), "test.db"))
 	if err != nil {
@@ -24,7 +25,7 @@ func newTestMediaStore(t *testing.T) (*media.Store, *tv.Store, *sql.DB) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { db.Close() })
-	return media.NewStore(db.DB), tv.NewStore(db.DB), db.DB
+	return media.NewStore(db.DB), tv.NewStore(db.DB), movie.NewStore(db.DB), db.DB
 }
 
 func seedLibrary(t *testing.T, db *sql.DB, id string) {
@@ -171,9 +172,9 @@ func TestWalkSymlinkEscapeBlocked(t *testing.T) {
 }
 
 func TestScanLibraryPersistsAndIsIdempotent(t *testing.T) {
-	store, tvStore, db := newTestMediaStore(t)
+	store, tvStore, movieStore, db := newTestMediaStore(t)
 	seedLibrary(t, db, "lib-1")
-	svc := NewService(store, tvStore)
+	svc := NewService(store, tvStore, movieStore)
 	ctx := context.Background()
 
 	dir := t.TempDir()
@@ -236,8 +237,8 @@ func TestScanLibraryPersistsAndIsIdempotent(t *testing.T) {
 }
 
 func TestScanLibraryErrors(t *testing.T) {
-	store, tvStore, _ := newTestMediaStore(t)
-	svc := NewService(store, tvStore)
+	store, tvStore, movieStore, _ := newTestMediaStore(t)
+	svc := NewService(store, tvStore, movieStore)
 	ctx := context.Background()
 
 	// Missing directory.
@@ -253,8 +254,8 @@ func TestScanLibraryErrors(t *testing.T) {
 }
 
 func TestScanLibraryUnreadableDirectoryFails(t *testing.T) {
-	store, tvStore, _ := newTestMediaStore(t)
-	svc := NewService(store, tvStore)
+	store, tvStore, movieStore, _ := newTestMediaStore(t)
+	svc := NewService(store, tvStore, movieStore)
 
 	dir := t.TempDir()
 	restricted := filepath.Join(dir, "secret")
@@ -270,9 +271,9 @@ func TestScanLibraryUnreadableDirectoryFails(t *testing.T) {
 }
 
 func TestScanKeepsRemovedFiles(t *testing.T) {
-	store, tvStore, db := newTestMediaStore(t)
+	store, tvStore, movieStore, db := newTestMediaStore(t)
 	seedLibrary(t, db, "lib-1")
-	svc := NewService(store, tvStore)
+	svc := NewService(store, tvStore, movieStore)
 	ctx := context.Background()
 
 	dir := t.TempDir()
@@ -283,19 +284,37 @@ func TestScanKeepsRemovedFiles(t *testing.T) {
 	if _, err := svc.ScanLibrary(ctx, lib); err != nil {
 		t.Fatal(err)
 	}
-	// The user removes the file from disk; a rescan must NOT remove the
-	// database row (removed files keep showing in the list).
+	// Match the item (so movie_id is set), then the user removes the file
+	// from disk; a rescan removes the matched item from the list and drops
+	// the now-unreferenced movie row.
+	items, err := store.ListByLibrary(ctx, lib.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := movieStore.ConfirmMatch(ctx, items[0].ID, movie.Movie{
+		LibraryID: "lib-1", TMDBID: 1, Title: "Gone Movie",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
 	if err := os.Remove(f); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := svc.ScanLibrary(ctx, lib); err != nil {
 		t.Fatal(err)
 	}
-	items, err := store.ListByLibrary(ctx, lib.ID)
+	items, err = store.ListByLibrary(ctx, lib.ID)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(items) != 1 {
-		t.Fatalf("removed file dropped from list: %d items", len(items))
+	if len(items) != 0 {
+		t.Fatalf("removed matched file kept in list: %d items", len(items))
+	}
+	movies, err := movieStore.ListByLibrary(ctx, lib.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(movies) != 0 {
+		t.Errorf("unreferenced movie kept: %d rows", len(movies))
 	}
 }

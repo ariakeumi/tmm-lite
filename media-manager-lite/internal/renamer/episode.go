@@ -226,18 +226,19 @@ func PlanEpisodeRename(root string, fs EpisodeFileSet, view FSView, d EpisodeDat
 		}
 	}
 
-	// 4) Episode NFO variant (basename only).
+	// 4) Episode NFO variant: moves with the video (metadata is not left
+	// behind).
 	nfoSrc := oldBase(fs.Video) + ".nfo"
 	if containsName(fs.Others, nfoSrc) && newBase != "" {
 		srcPath := filepath.Join(fs.Dir, nfoSrc)
 		target := filepath.Join(plan.NewDir, newBase+".nfo")
 		if target != srcPath {
-			if view.Exists(target) {
-				plan.Invalid = append(plan.Invalid, fmt.Sprintf("episode nfo destination already exists: %s", target))
-			}
-			plan.Actions = append(plan.Actions, Action{Kind: KindNFO, Op: OpCopy, From: srcPath, To: target})
+			plan.Actions = append(plan.Actions, Action{Kind: KindNFO, Op: OpMove, From: srcPath, To: target})
 		}
 	}
+
+	// Subtitles sharing the episode basename move along with it.
+	planSubtitleMoves(plan, oldBase(fs.Video), newBase, fs.Dir, plan.NewDir, fs.Others, view, false)
 
 	// 5) Destination containment + duplicate check.
 	dests := map[string]bool{}

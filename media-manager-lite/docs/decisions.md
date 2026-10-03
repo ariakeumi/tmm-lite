@@ -371,3 +371,23 @@ compose change (`user:`) and the write-containment rules (library-root
 checks, no deletion, strict conflict semantics) are the actual safety
 boundary, not the UID. GHCR auth in CI uses the built-in GITHUB_TOKEN with
 `packages: write`; no PAT or secret configuration is required.
+
+## D25 — Subtitle moves, NFO relocation, vanished-file sweep
+
+**Subtitles travel with their video**: `PlanRename`/`PlanEpisodeRename`
+append strict moves for every same-basename subtitle (`start.srt`,
+`start.zh.ass` — language suffix preserved) into the new location, and the
+executor treats them like video moves (existing different destination =
+abort). Unrelated subtitles are never touched.
+
+**NFO relocation**: the primary movie/episode NFO now MOVES with the video
+instead of staying behind and being re-derived — metadata belongs next to
+its media. The executor's preflight skips existence checks for NFO moves
+and the move itself overwrites (temp+rename), since the content is derived
+from the database. Additional NFO naming variants still copy.
+
+**Vanished matched files**: a rescan now deletes `media_items` rows whose
+video file is gone **only when the item was matched** (MovieID set), then
+deletes the movie row when no other item references it (multi-version
+movies survive). Unmatched files are always kept listed — the scan never
+removes a record the user may still want to match.

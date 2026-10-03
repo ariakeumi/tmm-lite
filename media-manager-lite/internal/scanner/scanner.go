@@ -26,6 +26,7 @@ import (
 
 	"media-manager-lite/internal/library"
 	"media-manager-lite/internal/media"
+	"media-manager-lite/internal/movie"
 	"media-manager-lite/internal/parser"
 	"media-manager-lite/internal/paths"
 	"media-manager-lite/internal/task"
@@ -110,13 +111,14 @@ type Stats struct {
 
 // Service scans libraries and persists media items.
 type Service struct {
-	media *media.Store
-	tv    *tv.Store
+	media  *media.Store
+	tv     *tv.Store
+	movies *movie.Store
 }
 
 // NewService returns a scanner service persisting into the given stores.
-func NewService(m *media.Store, t *tv.Store) *Service {
-	return &Service{media: m, tv: t}
+func NewService(m *media.Store, t *tv.Store, mv *movie.Store) *Service {
+	return &Service{media: m, tv: t, movies: mv}
 }
 
 // ScanLibrary walks the library directory and dispatches by library type:
@@ -164,6 +166,44 @@ func (s *Service) scanMovieLibrary(ctx context.Context, lib library.Library) (St
 	if err != nil {
 		return Stats{}, fmt.Errorf("scan library %q: %w", lib.Name, err)
 	}
+
+	// Matched movies whose video file has disappeared leave the list:
+	// delete their media_items rows, then the movie row when unreferenced.
+	// Unmatched files are kept listed (the scan never removes a record the
+	// user may still want to match).
+	walked := make(map[string]bool, len(cands))
+	for _, c := range cands {
+		walked[c.Path] = true
+	}
+	items, err2 := s.media.ListByLibrary(ctx, lib.ID)
+	if err2 != nil {
+		return Stats{}, fmt.Errorf("scan library %q: %w", lib.Name, err2)
+	}
+	affected := map[string]bool{}
+	for _, it := range items {
+		if _, ok := walked[it.Path]; ok {
+			continue
+		}
+		if it.MovieID == "" {
+			continue // unmatched file: keep listed
+		}
+		if _, err := os.Stat(it.Path); !os.IsNotExist(err) {
+			continue // still on disk somehow: keep
+		}
+		movieID, err := s.media.DeleteItem(ctx, it.ID)
+		if err != nil {
+			return Stats{}, fmt.Errorf("scan library %q: %w", lib.Name, err)
+		}
+		if movieID != "" {
+			affected[movieID] = true
+		}
+	}
+	for movieID := range affected {
+		if _, err := s.movies.DeleteIfUnreferenced(ctx, movieID); err != nil {
+			return Stats{}, fmt.Errorf("scan library %q: %w", lib.Name, err)
+		}
+	}
+
 	return Stats{Found: len(cands), New: inserted, Updated: updated}, nil
 }
 

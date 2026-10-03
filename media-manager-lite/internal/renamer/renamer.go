@@ -27,11 +27,19 @@ import (
 type ActionKind string
 
 const (
-	KindFolder  ActionKind = "folder"
-	KindVideo   ActionKind = "video"
-	KindNFO     ActionKind = "nfo"
-	KindArtwork ActionKind = "artwork"
+	KindFolder   ActionKind = "folder"
+	KindVideo    ActionKind = "video"
+	KindNFO      ActionKind = "nfo"
+	KindSubtitle ActionKind = "subtitle"
+	KindArtwork  ActionKind = "artwork"
 )
+
+// subtitleExts are the subtitle container extensions that move along with
+// their video (same basename, optional language/tags suffix).
+var subtitleExts = map[string]bool{
+	".srt": true, ".ass": true, ".ssa": true, ".sub": true,
+	".idx": true, ".vtt": true, ".sup": true,
+}
 
 // Op names the filesystem operation.
 const (
@@ -325,7 +333,49 @@ func PlanRename(root string, fs FileSet, view FSView, d Data, p Profile) *Plan {
 			plan.Actions = append(plan.Actions, Action{Kind: kind, Op: OpCopy, From: src, To: target})
 		}
 	}
-	addVariants(KindNFO, []string{oldBase + ".nfo", "movie.nfo"}, p.NFONames)
+	// NFO: the primary file MOVES with the video (metadata is not left
+	// behind); additional naming variants copy from the moved primary.
+	nfoSrc := ""
+	for _, cand := range []string{oldBase + ".nfo", "movie.nfo"} {
+		if containsName(fs.Others, cand) {
+			nfoSrc = filepath.Join(fs.Dir, cand)
+			break
+		}
+	}
+	if nfoSrc != "" && newBase != "" {
+		primaryTarget := filepath.Join(plan.NewDir, newBase+".nfo")
+		seenNFO := map[string]bool{}
+		if primaryTarget != nfoSrc {
+			plan.Actions = append(plan.Actions, Action{Kind: KindNFO, Op: OpMove, From: nfoSrc, To: primaryTarget})
+			seenNFO[primaryTarget] = true
+		} else {
+			seenNFO[primaryTarget] = true
+			plan.Problems = append(plan.Problems, "nfo already at "+filepath.Base(primaryTarget))
+		}
+		for _, v := range p.NFONames {
+			var target string
+			switch v {
+			case "basename":
+				target = filepath.Join(plan.NewDir, newBase+".nfo")
+			case "movie":
+				target = filepath.Join(plan.NewDir, "movie.nfo")
+			default:
+				plan.Problems = append(plan.Problems, fmt.Sprintf("unknown nfo naming variant %q", v))
+				continue
+			}
+			if seenNFO[target] {
+				continue
+			}
+			seenNFO[target] = true
+			if target == nfoSrc {
+				continue
+			}
+			plan.Actions = append(plan.Actions, Action{Kind: KindNFO, Op: OpCopy, From: primaryTarget, To: target})
+		}
+	}
+
+	// Subtitles sharing the video basename move along with it.
+	planSubtitleMoves(plan, oldBase, newBase, fs.Dir, plan.NewDir, fs.Others, view, plan.NewDir != fs.Dir)
 	addVariants(KindArtwork, []string{PosterFile, oldBase + "-poster.jpg"}, p.PosterNames)
 	addVariants(KindArtwork, []string{FanartFile, oldBase + "-fanart.jpg"}, p.FanartNames)
 
@@ -377,4 +427,29 @@ func isVideoName(name string) bool {
 		return true
 	}
 	return false
+}
+
+// planSubtitleMoves appends strict moves for every subtitle sharing the
+// video basename ("name.srt", "name.zh.ass", ...) into the new location.
+func planSubtitleMoves(plan *Plan, oldBaseName, newBaseName, oldDir, newDir string, others []string, view FSView, dirRelocates bool) {
+	prefix := oldBaseName + "."
+	for _, name := range others {
+		ext := strings.ToLower(filepath.Ext(name))
+		if !subtitleExts[ext] || !strings.HasPrefix(name, prefix) {
+			continue
+		}
+		suffix := strings.TrimSuffix(strings.TrimPrefix(name, oldBaseName), ext) // e.g. "", ".zh"
+		from := filepath.Join(oldDir, name)
+		to := filepath.Join(newDir, newBaseName+suffix+ext)
+		if to == from {
+			plan.Problems = append(plan.Problems, "subtitle already at "+filepath.Base(to))
+			continue
+		}
+		if view.Exists(to) {
+			plan.Invalid = append(plan.Invalid, fmt.Sprintf("subtitle destination already exists: %s", to))
+			continue
+		}
+		_ = dirRelocates
+		plan.Actions = append(plan.Actions, Action{Kind: KindSubtitle, Op: OpMove, From: from, To: to})
+	}
 }

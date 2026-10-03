@@ -77,7 +77,7 @@ func TestPlanEpisodeRenameFull(t *testing.T) {
 			}
 		}
 	}
-	if creates != 2 || moves != 1 || copies != 1 {
+	if creates != 2 || moves != 2 || copies != 0 {
 		t.Errorf("actions = creates %d moves %d copies %d (%+v)", creates, moves, copies, plan.Actions)
 	}
 	for _, a := range plan.Actions {

@@ -9,9 +9,9 @@ import (
 )
 
 func TestScanTVLibraryPersistsHierarchy(t *testing.T) {
-	store, tvStore, db := newTestMediaStore(t)
+	store, tvStore, movieStore, db := newTestMediaStore(t)
 	seedLibrary(t, db, "lib-tv")
-	svc := NewService(store, tvStore)
+	svc := NewService(store, tvStore, movieStore)
 	ctx := context.Background()
 
 	dir := t.TempDir()
@@ -136,8 +136,8 @@ func TestScanTVLibraryPersistsHierarchy(t *testing.T) {
 }
 
 func TestScanTVLibraryPathGone(t *testing.T) {
-	store, tvStore, _ := newTestMediaStore(t)
-	svc := NewService(store, tvStore)
+	store, tvStore, movieStore, _ := newTestMediaStore(t)
+	svc := NewService(store, tvStore, movieStore)
 	if _, err := svc.ScanLibrary(context.Background(),
 		library.Library{ID: "x", Path: filepath.Join(t.TempDir(), "gone"), Type: library.TypeTV}); err == nil {
 		t.Error("scan of missing path should fail")

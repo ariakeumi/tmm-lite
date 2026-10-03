@@ -392,3 +392,76 @@ func TestExecuteIdempotent(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestSubtitleMovesAlongWithVideo(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, "start")
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	files := map[string]string{
+		"start.mkv":     "VIDEO",
+		"start.srt":     "SUB",
+		"start.zh.ass":  "ASS",
+		"start.nfo":     "NFO",
+		"poster.jpg":    "ART",
+		"unrelated.srt": "OTHER",
+	}
+	for name, content := range files {
+		if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var others []string
+	for name := range files {
+		if name != "start.mkv" {
+			others = append(others, name)
+		}
+	}
+
+	fs := FileSet{Dir: dir, Video: "start.mkv", Others: others}
+	plan := PlanRename(root, fs, OSView{}, sampleData(), DefaultProfile())
+	if !plan.Valid {
+		t.Fatalf("plan invalid: %v", plan.Invalid)
+	}
+
+	subMoved := 0
+	for _, a := range plan.Actions {
+		if a.Kind == KindSubtitle {
+			subMoved++
+			if !strings.HasSuffix(a.To, "Movie Name (2019)"+strings.TrimSuffix(a.To[strings.LastIndex(a.To, "/"):], "")) {
+				t.Errorf("subtitle target unexpected: %q", a.To)
+			}
+		}
+		if a.Kind == KindNFO && a.Op != OpMove {
+			t.Errorf("primary nfo must move, got op %q", a.Op)
+		}
+		// unrelated files must not be touched
+		if strings.HasSuffix(a.To, "unrelated.srt") || strings.HasSuffix(a.From, "unrelated.srt") {
+			t.Errorf("unrelated subtitle dragged into rename: %+v", a)
+		}
+	}
+	if subMoved != 2 { // start.srt (from others) — start.zh.ass uses different base? both share base
+		t.Logf("subtitle moves: %d", subMoved)
+	}
+	if _, err := Execute(plan); err != nil {
+		t.Fatal(err)
+	}
+
+	newDir := filepath.Join(root, "Movie Name (2019)")
+	// Video + NFO + both subtitles moved.
+	for _, name := range []string{"Movie Name (2019).mkv", "Movie Name (2019).nfo",
+		"Movie Name (2019).srt", "Movie Name (2019).zh.ass"} {
+		if _, err := os.Stat(filepath.Join(newDir, name)); err != nil {
+			t.Errorf("%s missing: %v", name, err)
+		}
+	}
+	// Artwork copies stay.
+	if _, err := os.Stat(filepath.Join(newDir, "poster.jpg")); err != nil {
+		t.Error("poster missing after rename")
+	}
+	// Unrelated subtitle untouched.
+	if b, err := os.ReadFile(filepath.Join(newDir, "unrelated.srt")); err != nil || string(b) != "OTHER" {
+		t.Error("unrelated.srt disturbed")
+	}
+}

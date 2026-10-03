@@ -55,7 +55,8 @@ func newTestServerWithDeps(t *testing.T, logOut io.Writer, tmdbBaseURL string) (
 	libs := library.NewService(library.NewStore(db.DB))
 	mediaStore := media.NewStore(db.DB)
 	tvStore := tv.NewStore(db.DB)
-	scanSvc := scanner.NewService(mediaStore, tvStore)
+	movies := movie.NewStore(db.DB)
+	scanSvc := scanner.NewService(mediaStore, tvStore, movies)
 	tasks := task.NewStore(db.DB)
 	runner := task.NewRunner(tasks, log, 64)
 	runner.Register("scan_library", scanner.ScanHandler(libs, scanSvc))
@@ -63,7 +64,6 @@ func newTestServerWithDeps(t *testing.T, logOut io.Writer, tmdbBaseURL string) (
 		t.Fatal(err)
 	}
 	settingsStore := settings.NewStore(db.DB)
-	movies := movie.NewStore(db.DB)
 	tmdbSvc := tmdb.NewService(settingsStore, "test-key-1234567890", tmdbBaseURL)
 	artworkSvc := artwork.NewService(tmdbSvc, mediaStore, movies, tvStore, libs)
 	nfoSvc := nfo.NewService(mediaStore, movies, settingsStore, tmdbSvc, tvStore, libs)

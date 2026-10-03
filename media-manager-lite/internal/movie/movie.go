@@ -362,3 +362,26 @@ func (s *Store) SetNfoStatus(ctx context.Context, movieID, status string) error 
 	}
 	return nil
 }
+
+// DeleteIfUnreferenced removes a movie row when no media item links to it
+// anymore (a multi-version movie with several files stays). Returns whether
+// the row was deleted.
+func (s *Store) DeleteIfUnreferenced(ctx context.Context, movieID string) (bool, error) {
+	var refs int
+	if err := s.db.QueryRowContext(ctx,
+		"SELECT COUNT(*) FROM media_items WHERE movie_id = ?", movieID).Scan(&refs); err != nil {
+		return false, fmt.Errorf("movie store: count refs: %w", err)
+	}
+	if refs > 0 {
+		return false, nil
+	}
+	res, err := s.db.ExecContext(ctx, "DELETE FROM movies WHERE id = ?", movieID)
+	if err != nil {
+		return false, fmt.Errorf("movie store: delete unreferenced: %w", err)
+	}
+	n, err := res.RowsAffected()
+	if err != nil {
+		return false, err
+	}
+	return n > 0, nil
+}

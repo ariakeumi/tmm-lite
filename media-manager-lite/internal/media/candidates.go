@@ -136,3 +136,20 @@ type SkippedItem struct {
 	Filename string `json:"filename"`
 	Reason   string `json:"reason"`
 }
+
+// DeleteItem removes a media item row and returns the movie it was linked
+// to (empty when unmatched). Used by the scanner to drop items whose video
+// file has disappeared.
+func (s *Store) DeleteItem(ctx context.Context, itemID string) (string, error) {
+	var movieID string
+	err := s.db.QueryRowContext(ctx,
+		"DELETE FROM media_items WHERE id = ? RETURNING COALESCE(movie_id, '')", itemID,
+	).Scan(&movieID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", ErrUnknown
+	}
+	if err != nil {
+		return "", fmt.Errorf("media store: delete item: %w", err)
+	}
+	return movieID, nil
+}

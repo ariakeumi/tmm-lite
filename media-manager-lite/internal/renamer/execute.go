@@ -66,6 +66,10 @@ func Execute(p *Plan) ([]ActionResult, error) {
 		if _, err := os.Stat(a.From); err != nil {
 			return nil, fmt.Errorf("renamer: preflight: source missing: %w", err)
 		}
+		// NFO moves overwrite: the file is our own derived metadata.
+		if a.Kind == KindNFO && a.Op == OpMove {
+			continue
+		}
 		// Destinations inside a to-be-created/renamed folder cannot exist
 		// yet; without a folder action the destination is checked now.
 		if folderOp == "" {
@@ -109,8 +113,18 @@ func Execute(p *Plan) ([]ActionResult, error) {
 			continue
 		}
 		switch a.Op {
-		case OpMove: // video
+		case OpMove: // video (strict) or NFO (our metadata: overwrite)
 			from := translate(a.From)
+			if a.Kind == KindNFO {
+				if from == a.To {
+					continue
+				}
+				if err := moveFileAtomicOverwrite(from, a.To); err != nil {
+					return results, fmt.Errorf("renamer: nfo move: %w", err)
+				}
+				results = append(results, ActionResult{Kind: a.Kind, Op: a.Op, From: from, To: a.To})
+				continue
+			}
 			if _, err := os.Stat(a.To); err == nil && a.To != from {
 				return results, fmt.Errorf("renamer: video destination exists: %s", a.To)
 			}
@@ -160,4 +174,17 @@ func copyFileAtomic(src, dest string) error {
 		return err
 	}
 	return nil
+}
+
+// moveFileAtomicOverwrite copies src onto dest (temp + rename) and removes
+// the source — a metadata "move" that tolerates an existing destination
+// because NFO content is derived from the database.
+func moveFileAtomicOverwrite(src, dest string) error {
+	if src == dest {
+		return nil
+	}
+	if err := copyFileAtomic(src, dest); err != nil {
+		return err
+	}
+	return os.Remove(src)
 }
