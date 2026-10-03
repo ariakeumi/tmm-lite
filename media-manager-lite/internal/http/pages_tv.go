@@ -1,14 +1,17 @@
 package http
 
 import (
+	"context"
 	"net/http"
 
+	"media-manager-lite/internal/library"
 	"media-manager-lite/internal/version"
 )
 
 type tvPageData struct {
 	base
-	Shows []tvShowRow
+	Shows       []tvShowRow
+	TVLibraries []library.Library
 }
 
 type tvShowRow struct {
@@ -23,6 +26,12 @@ type tvShowRow struct {
 
 // handleTVPage lists all TV shows with links to their detail pages.
 func (s *Server) handleTVPage(w http.ResponseWriter, r *http.Request) {
+	libs, err := s.deps.Libraries.List(r.Context())
+	if err != nil {
+		s.log.Error("tv page", "error", err)
+		writeAPIError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
 	shows, err := s.deps.TV.ListShows(r.Context(), "")
 	if err != nil {
 		s.log.Error("tv page", "error", err)
@@ -44,9 +53,16 @@ func (s *Server) handleTVPage(w http.ResponseWriter, r *http.Request) {
 		}
 		rows = append(rows, row)
 	}
+	tvLibs := []library.Library{}
+	for _, l := range libs {
+		if l.Type == library.TypeTV {
+			tvLibs = append(tvLibs, l)
+		}
+	}
 	s.renderPage(w, http.StatusOK, "tv", tvPageData{
-		base:  base{Title: "TV Shows", Nav: "tv", BuildVersion: version.Version},
-		Shows: rows,
+		base:        base{Title: "电视剧", Nav: "tv", BuildVersion: version.Version},
+		Shows:       rows,
+		TVLibraries: tvLibs,
 	})
 }
 
@@ -95,6 +111,32 @@ func (s *Server) handleTVShowPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.renderPage(w, http.StatusOK, "tvshow", data)
+}
+
+// showRowData assembles one show row (list page) — row + candidates.
+func (s *Server) showRowData(ctx context.Context, id string) (tvShowRow, []tvCandidateRow, error) {
+	full, err := s.deps.TV.GetShowFull(ctx, id)
+	if err != nil {
+		return tvShowRow{}, nil, err
+	}
+	row := tvShowRow{ID: full.ID, Title: full.Title, TMDBID: full.TMDBID,
+		AiredStatus: full.AiredStatus, ArtworkStatus: full.ArtworkStatus}
+	seasons, _ := s.deps.TV.ListSeasons(ctx, id)
+	if eps, err := s.deps.TV.ListEpisodes(ctx, id); err == nil {
+		row.EpisodeCount = len(eps)
+	}
+	row.SeasonCount = len(seasons)
+
+	var cands []tvCandidateRow
+	if persisted, err := s.deps.TV.ShowCandidates(ctx, id); err == nil {
+		for _, c := range persisted {
+			cands = append(cands, tvCandidateRow{
+				Score: c.Score, TMDBID: c.Candidate.TMDBID, Name: c.Candidate.Name,
+				Year: c.Candidate.Year, IDMatch: c.IDMatch,
+			})
+		}
+	}
+	return row, cands, nil
 }
 
 func (s *Server) tvShowPageData(r *http.Request, id, fallbackTitle string) (tvShowPageData, error) {
@@ -162,5 +204,58 @@ func (s *Server) renderTVShowPanel(w http.ResponseWriter, r *http.Request, statu
 	w.WriteHeader(status)
 	if err := s.tpl.pages["tvshow"].ExecuteTemplate(w, "tvshow_panel", data); err != nil {
 		s.log.Error("render tvshow panel", "error", err)
+	}
+}
+
+// renderTVCandidates renders the inline candidates fragment for a show row
+// (list page search flow).
+func (s *Server) renderTVCandidates(w http.ResponseWriter, r *http.Request, status int, id string) {
+	row, cands, err := s.showRowData(r.Context(), id)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+	data := struct {
+		Show       tvShowRow
+		Candidates []tvCandidateRow
+	}{row, cands}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(status)
+	if err := s.tpl.pages["tv"].ExecuteTemplate(w, "tv_candidates", data); err != nil {
+		s.log.Error("render tv candidates", "error", err)
+	}
+}
+
+// renderTVRow renders the refreshed show row fragment after match/unmatch.
+func (s *Server) renderTVRow(w http.ResponseWriter, r *http.Request, status int, id string) {
+	row, _, err := s.showRowData(r.Context(), id)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(status)
+	if err := s.tpl.pages["tv"].ExecuteTemplate(w, "tv_row", row); err != nil {
+		s.log.Error("render tv row", "error", err)
+	}
+}
+
+// renderTVCandidatesError renders the candidates fragment with an inline
+// error (list-page search flow).
+func (s *Server) renderTVCandidatesError(w http.ResponseWriter, r *http.Request, id, msg string) {
+	row, _, err := s.showRowData(r.Context(), id)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+	data := struct {
+		Show       tvShowRow
+		Candidates []tvCandidateRow
+		Error      string
+	}{row, nil, msg}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK) // fragment mode: swap regardless (see D7)
+	if err := s.tpl.pages["tv"].ExecuteTemplate(w, "tv_candidates", data); err != nil {
+		s.log.Error("render tv candidates error", "error", err)
 	}
 }

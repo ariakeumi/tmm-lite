@@ -5,37 +5,25 @@ import (
 
 	"media-manager-lite/internal/library"
 	"media-manager-lite/internal/media"
-	"media-manager-lite/internal/movie"
 	"media-manager-lite/internal/version"
 )
 
 type moviesPageData struct {
 	base
-	Movies       []moviesRow
-	Pending      []pendingRow
 	HasLibraries bool
+	Sections     []movieSection
 }
 
-type moviesRow struct {
-	ID            string
-	Title         string
-	Year          int
-	TMDBID        int
-	Rating        float64
-	Library       string
-	NfoStatus     string
-	ArtworkStatus string
-	PosterURL     string
+// movieSection is one movie library's inline match workflow: the same
+// rows the per-library match page renders.
+type movieSection struct {
+	Library library.Library
+	Rows    []matchRowData
 }
 
-type pendingRow struct {
-	LibraryID   string
-	LibraryName string
-	Count       int
-}
-
-// handleMoviesPage renders the global movie list: every matched movie
-// across libraries plus per-library counts of files awaiting a match.
+// handleMoviesPage renders the movie list page as a direct match
+// workflow: every movie library's scanned files with their candidates
+// and match/artwork/nfo actions.
 func (s *Server) handleMoviesPage(w http.ResponseWriter, r *http.Request) {
 	libs, err := s.deps.Libraries.List(r.Context())
 	if err != nil {
@@ -45,50 +33,35 @@ func (s *Server) handleMoviesPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := moviesPageData{
-		base:         base{Title: "Movies", Nav: "movies", BuildVersion: version.Version},
-		HasLibraries: len(libs) > 0,
+		base:         base{Title: "电影", Nav: "movies", BuildVersion: version.Version},
+		HasLibraries: false,
 	}
 
 	for _, l := range libs {
 		if l.Type != library.TypeMovie {
 			continue
 		}
-		movies, err := s.deps.Movies.ListByLibrary(r.Context(), l.ID)
-		if err != nil {
-			s.log.Error("movies page list", "error", err)
-			writeAPIError(w, http.StatusInternalServerError, "internal server error")
-			return
+		if !data.HasLibraries {
+			data.HasLibraries = true
 		}
-		for _, m := range movies {
-			poster := ""
-			if m.Artwork != nil {
-				poster = m.Artwork.PosterURL
-			}
-			data.Movies = append(data.Movies, moviesRow{
-				ID: m.ID, Title: m.Title, Year: m.Year, TMDBID: m.TMDBID,
-				Rating: m.Rating, Library: l.Name,
-				NfoStatus: m.NfoStatus, ArtworkStatus: m.ArtworkStatus,
-				PosterURL: poster,
-			})
-		}
-
+		section := movieSection{Library: l}
 		items, err := s.deps.Media.ListByLibrary(r.Context(), l.ID)
 		if err != nil {
 			s.log.Error("movies page items", "error", err)
 			writeAPIError(w, http.StatusInternalServerError, "internal server error")
 			return
 		}
-		pending := 0
 		for _, it := range items {
-			if it.Kind == media.KindMovie && it.Status != movie.StatusMatched {
-				pending++
+			if it.Kind != media.KindMovie {
+				continue
 			}
+			row := matchRowData{Item: it}
+			if cands, err := s.deps.Media.Candidates(r.Context(), it.ID); err == nil {
+				row.Candidates = cands
+			}
+			section.Rows = append(section.Rows, row)
 		}
-		if pending > 0 {
-			data.Pending = append(data.Pending, pendingRow{
-				LibraryID: l.ID, LibraryName: l.Name, Count: pending,
-			})
-		}
+		data.Sections = append(data.Sections, section)
 	}
 
 	s.renderPage(w, http.StatusOK, "movies", data)

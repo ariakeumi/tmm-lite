@@ -2,12 +2,53 @@
 <h1>设置</h1>
 
 <section class="panel">
-  <h2>占位</h2>
-  <p>应用设置(TMDB API key、元数据语言、NFO flavor、重命名配置)将在后续版本提供图形界面。</p>
-  <p>当前运行时配置来自环境变量
+  <h2>TMDB API Key</h2>
+  <div id="key-status">
+    {{template "key_status" .}}
+  </div>
+  <form class="library-form" hx-put="/api/settings/tmdb-api-key" hx-target="#key-status" hx-swap="innerHTML">
+    <label>API Key (v3)
+      <input type="text" name="apiKey" required placeholder="来自 themoviedb.org 的免费 key">
+    </label>
+    <button type="submit">保存</button>
+  </form>
+  <p class="muted">在 <a href="https://www.themoviedb.org/settings/api" rel="noopener" target="_blank">themoviedb.org</a>
+  免费注册后获取。Key 保存于本地 SQLite 数据库,不会出现在日志或接口响应中。</p>
+</section>
+
+<section class="panel">
+  <h2>媒体库</h2>
+  <form class="library-form" hx-post="/api/libraries" hx-target="#library-panel" hx-swap="outerHTML">
+    <label>名称
+      <input type="text" name="name" required maxlength="255" placeholder="电影">
+    </label>
+    <label>路径
+      <input type="text" name="path" required placeholder="/media/movies">
+    </label>
+    <label>类型
+      <select name="type">
+        <option value="movie">电影</option>
+        <option value="tv">电视剧</option>
+      </select>
+    </label>
+    <button type="submit">添加媒体库</button>
+  </form>
+  <p class="muted">添加媒体库只会在数据库中登记一条记录——不会读取、移动或删除任何文件。
+  路径必须是本服务器可见、已存在且可读的目录(例如挂载的卷)。</p>
+  {{template "libraries_panel" .}}
+</section>
+
+<section class="panel">
+  <h2>运行时配置</h2>
+  <p class="muted">监听地址、数据库路径、日志级别通过环境变量配置
   (<code>MEDIA_MANAGER_HTTP_ADDR</code>、<code>MEDIA_MANAGER_DB</code>、
   <code>MEDIA_MANAGER_LOG_LEVEL</code>、<code>MEDIA_MANAGER_CONFIG</code>);
-  TMDB API key 可通过 <code>PUT /api/settings/tmdb-api-key</code> 写入,
-  修改 NFO flavor 可用 sqlite3 命令修改 settings 表(<code>nfo_flavor</code>:kodi | emby | jellyfin)。</p>
+  NFO flavor 可用 sqlite3 修改 settings 表的 <code>nfo_flavor</code>(kodi | emby | jellyfin)。</p>
 </section>
+{{end}}
+
+{{define "key_status"}}
+{{if .Error}}<div class="error">{{.Error}}</div>{{end}}
+{{if .KeyConfigured}}<p class="muted">✓ 已配置——TMDB 搜索与刮削可用。</p>
+{{else}}<p class="muted">未配置——TMDB 搜索、匹配、海报与 NFO 功能不可用;扫描与重命名不受影响。</p>{{end}}
 {{end}}

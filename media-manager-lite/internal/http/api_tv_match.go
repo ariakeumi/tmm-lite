@@ -29,7 +29,15 @@ func (s *Server) handleSearchTVShow(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		status, msg := tmdbErrorStatus(err)
 		s.log.Error("tmdb tv search", "show", id, "status", status, "error", err.Error())
+		if isHTMX(r) {
+			s.renderTVCandidatesError(w, r, id, msg)
+			return
+		}
 		writeAPIError(w, status, msg)
+		return
+	}
+	if isHTMX(r) {
+		s.renderTVCandidates(w, r, http.StatusOK, id)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
@@ -109,6 +117,10 @@ func (s *Server) handleMatchTVShow(w http.ResponseWriter, r *http.Request) {
 	if err := s.deps.TVScrape.MatchShow(r.Context(), id, body.TMDBID); err != nil {
 		status, msg := tmdbErrorStatus(err)
 		s.log.Error("tmdb tv match", "show", id, "status", status, "error", err.Error())
+		if isHTMX(r) {
+			s.renderTVRow(w, r, http.StatusOK, id)
+			return
+		}
 		writeAPIError(w, status, msg)
 		return
 	}
@@ -119,6 +131,10 @@ func (s *Server) handleMatchTVShow(w http.ResponseWriter, r *http.Request) {
 		s.log.Error("submit tv enrich", "error", err)
 	}
 
+	if isHTMX(r) {
+		s.renderTVRow(w, r, http.StatusOK, id)
+		return
+	}
 	show, err := s.deps.TV.GetShowFull(r.Context(), id)
 	if err != nil {
 		writeJSON(w, http.StatusOK, map[string]any{"showId": id, "status": "matched"})

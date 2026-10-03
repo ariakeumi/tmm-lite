@@ -263,30 +263,63 @@ func (s *Server) handleListMovies(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{"movies": movies, "count": len(movies)})
 }
 
-// handlePutTMDBKey stores the user's own TMDB API key. The key is never
-// echoed back, never logged.
+// handlePutTMDBKey stores the user's own TMDB API key. Accepts JSON
+// ({"apiKey": "..."}) or a form-encoded body (settings page form). The key
+// is never echoed back, never logged.
 func (s *Server) handlePutTMDBKey(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, maxBodyBytes)
-	var body struct {
-		APIKey string `json:"apiKey"`
+	var apiKey string
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "application/json") {
+		var body struct {
+			APIKey string `json:"apiKey"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			writeAPIError(w, http.StatusBadRequest, "invalid JSON body")
+			return
+		}
+		apiKey = body.APIKey
+	} else {
+		if err := r.ParseForm(); err != nil {
+			writeAPIError(w, http.StatusBadRequest, "invalid form body")
+			return
+		}
+		apiKey = r.PostFormValue("apiKey")
 	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeAPIError(w, http.StatusBadRequest, "invalid JSON body")
-		return
-	}
-	body.APIKey = strings.TrimSpace(body.APIKey)
-	if len(body.APIKey) < 8 || len(body.APIKey) > 255 {
+	apiKey = strings.TrimSpace(apiKey)
+	if len(apiKey) < 8 || len(apiKey) > 255 {
 		writeAPIError(w, http.StatusBadRequest, "apiKey looks invalid")
 		return
 	}
-	if err := s.deps.Settings.Set(r.Context(), settings.KeyTMDBAPIKey, body.APIKey); err != nil {
+	if err := s.deps.Settings.Set(r.Context(), settings.KeyTMDBAPIKey, apiKey); err != nil {
 		s.log.Error("store tmdb key", "error", err)
+		if isHTMX(r) {
+			s.renderKeyStatus(w, r, "保存失败")
+			return
+		}
 		writeAPIError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
 	s.deps.TMDB.ResetConfigurationCache()
 	s.log.Info("tmdb api key updated")
+	if isHTMX(r) {
+		s.renderKeyStatus(w, r, "")
+		return
+	}
 	writeJSON(w, http.StatusOK, map[string]any{"configured": true})
+}
+
+// renderKeyStatus renders the key status fragment for the settings page.
+func (s *Server) renderKeyStatus(w http.ResponseWriter, r *http.Request, errMsg string) {
+	configured := errMsg == ""
+	data := struct {
+		KeyConfigured bool
+		Error         string
+	}{configured, errMsg}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	if err := s.tpl.pages["settings"].ExecuteTemplate(w, "key_status", data); err != nil {
+		s.log.Error("render key status", "error", err)
+	}
 }
 
 // handleGetTMDBKey reports whether a key is configured — without the key.

@@ -85,8 +85,12 @@ func New(cfg config.Config, log *slog.Logger, db *database.DB, deps Deps) (*Serv
 
 func (s *Server) routes(mux *http.ServeMux) {
 	// Pages (HTMX, server-rendered).
-	mux.HandleFunc("GET /{$}", s.handleDashboard)
-	mux.HandleFunc("GET /libraries", s.handleLibrariesPage)
+	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/movies", http.StatusSeeOther)
+	})
+	mux.HandleFunc("GET /libraries", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/settings", http.StatusSeeOther)
+	})
 	mux.HandleFunc("GET /settings", s.handleSettingsPage)
 	mux.HandleFunc("GET /libraries/{id}/match", s.handleMatchPage)
 	mux.HandleFunc("GET /movies", s.handleMoviesPage)

@@ -3,46 +3,31 @@
 
 {{if not .HasLibraries}}
   <section class="panel"><p class="muted empty">还没有媒体库——请先在
-  <a href="/libraries">媒体库</a>页面添加。</p></section>
+  <a href="/settings">设置</a>页面添加并扫描。</p></section>
 {{else}}
-
-{{if .Pending}}
-<section class="panel">
-  <h2>待匹配</h2>
-  {{range .Pending}}
-  <p><strong>{{.LibraryName}}</strong> 中有 {{.Count}} 个文件——
-     <a href="/libraries/{{.LibraryID}}/match">前往匹配页</a></p>
+  {{range .Sections}}
+  <section class="panel">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: .5rem;">
+      <h2 style="margin: 0;">匹配 · {{.Library.Name}}</h2>
+      <button type="button"
+        hx-post="/api/libraries/{{.Library.ID}}/scan"
+        hx-swap="none"
+        hx-on::after-request="if(event.detail.successful) setTimeout(() => window.location.reload(), 1500)">扫描</button>
+    </div>
+    {{if not .Rows}}
+      <p class="muted empty">尚未扫描到媒体文件——请先在
+      <a href="/settings">设置</a>页面执行扫描。</p>
+    {{else}}
+    <table class="libraries">
+      <thead>
+        <tr><th>文件</th><th>解析结果</th><th>状态</th><th>候选 / 操作</th></tr>
+      </thead>
+      <tbody>
+        {{range .Rows}}{{template "match_row" .}}{{end}}
+      </tbody>
+    </table>
+    {{end}}
+  </section>
   {{end}}
-</section>
-{{end}}
-
-<section class="panel">
-  <h2>已匹配电影(共 {{len .Movies}} 部)</h2>
-  {{if not .Movies}}
-    <p class="muted empty">还没有已匹配的电影——请扫描媒体库并在匹配页确认。</p>
-  {{else}}
-  <table class="libraries">
-    <thead>
-      <tr><th>海报</th><th>标题</th><th>TMDB</th><th>评分</th><th>媒体库</th><th>海报文件</th><th>NFO</th></tr>
-    </thead>
-    <tbody>
-      {{range .Movies}}
-      <tr>
-        <td>
-          {{if .PosterURL}}<img src="{{.PosterURL}}" alt="" style="width: 40px; border-radius: 3px;">
-          {{else}}<span class="muted">—</span>{{end}}
-        </td>
-        <td><a href="/movies/{{.ID}}">{{.Title}}</a>{{if .Year}} ({{.Year}}){{end}}</td>
-        <td>{{.TMDBID}}</td>
-        <td>{{if .Rating}}{{printf "%.1f" .Rating}}{{else}}—{{end}}</td>
-        <td>{{.Library}}</td>
-        <td>{{if .ArtworkStatus}}{{.ArtworkStatus}}{{else}}无{{end}}</td>
-        <td>{{if .NfoStatus}}{{.NfoStatus}}{{else}}无{{end}}</td>
-      </tr>
-      {{end}}
-    </tbody>
-  </table>
-  {{end}}
-</section>
 {{end}}
 {{end}}

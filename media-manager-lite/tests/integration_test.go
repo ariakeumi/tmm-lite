@@ -138,7 +138,8 @@ func TestMilestone1EndToEnd(t *testing.T) {
 	}
 	body, _ := io.ReadAll(resp.Body)
 	resp.Body.Close()
-	if resp.StatusCode != http.StatusOK || !strings.Contains(string(body), "仪表盘") {
+	// "/" redirects to /movies (http.Get follows redirects).
+	if resp.StatusCode != http.StatusOK || !strings.Contains(string(body), "电影") {
 		t.Fatalf("dashboard status=%d body=%q", resp.StatusCode, body)
 	}
 
@@ -450,16 +451,21 @@ func TestMilestone3MatchFlow(t *testing.T) {
 		t.Errorf("movies count = %v, want 1", mov["count"])
 	}
 
-	// The /movies page lists the matched movie; /tvshows aliases /tv.
+	// The /movies page is now the match workflow itself: it shows the file
+	// row (matched status) rather than the TMDB title; /tvshows aliases /tv.
 	moviesPage := getBody(t, a.ts.URL+"/movies")
-	if !strings.Contains(moviesPage, "大电影 2019") {
-		t.Errorf("/movies page missing matched movie title")
+	if !strings.Contains(moviesPage, "Movie.One.2019.1080p.BluRay.x264.mkv") {
+		t.Errorf("/movies page missing matched file row")
 	}
-	if !strings.Contains(moviesPage, "go to match page") && !strings.Contains(moviesPage, "No matched movies") {
-		t.Log("pending section absent — all items matched")
+	if !strings.Contains(moviesPage, "已匹配") {
+		t.Errorf("/movies page missing matched status")
 	}
 	if code := getStatusCode(t, a.ts.URL+"/tvshows"); code != http.StatusOK {
 		t.Errorf("/tvshows alias status = %d, want 200", code)
+	}
+	// scan buttons present on both list pages
+	if !strings.Contains(moviesPage, "扫描") {
+		t.Errorf("/movies page missing scan button")
 	}
 
 	// Match survives a restart.

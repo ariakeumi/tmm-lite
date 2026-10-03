@@ -108,9 +108,9 @@ func TestPagesRender(t *testing.T) {
 		path     string
 		contains []string
 	}{
-		{"/", []string{"仪表盘", "Media Manager", "媒体库"}},
-		{"/libraries", []string{"添加媒体库", "library-panel"}},
-		{"/settings", []string{"设置", "占位"}},
+		{"/", []string{"电影"}},             // redirects to /movies
+		{"/libraries", []string{"添加媒体库"}}, // redirects to /settings
+		{"/settings", []string{"设置", "TMDB API Key", "添加媒体库"}},
 		{"/movies", []string{"电影"}},
 		{"/tvshows", []string{"电视剧"}},
 	}

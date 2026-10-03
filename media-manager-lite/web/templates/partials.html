@@ -1,0 +1,88 @@
+{{define "match_row"}}
+<tr id="item-{{.Item.ID}}">
+  <td class="path"><a href="/movies/{{.Item.ID}}">{{.Item.Filename}}</a></td>
+  <td>
+    {{if .Item.ParsedTitle}}
+      {{.Item.ParsedTitle}}{{if .Item.ParsedYear}} <span class="muted">({{.Item.ParsedYear}})</span>{{end}}
+    {{else}}
+      <span class="muted">未解析</span>
+    {{end}}
+  </td>
+  <td>{{.Item.Status}}</td>
+  <td>
+    {{if eq .Item.Status "matched"}}
+      已匹配 ✓
+      <div class="postmatch">
+        <button type="button"
+          hx-post="/api/movies/{{.Item.ID}}/artwork"
+          hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">下载海报</button>
+        <button type="button"
+          hx-post="/api/movies/{{.Item.ID}}/nfo"
+          hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">写入 NFO</button>
+      </div>
+    {{else}}
+      {{template "match_candidates" .}}
+    {{end}}
+  </td>
+</tr>
+{{end}}
+
+{{define "match_candidates"}}
+<div id="candidates-{{.Item.ID}}" class="candidates">
+  <button type="button"
+    hx-post="/api/movies/{{.Item.ID}}/search"
+    hx-target="#candidates-{{.Item.ID}}" hx-swap="outerHTML">搜索 TMDB</button>
+  {{range .Candidates}}
+  <div class="candidate">
+    <span class="score">{{printf "%.2f" .Score}}</span>
+    <strong>{{.Candidate.Title}}</strong>{{if .Candidate.Year}} <span class="muted">({{.Candidate.Year}})</span>{{end}}
+    {{if .Candidate.Overview}}<div class="muted small">{{truncate .Candidate.Overview 140}}</div>{{end}}
+    <button type="button"
+      hx-post="/api/movies/{{$.Item.ID}}/match"
+      hx-vals='{"tmdbId": {{.Candidate.TMDBID}}}'
+      hx-target="#item-{{$.Item.ID}}" hx-swap="outerHTML">匹配</button>
+  </div>
+  {{else}}
+  <div class="muted small">还没有候选——请先执行搜索</div>
+  {{end}}
+  <button type="button" class="danger"
+    hx-post="/api/movies/{{.Item.ID}}/match"
+    hx-vals='{"unmatched": true}'
+    hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">标记为未匹配</button>
+</div>
+{{end}}
+
+{{define "libraries_panel"}}
+<div id="library-panel">
+  {{if .Error}}<div id="library-error" class="error">{{.Error}}</div>{{end}}
+  {{if not .Libraries}}
+    <p class="muted empty">还没有媒体库。</p>
+  {{else}}
+  <table class="libraries">
+    <thead>
+      <tr><th>名称</th><th>路径</th><th>类型</th><th>创建时间</th><th></th></tr>
+    </thead>
+    <tbody>
+      {{range .Libraries}}
+      <tr>
+        <td>{{.Name}}</td>
+        <td class="path">{{.Path}}</td>
+        <td>{{if eq .Type "movie"}}电影{{else if eq .Type "tv"}}电视剧{{else}}{{.Type}}{{end}}</td>
+        <td>{{prettyDate .CreatedAt}}</td>
+        <td class="actions">
+          <a href="/libraries/{{.ID}}/match">匹配</a>
+          <button type="button"
+            hx-post="/api/libraries/{{.ID}}/scan"
+            hx-target="#library-panel" hx-swap="outerHTML">扫描</button>
+          <button type="button" class="danger"
+            hx-delete="/api/libraries/{{.ID}}"
+            hx-confirm="确认删除媒体库 {{.Name}}?仅删除数据库记录——不会动任何媒体文件。"
+            hx-target="#library-panel" hx-swap="outerHTML">删除</button>
+        </td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+  {{end}}
+</div>
+{{end}}

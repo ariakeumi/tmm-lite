@@ -27,17 +27,17 @@ var templateFuncs = template.FuncMap{
 }
 
 // templates holds one parsed template set per page. Each set is
-// layout.html + the page file; the libraries set additionally provides the
-// "libraries_panel" fragment used as the HTMX swap target.
+// layout.html + partials.html (shared fragments) + the page file, so every
+// define is reachable from every page.
 type templates struct {
 	pages map[string]*template.Template
 }
 
 func newTemplates() (*templates, error) {
 	t := &templates{pages: map[string]*template.Template{}}
-	for _, name := range []string{"dashboard", "libraries", "settings", "match", "movie", "movies", "tv", "tvshow"} {
+	for _, name := range []string{"settings", "match", "movie", "movies", "tv", "tvshow"} {
 		set, err := template.New("layout.html").Funcs(templateFuncs).
-			ParseFS(web.Pages(), "layout.html", name+".html")
+			ParseFS(web.Pages(), "layout.html", "partials.html", name+".html")
 		if err != nil {
 			return nil, fmt.Errorf("parse template %s: %w", name, err)
 		}
@@ -55,12 +55,12 @@ func (s *Server) renderPage(w http.ResponseWriter, status int, name string, data
 	}
 }
 
-// renderLibrariesPanel writes the libraries panel fragment (table + error
-// area) used as the HTMX swap target for create/delete actions.
+// renderLibrariesPanel writes the libraries panel fragment (settings
+// page) used as the HTMX swap target for create/delete/scan actions.
 func (s *Server) renderLibrariesPanel(w http.ResponseWriter, status int, data librariesData) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
-	if err := s.tpl.pages["libraries"].ExecuteTemplate(w, "libraries_panel", data); err != nil {
+	if err := s.tpl.pages["settings"].ExecuteTemplate(w, "libraries_panel", data); err != nil {
 		s.log.Error("render libraries panel", "error", err)
 	}
 }

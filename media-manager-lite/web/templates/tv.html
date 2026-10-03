@@ -1,22 +1,70 @@
 {{define "content"}}
 <h1>电视剧</h1>
+
+{{if .TVLibraries}}
+<div class="panel" style="display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;">
+  <span class="muted">扫描:</span>
+  {{range .TVLibraries}}
+  <button type="button"
+    hx-post="/api/libraries/{{.ID}}/scan"
+    hx-swap="none"
+    hx-on::after-request="if(event.detail.successful) setTimeout(() => window.location.reload(), 1500)">{{.Name}}</button>
+  {{end}}
+</div>
+{{end}}
+
 {{if not .Shows}}
   <section class="panel"><p class="muted empty">还没有电视剧——请先在
-  <a href="/libraries">媒体库</a>页面扫描一个电视剧库。</p></section>
+  <a href="/settings">设置</a>页面添加并扫描一个电视剧库。</p></section>
 {{else}}
 <table class="libraries">
-  <thead><tr><th>标题</th><th>季数</th><th>集数</th><th>TMDB</th><th>状态</th></tr></thead>
-  <tbody>
-    {{range .Shows}}
-    <tr>
-      <td><a href="/tv/shows/{{.ID}}">{{.Title}}</a></td>
-      <td>{{.SeasonCount}}</td>
-      <td>{{.EpisodeCount}}</td>
-      <td>{{if .TMDBID}}{{.TMDBID}}{{else}}<span class="muted">未匹配</span>{{end}}</td>
-      <td>{{.AiredStatus}}</td>
-    </tr>
-    {{end}}
-  </tbody>
+  <thead><tr><th>标题</th><th>季数</th><th>集数</th><th>TMDB</th><th>操作</th></tr></thead>
+  {{range .Shows}}<tbody id="show-{{.ID}}">{{template "tv_row" .}}</tbody>{{end}}
 </table>
 {{end}}
+{{end}}
+
+{{define "tv_row"}}
+<tr>
+  <td><a href="/tv/shows/{{.ID}}">{{.Title}}</a></td>
+  <td>{{.SeasonCount}}</td>
+  <td>{{.EpisodeCount}}</td>
+  <td>{{if .TMDBID}}{{.TMDBID}}<span class="muted">(已匹配)</span>{{else}}<span class="muted">未匹配</span>{{end}}</td>
+  <td class="actions">
+    {{if .TMDBID}}
+      <a href="/tv/shows/{{.ID}}">管理</a>
+    {{else}}
+      <button type="button"
+        hx-post="/api/tv/shows/{{.ID}}/search"
+        hx-target="#show-{{.ID}}" hx-swap="outerHTML">搜索 TMDB</button>
+    {{end}}
+  </td>
+</tr>
+<tr class="candidates-row"><td colspan="5" class="candidates"></td></tr>
+{{end}}
+
+{{define "tv_candidates"}}
+<tr>
+  <td><a href="/tv/shows/{{.Show.ID}}">{{.Show.Title}}</a></td>
+  <td>{{.Show.SeasonCount}}</td>
+  <td>{{.Show.EpisodeCount}}</td>
+  <td><span class="muted">未匹配</span></td>
+  <td class="actions">
+    {{if .Error}}<div class="error">{{.Error}}</div>{{end}}
+    {{range .Candidates}}
+    <div class="candidate">
+      <span class="score">{{printf "%.2f" .Score}}</span>
+      <strong>{{.Name}}</strong>{{if .Year}} <span class="muted">({{.Year}})</span>{{end}}
+      {{if .IDMatch}}<span class="muted">ID 命中</span>{{end}}
+      <button type="button"
+        hx-post="/api/tv/shows/{{$.Show.ID}}/match"
+        hx-vals='{"tmdbId": {{.TMDBID}}}'
+        hx-target="#show-{{$.Show.ID}}" hx-swap="outerHTML">匹配</button>
+    </div>
+    {{else}}
+    <span class="muted small">没有候选——检查文件名或关键词</span>
+    {{end}}
+  </td>
+</tr>
+<tr class="candidates-row"><td colspan="5"></td></tr>
 {{end}}

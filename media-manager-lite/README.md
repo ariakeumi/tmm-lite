@@ -140,9 +140,9 @@ The key is stored in SQLite and never echoed back.
 
 ## HTTP surface
 
-Interactive pages: `/`, `/libraries`, `/libraries/{id}/match`,
-`/movies`, `/movies/{id}`, `/tv` (`/tvshows` alias), `/tv/shows/{id}`,
-`/settings`. JSON API endpoints
+Interactive pages (Chinese UI): `/` → 电影匹配页, `/movies` 匹配工作流,
+`/movies/{id}` 详情, `/tv` 电视剧列表+内联匹配, `/tv/shows/{id}` 详情,
+`/settings` 媒体库管理 + TMDB API Key(无独立仪表盘/媒体库页)。 JSON API endpoints
 are listed in `docs/decisions.md` and the security-relevant ones in
 `scripts/release-verification/README.md`. All writes go through the task
 queue; rename previews are read-only.

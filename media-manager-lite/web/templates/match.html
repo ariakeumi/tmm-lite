@@ -5,7 +5,7 @@
 
 {{if not .Rows}}
   <section class="panel"><p class="muted empty">还没有媒体文件——请先在
-  <a href="/libraries">媒体库</a>页面扫描该库。</p></section>
+  <a href="/settings">设置</a>页面扫描该库。</p></section>
 {{else}}
 <table class="libraries">
   <thead>
@@ -16,58 +16,4 @@
   </tbody>
 </table>
 {{end}}
-{{end}}
-
-{{define "match_row"}}
-<tr id="item-{{.Item.ID}}">
-  <td class="path"><a href="/movies/{{.Item.ID}}">{{.Item.Filename}}</a></td>
-  <td>
-    {{if .Item.ParsedTitle}}
-      {{.Item.ParsedTitle}}{{if .Item.ParsedYear}} <span class="muted">({{.Item.ParsedYear}})</span>{{end}}
-    {{else}}
-      <span class="muted">未解析</span>
-    {{end}}
-  </td>
-  <td>{{.Item.Status}}</td>
-  <td>
-    {{if eq .Item.Status "matched"}}
-      已匹配 ✓
-      <div class="postmatch">
-        <button type="button"
-          hx-post="/api/movies/{{.Item.ID}}/artwork"
-          hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">下载海报</button>
-        <button type="button"
-          hx-post="/api/movies/{{.Item.ID}}/nfo"
-          hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">写入 NFO</button>
-      </div>
-    {{else}}
-      {{template "match_candidates" .}}
-    {{end}}
-  </td>
-</tr>
-{{end}}
-
-{{define "match_candidates"}}
-<div id="candidates-{{.Item.ID}}" class="candidates">
-  <button type="button"
-    hx-post="/api/movies/{{.Item.ID}}/search"
-    hx-target="#candidates-{{.Item.ID}}" hx-swap="outerHTML">搜索 TMDB</button>
-  {{range .Candidates}}
-  <div class="candidate">
-    <span class="score">{{printf "%.2f" .Score}}</span>
-    <strong>{{.Candidate.Title}}</strong>{{if .Candidate.Year}} <span class="muted">({{.Candidate.Year}})</span>{{end}}
-    {{if .Candidate.Overview}}<div class="muted small">{{truncate .Candidate.Overview 140}}</div>{{end}}
-    <button type="button"
-      hx-post="/api/movies/{{$.Item.ID}}/match"
-      hx-vals='{"tmdbId": {{.Candidate.TMDBID}}}'
-      hx-target="#item-{{$.Item.ID}}" hx-swap="outerHTML">匹配</button>
-  </div>
-  {{else}}
-  <div class="muted small">还没有候选——请先执行搜索</div>
-  {{end}}
-  <button type="button" class="danger"
-    hx-post="/api/movies/{{.Item.ID}}/match"
-    hx-vals='{"unmatched": true}'
-    hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">标记为未匹配</button>
-</div>
 {{end}}
