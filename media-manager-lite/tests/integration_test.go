@@ -757,6 +757,25 @@ func TestMilestone4ArtworkAndNfo(t *testing.T) {
 	if nfoRes["written"] != true {
 		t.Errorf("nfo result = %v", nfoRes)
 	}
+
+	// Combined scrape endpoint: artwork + NFO in one call. HTMX callers get
+	// the refreshed row fragment; the NFO re-write is skipped as unchanged.
+	scrapeReq, err := http.NewRequest(http.MethodPost, a.ts.URL+"/api/movies/"+itemID+"/scrape",
+		strings.NewReader(`{}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	scrapeReq.Header.Set("Content-Type", "application/json")
+	scrapeReq.Header.Set("HX-Request", "true")
+	scrapeResp, err := http.DefaultClient.Do(scrapeReq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	scrapeBody, _ := io.ReadAll(scrapeResp.Body)
+	scrapeResp.Body.Close()
+	if scrapeResp.StatusCode != http.StatusOK || !strings.Contains(string(scrapeBody), "已匹配 ✓") {
+		t.Fatalf("scrape row fragment = %d/%s", scrapeResp.StatusCode, string(scrapeBody)[:minLen(200, len(scrapeBody))])
+	}
 	if !strings.HasSuffix(nfoRes["path"].(string), "Movie.One.2019.1080p.BluRay.x264.nfo") {
 		t.Errorf("nfo path = %v", nfoRes["path"])
 	}
@@ -1275,7 +1294,7 @@ func TestMilestone8TVNfoRename(t *testing.T) {
 	}
 
 	// Pages render.
-	if page := getBody(t, a.ts.URL+"/tv/shows/"+showID); !strings.Contains(page, "episode_rename_panel") && !strings.Contains(page, "写入 NFO") {
+	if page := getBody(t, a.ts.URL+"/tv/shows/"+showID); !strings.Contains(page, "episode_rename_panel") && !strings.Contains(page, "刮削") {
 		t.Error("tv show page missing workflow elements")
 	}
 

@@ -268,3 +268,34 @@ func TestScanLibraryUnreadableDirectoryFails(t *testing.T) {
 		t.Error("scan with unreadable subdirectory should fail")
 	}
 }
+
+func TestScanKeepsRemovedFiles(t *testing.T) {
+	store, tvStore, db := newTestMediaStore(t)
+	seedLibrary(t, db, "lib-1")
+	svc := NewService(store, tvStore)
+	ctx := context.Background()
+
+	dir := t.TempDir()
+	f := filepath.Join(dir, "Gone.Movie.2019.1080p.BluRay.x264.mkv")
+	write(t, f, "v")
+	lib := library.Library{ID: "lib-1", Name: "Movies", Path: dir, Type: library.TypeMovie}
+
+	if _, err := svc.ScanLibrary(ctx, lib); err != nil {
+		t.Fatal(err)
+	}
+	// The user removes the file from disk; a rescan must NOT remove the
+	// database row (removed files keep showing in the list).
+	if err := os.Remove(f); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := svc.ScanLibrary(ctx, lib); err != nil {
+		t.Fatal(err)
+	}
+	items, err := store.ListByLibrary(ctx, lib.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(items) != 1 {
+		t.Fatalf("removed file dropped from list: %d items", len(items))
+	}
+}

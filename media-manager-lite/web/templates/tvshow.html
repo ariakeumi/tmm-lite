@@ -27,12 +27,9 @@
         hx-post="/api/tv/shows/{{.Show.ID}}/match"
         hx-vals='{"unmatched": true}'
         hx-target="#tvshow-panel" hx-swap="outerHTML">标记为未匹配</button>
-      <button type="button"
-        hx-post="/api/tv/shows/{{.Show.ID}}/nfo"
-        hx-target="#tvshow-panel" hx-swap="outerHTML">写入 NFO</button>
-      <button type="button"
-        hx-post="/api/tv/shows/{{.Show.ID}}/artwork"
-        hx-target="#tvshow-panel" hx-swap="outerHTML">下载海报</button>
+      <form method="post" action="/api/tv/shows/{{.Show.ID}}/scrape" style="display: inline;">
+        <button type="submit">刮削</button>
+      </form>
       {{end}}
     </div>
   </section>

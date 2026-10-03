@@ -13,11 +13,15 @@ func (s *Server) handlePlanRename(w http.ResponseWriter, r *http.Request) {
 	}
 	plan, err := s.deps.Renamer.PlanForItem(r.Context(), it.ID)
 	if err != nil {
+		if isHTMX(r) {
+			s.renderModalRename(w, r, http.StatusOK, it.ID, nil, err.Error())
+			return
+		}
 		writeAPIError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 	if isHTMX(r) {
-		s.renderRenamePanel(w, r, http.StatusOK, it.ID)
+		s.renderModalRename(w, r, http.StatusOK, it.ID, plan, "")
 		return
 	}
 	writeJSON(w, http.StatusOK, plan)
@@ -34,7 +38,10 @@ func (s *Server) handleExecuteRename(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.log.Error("execute rename", "error", err)
 		if isHTMX(r) {
-			s.renderRenamePanelWithError(w, r, it.ID, err.Error(), plan)
+			// Retarget the swap into the still-open modal and show the error.
+			w.Header().Set("HX-Retarget", "#modal-content")
+			w.Header().Set("HX-Reswap", "innerHTML")
+			s.renderModalRename(w, r, http.StatusOK, it.ID, plan, err.Error())
 			return
 		}
 		writeJSON(w, http.StatusConflict, map[string]any{
@@ -45,7 +52,7 @@ func (s *Server) handleExecuteRename(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if isHTMX(r) {
-		s.renderRenamePanel(w, r, http.StatusOK, it.ID)
+		s.renderMatchRow(w, r, http.StatusOK, it.ID)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{

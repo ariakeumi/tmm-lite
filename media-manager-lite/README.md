@@ -228,6 +228,8 @@ YAML keys mirror the fields: `http_addr`, `db_path`, `log_level`.
 | `GET /api/tv/shows/{id}/candidates`| Persisted show candidates |
 | `POST /api/tv/shows/{id}/match`    | Confirm show match (`{"tmdbId": N}`, transactional) or unmatch; episode enrichment runs async |
 | `POST /api/tv/shows/{id}/nfo`      | Write tvshow.nfo + season%02d.nfo + episode NFOs (kodi/emby/jellyfin via `nfo_flavor`) |
+| `POST /api/tv/shows/{id}/scrape`   | Combined: show/season posters + all TV NFO files in one call |
+| `POST /api/movies/{id}/scrape`     | Combined: poster/fanart download + movie NFO write in one call |
 | `POST /api/tv/shows/{id}/artwork`  | Queue async TV artwork (show poster/fanart + season posters) |
 | `GET /api/episodes/{id}/rename`    | Episode rename plan (dry-run — read-only) |
 | `POST /api/episodes/{id}/rename`   | Execute episode rename into ShowName/Season NN (idempotent) |

@@ -28,11 +28,8 @@
   </table>
   <div class="actions" style="margin-top: .75rem; display: flex; gap: .5rem;">
     {{if .Movie}}
-    <form method="post" action="/api/movies/{{.Item.ID}}/artwork" hx-post="/api/movies/{{.Item.ID}}/artwork" hx-target="#rename-panel" hx-swap="outerHTML">
-      <button type="submit">下载海报</button>
-    </form>
-    <form method="post" action="/api/movies/{{.Item.ID}}/nfo" hx-post="/api/movies/{{.Item.ID}}/nfo" hx-target="#rename-panel" hx-swap="outerHTML">
-      <button type="submit">写入 NFO</button>
+    <form method="post" action="/api/movies/{{.Item.ID}}/scrape">
+      <button type="submit">刮削</button>
     </form>
     {{else}}
     <p class="muted">请先在<a href="/movies">匹配页</a>确认该条目的匹配。</p>

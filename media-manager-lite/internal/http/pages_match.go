@@ -7,6 +7,7 @@ import (
 	"media-manager-lite/internal/library"
 	"media-manager-lite/internal/matcher"
 	"media-manager-lite/internal/media"
+	"media-manager-lite/internal/renamer"
 	"media-manager-lite/internal/version"
 )
 
@@ -116,5 +117,21 @@ func (s *Server) renderModalCandidatesError(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK) // fragment mode: swap regardless (see D7)
 	if err := s.tpl.pages["match"].ExecuteTemplate(w, "modal_candidates", row); err != nil {
 		s.log.Error("render modal candidates error", "error", err)
+	}
+}
+
+// renderModalRename renders the rename plan modal fragment. On execution
+// errors the modal stays open with the message (HTMX-Retarget in the
+// handler moves the swap back into the dialog).
+func (s *Server) renderModalRename(w http.ResponseWriter, r *http.Request, status int, itemID string, plan *renamer.Plan, errMsg string) {
+	data := struct {
+		ItemID string
+		Plan   *renamer.Plan
+		Error  string
+	}{itemID, plan, errMsg}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(status)
+	if err := s.tpl.pages["match"].ExecuteTemplate(w, "modal_rename", data); err != nil {
+		s.log.Error("render modal rename", "error", err)
 	}
 }

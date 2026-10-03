@@ -133,6 +133,8 @@ func (s *Server) routes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/tv/shows/{id}/search", s.handleSearchTVShow)
 	mux.HandleFunc("GET /api/tv/shows/{id}/candidates", s.handleGetTVShowCandidates)
 	mux.HandleFunc("POST /api/tv/shows/{id}/match", s.handleMatchTVShow)
+	mux.HandleFunc("POST /api/tv/shows/{id}/scrape", s.handleScrapeTVShow)
+	mux.HandleFunc("POST /api/movies/{id}/scrape", s.handleScrapeMovie)
 	mux.HandleFunc("POST /api/tv/shows/{id}/nfo", s.handleWriteTVNFO)
 	mux.HandleFunc("POST /api/tv/shows/{id}/artwork", s.handleDownloadTVArtwork)
 	mux.HandleFunc("GET /api/libraries/{id}/skipped", s.handleListSkipped)

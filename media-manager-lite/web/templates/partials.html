@@ -13,11 +13,12 @@
     {{if eq .Item.Status "matched"}}
       已匹配 ✓
       <button type="button"
-        hx-post="/api/movies/{{.Item.ID}}/artwork"
-        hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">下载海报</button>
+        hx-post="/api/movies/{{.Item.ID}}/scrape"
+        hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">刮削</button>
       <button type="button"
-        hx-post="/api/movies/{{.Item.ID}}/nfo"
-        hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">写入 NFO</button>
+        hx-get="/api/movies/{{.Item.ID}}/rename"
+        hx-target="#modal-content" hx-swap="innerHTML"
+        onclick="openModal()">重命名</button>
     {{else}}
       <button type="button"
         hx-post="/api/movies/{{.Item.ID}}/search"
@@ -115,4 +116,33 @@
   </table>
   {{end}}
 </div>
+{{end}}
+
+{{define "modal_rename"}}
+<div class="modal-head">
+  <h3>重命名计划</h3>
+  <button type="button" class="close" onclick="closeModal()">✕</button>
+</div>
+{{if .Error}}<div class="error">{{.Error}}</div>{{end}}
+{{if .Plan}}
+  {{if .Plan.Valid}}
+    {{if not .Plan.Actions}}
+      <p class="muted">无需操作——命名已正确。</p>
+    {{else}}
+      {{range .Plan.Actions}}
+      <div class="path">{{.Op}} {{.Kind}}: {{.From}} → {{.To}}</div>
+      {{end}}
+    {{end}}
+    {{if .Plan.Actions}}
+    <div class="modal-foot">
+      <button type="button"
+        hx-post="/api/movies/{{.ItemID}}/rename"
+        hx-target="#item-{{.ItemID}}" hx-swap="outerHTML"
+        hx-on::after-request="if(event.detail.successful) closeModal()">执行重命名</button>
+    </div>
+    {{end}}
+  {{else}}
+    <div class="error">{{range .Plan.Invalid}}<div>{{.}}</div>{{end}}</div>
+  {{end}}
+{{end}}
 {{end}}
