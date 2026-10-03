@@ -1,8 +1,13 @@
 {{define "content"}}
-<h1>电影</h1>
-
 {{if .HasLibraries}}
 <section class="panel" style="display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;">
+  {{range .Sections}}
+  <button type="button"
+    hx-post="/api/libraries/{{.Library.ID}}/scan"
+    hx-swap="none"
+    hx-on::after-request="if(event.detail.successful) setTimeout(() => window.location.reload(), 1500)">扫描 · {{.Library.Name}}</button>
+  {{end}}
+  <span style="flex: 1;"></span>
   <button type="button"
     hx-post="/api/movies/scrape-all"
     hx-swap="none">刮削全部(海报 + NFO)</button>
@@ -19,13 +24,6 @@
 {{else}}
   {{range .Sections}}
   <section class="panel">
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: .5rem;">
-      <h2 style="margin: 0;">匹配 · {{.Library.Name}}</h2>
-      <button type="button"
-        hx-post="/api/libraries/{{.Library.ID}}/scan"
-        hx-swap="none"
-        hx-on::after-request="if(event.detail.successful) setTimeout(() => window.location.reload(), 1500)">扫描</button>
-    </div>
     {{if not .Rows}}
       <p class="muted empty">尚未扫描到媒体文件——请先在
       <a href="/settings">设置</a>页面执行扫描。</p>
