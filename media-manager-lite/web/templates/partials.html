@@ -9,47 +9,77 @@
     {{end}}
   </td>
   <td>{{.Item.Status}}</td>
-  <td>
+  <td class="actions">
     {{if eq .Item.Status "matched"}}
       已匹配 ✓
-      <div class="postmatch">
-        <button type="button"
-          hx-post="/api/movies/{{.Item.ID}}/artwork"
-          hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">下载海报</button>
-        <button type="button"
-          hx-post="/api/movies/{{.Item.ID}}/nfo"
-          hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">写入 NFO</button>
-      </div>
+      <button type="button"
+        hx-post="/api/movies/{{.Item.ID}}/artwork"
+        hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">下载海报</button>
+      <button type="button"
+        hx-post="/api/movies/{{.Item.ID}}/nfo"
+        hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">写入 NFO</button>
     {{else}}
-      {{template "match_candidates" .}}
+      <button type="button"
+        hx-post="/api/movies/{{.Item.ID}}/search"
+        hx-target="#modal-content" hx-swap="innerHTML"
+        onclick="openModal()">搜索 TMDB</button>
     {{end}}
   </td>
 </tr>
 {{end}}
 
-{{define "match_candidates"}}
-<div id="candidates-{{.Item.ID}}" class="candidates">
-  <button type="button"
-    hx-post="/api/movies/{{.Item.ID}}/search"
-    hx-target="#candidates-{{.Item.ID}}" hx-swap="outerHTML">搜索 TMDB</button>
-  {{range .Candidates}}
-  <div class="candidate">
+{{define "modal_candidates"}}
+<div class="modal-head">
+  <h3>匹配候选 · {{.Item.Filename}}</h3>
+  <button type="button" class="close" onclick="closeModal()">✕</button>
+</div>
+{{if .Error}}<div class="error">{{.Error}}</div>{{end}}
+{{range .Candidates}}
+<div class="candidate">
+  {{if .Candidate.PosterURL}}<img src="{{.Candidate.PosterURL}}" alt="" loading="lazy">{{end}}
+  <div class="candidate-info">
     <span class="score">{{printf "%.2f" .Score}}</span>
     <strong>{{.Candidate.Title}}</strong>{{if .Candidate.Year}} <span class="muted">({{.Candidate.Year}})</span>{{end}}
     {{if .Candidate.Overview}}<div class="muted small">{{truncate .Candidate.Overview 140}}</div>{{end}}
-    <button type="button"
-      hx-post="/api/movies/{{$.Item.ID}}/match"
-      hx-vals='{"tmdbId": {{.Candidate.TMDBID}}}'
-      hx-target="#item-{{$.Item.ID}}" hx-swap="outerHTML">匹配</button>
   </div>
-  {{else}}
-  <div class="muted small">还没有候选——请先执行搜索</div>
-  {{end}}
+  <button type="button"
+    hx-post="/api/movies/{{$.Item.ID}}/match"
+    hx-vals='{"tmdbId": {{.Candidate.TMDBID}}}'
+    hx-target="#item-{{$.Item.ID}}" hx-swap="outerHTML"
+    hx-on::after-request="if(event.detail.successful) closeModal()">匹配</button>
+</div>
+{{else}}
+<div class="muted small">没有候选——请检查文件名或关键词</div>
+{{end}}
+<div class="modal-foot">
   <button type="button" class="danger"
     hx-post="/api/movies/{{.Item.ID}}/match"
     hx-vals='{"unmatched": true}'
-    hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">标记为未匹配</button>
+    hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML"
+    hx-on::after-request="if(event.detail.successful) closeModal()">标记为未匹配</button>
 </div>
+{{end}}
+
+{{define "modal_tv_candidates"}}
+<div class="modal-head">
+  <h3>匹配候选 · {{.Show.Title}}</h3>
+  <button type="button" class="close" onclick="closeModal()">✕</button>
+</div>
+{{if .Error}}<div class="error">{{.Error}}</div>{{end}}
+{{range .Candidates}}
+<div class="candidate">
+  <span class="score">{{printf "%.2f" .Score}}</span>
+  <strong>{{.Name}}</strong>{{if .Year}} <span class="muted">({{.Year}})</span>{{end}}
+  {{if .IDMatch}}<span class="muted">ID 命中</span>{{end}}
+  <button type="button"
+    hx-post="/api/tv/shows/{{$.Show.ID}}/match"
+    hx-vals='{"tmdbId": {{.TMDBID}}}'
+    hx-target="#show-{{$.Show.ID}}" hx-swap="outerHTML"
+    hx-on::after-request="if(event.detail.successful) closeModal()">匹配</button>
+</div>
+{{else}}
+<div class="muted small">没有候选——请检查文件名或关键词</div>
+{{end}}
 {{end}}
 
 {{define "libraries_panel"}}

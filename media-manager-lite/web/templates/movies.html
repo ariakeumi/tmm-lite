@@ -20,7 +20,7 @@
     {{else}}
     <table class="libraries">
       <thead>
-        <tr><th>文件</th><th>解析结果</th><th>状态</th><th>候选 / 操作</th></tr>
+        <tr><th>文件</th><th>解析结果</th><th>状态</th><th>操作</th></tr>
       </thead>
       <tbody>
         {{range .Rows}}{{template "match_row" .}}{{end}}

@@ -11,8 +11,6 @@
 <header class="topbar">
   <a class="brand" href="/">Media Manager <span>Lite</span></a>
   <nav>
-    <a href="/" {{if eq .Nav "dashboard"}}class="active"{{end}}>仪表盘</a>
-    <a href="/libraries" {{if eq .Nav "libraries"}}class="active"{{end}}>媒体库</a>
     <a href="/movies" {{if eq .Nav "movies"}}class="active"{{end}}>电影</a>
     <a href="/tv" {{if eq .Nav "tv"}}class="active"{{end}}>电视剧</a>
     <a href="/settings" {{if eq .Nav "settings"}}class="active"{{end}}>设置</a>
@@ -21,6 +19,16 @@
 <main class="container">
 {{block "content" .}}{{end}}
 </main>
+<dialog id="modal" class="modal">
+  <div id="modal-content"></div>
+</dialog>
+<script>
+function openModal()  { document.getElementById('modal').showModal(); }
+function closeModal() { document.getElementById('modal').close(); }
+document.getElementById('modal').addEventListener('click', function (e) {
+  if (e.target === this) this.close();
+});
+</script>
 <footer class="container footer">
   Media Manager Lite {{.BuildVersion}} · <a href="/api/health">health</a> · <a href="/api/version">version</a>
 </footer>

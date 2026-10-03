@@ -89,11 +89,12 @@ type tvEpisodeRow struct {
 }
 
 type tvCandidateRow struct {
-	Score   float64
-	TMDBID  int
-	Name    string
-	Year    int
-	IDMatch bool
+	Score     float64
+	TMDBID    int
+	Name      string
+	Year      int
+	IDMatch   bool
+	PosterURL string
 }
 
 // handleTVShowPage renders the minimal HTMX confirmation flow for one show.
@@ -132,7 +133,7 @@ func (s *Server) showRowData(ctx context.Context, id string) (tvShowRow, []tvCan
 		for _, c := range persisted {
 			cands = append(cands, tvCandidateRow{
 				Score: c.Score, TMDBID: c.Candidate.TMDBID, Name: c.Candidate.Name,
-				Year: c.Candidate.Year, IDMatch: c.IDMatch,
+				Year: c.Candidate.Year, IDMatch: c.IDMatch, PosterURL: c.Candidate.PosterURL,
 			})
 		}
 	}
@@ -179,7 +180,7 @@ func (s *Server) tvShowPageData(r *http.Request, id, fallbackTitle string) (tvSh
 		for _, c := range cands {
 			data.Candidates = append(data.Candidates, tvCandidateRow{
 				Score: c.Score, TMDBID: c.Candidate.TMDBID, Name: c.Candidate.Name,
-				Year: c.Candidate.Year, IDMatch: c.IDMatch,
+				Year: c.Candidate.Year, IDMatch: c.IDMatch, PosterURL: c.Candidate.PosterURL,
 			})
 		}
 	}
@@ -207,9 +208,9 @@ func (s *Server) renderTVShowPanel(w http.ResponseWriter, r *http.Request, statu
 	}
 }
 
-// renderTVCandidates renders the inline candidates fragment for a show row
-// (list page search flow).
-func (s *Server) renderTVCandidates(w http.ResponseWriter, r *http.Request, status int, id string) {
+// renderModalTVCandidates renders the modal candidates fragment for a show
+// (list page search flow, HTMX swaps it into #modal-content).
+func (s *Server) renderModalTVCandidates(w http.ResponseWriter, r *http.Request, status int, id string) {
 	row, cands, err := s.showRowData(r.Context(), id)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal server error")
@@ -221,8 +222,8 @@ func (s *Server) renderTVCandidates(w http.ResponseWriter, r *http.Request, stat
 	}{row, cands}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
-	if err := s.tpl.pages["tv"].ExecuteTemplate(w, "tv_candidates", data); err != nil {
-		s.log.Error("render tv candidates", "error", err)
+	if err := s.tpl.pages["tv"].ExecuteTemplate(w, "modal_tv_candidates", data); err != nil {
+		s.log.Error("render modal tv candidates", "error", err)
 	}
 }
 
@@ -240,9 +241,9 @@ func (s *Server) renderTVRow(w http.ResponseWriter, r *http.Request, status int,
 	}
 }
 
-// renderTVCandidatesError renders the candidates fragment with an inline
-// error (list-page search flow).
-func (s *Server) renderTVCandidatesError(w http.ResponseWriter, r *http.Request, id, msg string) {
+// renderModalTVCandidatesError renders the modal fragment with an inline
+// error (search failures keep the dialog open).
+func (s *Server) renderModalTVCandidatesError(w http.ResponseWriter, r *http.Request, id, msg string) {
 	row, _, err := s.showRowData(r.Context(), id)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal server error")
@@ -255,7 +256,7 @@ func (s *Server) renderTVCandidatesError(w http.ResponseWriter, r *http.Request,
 	}{row, nil, msg}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK) // fragment mode: swap regardless (see D7)
-	if err := s.tpl.pages["tv"].ExecuteTemplate(w, "tv_candidates", data); err != nil {
-		s.log.Error("render tv candidates error", "error", err)
+	if err := s.tpl.pages["tv"].ExecuteTemplate(w, "modal_tv_candidates", data); err != nil {
+		s.log.Error("render modal tv candidates error", "error", err)
 	}
 }

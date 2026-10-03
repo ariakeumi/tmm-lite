@@ -390,6 +390,34 @@ func TestMilestone3MatchFlow(t *testing.T) {
 	if search["count"].(float64) != 2 {
 		t.Fatalf("candidate count = %v, want 2", search["count"])
 	}
+
+	// HTMX search request returns the modal candidates fragment.
+	hxReq, err := http.NewRequest(http.MethodPost, a.ts.URL+"/api/movies/"+itemID+"/search",
+		strings.NewReader(`{}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	hxReq.Header.Set("Content-Type", "application/json")
+	hxReq.Header.Set("HX-Request", "true")
+	hxResp, err := http.DefaultClient.Do(hxReq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	hxBody, _ := io.ReadAll(hxResp.Body)
+	hxResp.Body.Close()
+	if hxResp.StatusCode != http.StatusOK || !strings.Contains(string(hxBody), "匹配候选") {
+		t.Fatalf("htmx search fragment = %d/%s", hxResp.StatusCode, string(hxBody)[:minLen(200, len(hxBody))])
+	}
+	if !strings.Contains(string(hxBody), `hx-target="#item-`) {
+		t.Errorf("modal candidates missing match button targeting the item row")
+	}
+	// Poster thumbnails resolved from the image base URL.
+	if !strings.Contains(string(hxBody), "/w185/p1.jpg") {
+		t.Errorf("modal candidates missing poster thumbnail URL")
+	}
+	if !strings.Contains(string(hxBody), "candidate-info") {
+		t.Errorf("modal candidates missing cover layout")
+	}
 	cands := search["candidates"].([]any)
 	best := cands[0].(map[string]any)
 	if best["idMatch"] != false {
@@ -1377,4 +1405,11 @@ func getStatusCode(t *testing.T, url string) int {
 	}
 	defer resp.Body.Close()
 	return resp.StatusCode
+}
+
+func minLen(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }

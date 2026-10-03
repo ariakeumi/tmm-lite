@@ -31,6 +31,7 @@ type Candidate struct {
 	Year          int    `json:"year,omitempty"`
 	Overview      string `json:"overview,omitempty"`
 	PosterPath    string `json:"posterPath,omitempty"`
+	PosterURL     string `json:"posterUrl,omitempty"`
 	ReleaseDate   string `json:"releaseDate,omitempty"`
 }
 

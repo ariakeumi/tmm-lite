@@ -51,6 +51,14 @@ func (s *ScrapeService) SearchShow(ctx context.Context, showID string) ([]matche
 			FirstAirDate: sr.FirstAirDate,
 		})
 	}
+	// Best-effort poster thumbnails for the candidates modal.
+	if base, err := s.tmdb.ImageBaseURL(ctx); err == nil {
+		for i := range candidates {
+			if candidates[i].PosterPath != "" {
+				candidates[i].PosterURL = base + tmdb.PosterThumbSize + candidates[i].PosterPath
+			}
+		}
+	}
 	ranked := matcher.RankTVShows(matcher.TVShowLocal{Title: sh.Title}, candidates)
 	if err := s.store.SaveShowCandidates(ctx, showID, ranked); err != nil {
 		return nil, err

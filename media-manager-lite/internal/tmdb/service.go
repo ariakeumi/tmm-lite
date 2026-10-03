@@ -176,6 +176,19 @@ func (s *Service) PosterURL(ctx context.Context, posterPath string) (string, err
 	return base + PosterSize + posterPath, nil
 }
 
+// PosterThumbURL resolves a poster path to a small thumbnail URL for
+// candidate lists (w185).
+func (s *Service) PosterThumbURL(ctx context.Context, posterPath string) (string, error) {
+	if posterPath == "" {
+		return "", nil
+	}
+	base, err := s.ImageBaseURL(ctx)
+	if err != nil {
+		return "", err
+	}
+	return base + PosterThumbSize + posterPath, nil
+}
+
 // ImageBaseURL returns the cached TMDB image base URL (fetching the
 // configuration on first use). Artwork downloads append the size and path.
 func (s *Service) ImageBaseURL(ctx context.Context) (string, error) {

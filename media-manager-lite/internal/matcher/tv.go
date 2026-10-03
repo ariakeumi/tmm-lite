@@ -17,6 +17,7 @@ type TVShowCandidate struct {
 	Year         int    `json:"year,omitempty"`
 	Overview     string `json:"overview,omitempty"`
 	PosterPath   string `json:"posterPath,omitempty"`
+	PosterURL    string `json:"posterUrl,omitempty"`
 	FirstAirDate string `json:"firstAirDate,omitempty"`
 }
 

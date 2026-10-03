@@ -15,6 +15,7 @@ import (
 type matchRowData struct {
 	Item       media.Item
 	Candidates []matcher.MatchResult
+	Error      string
 }
 
 type matchPageData struct {
@@ -87,8 +88,9 @@ func (s *Server) renderMatchRow(w http.ResponseWriter, r *http.Request, status i
 	}
 }
 
-// renderMatchCandidates writes the candidates fragment after a search.
-func (s *Server) renderMatchCandidates(w http.ResponseWriter, r *http.Request, status int, itemID string) {
+// renderModalCandidates writes the modal candidates fragment after a
+// search (HTMX swaps it into #modal-content).
+func (s *Server) renderModalCandidates(w http.ResponseWriter, r *http.Request, status int, itemID string) {
 	row, err := s.loadMatchRow(r.Context(), itemID)
 	if err != nil {
 		writeAPIError(w, http.StatusInternalServerError, "internal server error")
@@ -96,7 +98,23 @@ func (s *Server) renderMatchCandidates(w http.ResponseWriter, r *http.Request, s
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
-	if err := s.tpl.pages["match"].ExecuteTemplate(w, "match_candidates", row); err != nil {
-		s.log.Error("render match candidates", "error", err)
+	if err := s.tpl.pages["match"].ExecuteTemplate(w, "modal_candidates", row); err != nil {
+		s.log.Error("render modal candidates", "error", err)
+	}
+}
+
+// renderModalCandidatesError renders the modal fragment with an inline
+// error (search failures keep the dialog open).
+func (s *Server) renderModalCandidatesError(w http.ResponseWriter, r *http.Request, itemID, msg string) {
+	row, err := s.loadMatchRow(r.Context(), itemID)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+	row.Error = msg
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK) // fragment mode: swap regardless (see D7)
+	if err := s.tpl.pages["match"].ExecuteTemplate(w, "modal_candidates", row); err != nil {
+		s.log.Error("render modal candidates error", "error", err)
 	}
 }

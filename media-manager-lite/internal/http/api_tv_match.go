@@ -30,14 +30,14 @@ func (s *Server) handleSearchTVShow(w http.ResponseWriter, r *http.Request) {
 		status, msg := tmdbErrorStatus(err)
 		s.log.Error("tmdb tv search", "show", id, "status", status, "error", err.Error())
 		if isHTMX(r) {
-			s.renderTVCandidatesError(w, r, id, msg)
+			s.renderModalTVCandidatesError(w, r, id, msg)
 			return
 		}
 		writeAPIError(w, status, msg)
 		return
 	}
 	if isHTMX(r) {
-		s.renderTVCandidates(w, r, http.StatusOK, id)
+		s.renderModalTVCandidates(w, r, http.StatusOK, id)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{

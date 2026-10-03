@@ -168,3 +168,50 @@ code {
   input, select { width: 100%; min-width: 0; }
   td.actions { text-align: left; }
 }
+
+/* Modal dialog (TMDB search candidates). */
+dialog.modal {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  width: min(92vw, 560px);
+  max-height: 80vh;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+}
+dialog.modal::backdrop {
+  background: rgba(15, 23, 42, 0.4);
+}
+.modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.modal-head h3 { margin: 0; }
+button.close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.1rem;
+  padding: 0 0.25rem;
+  cursor: pointer;
+}
+.modal-foot { margin-top: 0.9rem; }
+
+/* Candidate rows: poster cover + info + match button. */
+.candidate {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.candidate:last-child { border-bottom: none; }
+.candidate img {
+  width: 50px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: var(--accent-soft);
+}
+.candidate-info { flex: 1; min-width: 0; }

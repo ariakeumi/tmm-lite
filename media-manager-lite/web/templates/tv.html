@@ -36,35 +36,34 @@
     {{else}}
       <button type="button"
         hx-post="/api/tv/shows/{{.ID}}/search"
-        hx-target="#show-{{.ID}}" hx-swap="outerHTML">搜索 TMDB</button>
+        hx-target="#modal-content" hx-swap="innerHTML"
+        onclick="openModal()">搜索 TMDB</button>
     {{end}}
   </td>
 </tr>
-<tr class="candidates-row"><td colspan="5" class="candidates"></td></tr>
 {{end}}
 
-{{define "tv_candidates"}}
-<tr>
-  <td><a href="/tv/shows/{{.Show.ID}}">{{.Show.Title}}</a></td>
-  <td>{{.Show.SeasonCount}}</td>
-  <td>{{.Show.EpisodeCount}}</td>
-  <td><span class="muted">未匹配</span></td>
-  <td class="actions">
-    {{if .Error}}<div class="error">{{.Error}}</div>{{end}}
-    {{range .Candidates}}
-    <div class="candidate">
-      <span class="score">{{printf "%.2f" .Score}}</span>
-      <strong>{{.Name}}</strong>{{if .Year}} <span class="muted">({{.Year}})</span>{{end}}
-      {{if .IDMatch}}<span class="muted">ID 命中</span>{{end}}
-      <button type="button"
-        hx-post="/api/tv/shows/{{$.Show.ID}}/match"
-        hx-vals='{"tmdbId": {{.TMDBID}}}'
-        hx-target="#show-{{$.Show.ID}}" hx-swap="outerHTML">匹配</button>
-    </div>
-    {{else}}
-    <span class="muted small">没有候选——检查文件名或关键词</span>
-    {{end}}
-  </td>
-</tr>
-<tr class="candidates-row"><td colspan="5"></td></tr>
+{{define "modal_tv_candidates"}}
+<div class="modal-head">
+  <h3>匹配候选 · {{.Show.Title}}</h3>
+  <button type="button" class="close" onclick="closeModal()">✕</button>
+</div>
+{{if .Error}}<div class="error">{{.Error}}</div>{{end}}
+{{range .Candidates}}
+<div class="candidate">
+  {{if .Candidate.PosterURL}}<img src="{{.Candidate.PosterURL}}" alt="" loading="lazy">{{end}}
+  <div class="candidate-info">
+    <span class="score">{{printf "%.2f" .Score}}</span>
+    <strong>{{.Name}}</strong>{{if .Year}} <span class="muted">({{.Year}})</span>{{end}}
+    {{if .IDMatch}}<span class="muted">ID 命中</span>{{end}}
+  </div>
+  <button type="button"
+    hx-post="/api/tv/shows/{{$.Show.ID}}/match"
+    hx-vals='{"tmdbId": {{.TMDBID}}}'
+    hx-target="#show-{{$.Show.ID}}" hx-swap="outerHTML"
+    hx-on::after-request="if(event.detail.successful) closeModal()">匹配</button>
+</div>
+{{else}}
+<div class="muted small">没有候选——请检查文件名或关键词</div>
+{{end}}
 {{end}}

@@ -30,10 +30,11 @@ var (
 
 // Default endpoints and sizes (Phase 0 §3.2).
 const (
-	DefaultBaseURL = "https://api.themoviedb.org/3"
-	PosterSize     = "w342"
-	searchMaxPages = 5
-	requestTimeout = 30 * time.Second
+	DefaultBaseURL  = "https://api.themoviedb.org/3"
+	PosterSize      = "w342"
+	PosterThumbSize = "w185"
+	searchMaxPages  = 5
+	requestTimeout  = 30 * time.Second
 )
 
 // Client issues authenticated TMDB requests with bounded retry behavior

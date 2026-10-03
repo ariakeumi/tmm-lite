@@ -68,6 +68,10 @@ func (s *Server) handleSearchMovie(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		status, msg := tmdbErrorStatus(err)
 		s.log.Error("tmdb search", "item", it.ID, "status", status, "error", err.Error())
+		if isHTMX(r) {
+			s.renderModalCandidatesError(w, r, it.ID, msg)
+			return
+		}
 		writeAPIError(w, status, msg)
 		return
 	}
@@ -84,6 +88,14 @@ func (s *Server) handleSearchMovie(w http.ResponseWriter, r *http.Request) {
 			ReleaseDate:   sr.ReleaseDate,
 		})
 	}
+	// Best-effort poster thumbnails for the candidates modal.
+	if base, err := s.deps.TMDB.ImageBaseURL(r.Context()); err == nil {
+		for i := range candidates {
+			if candidates[i].PosterPath != "" {
+				candidates[i].PosterURL = base + tmdb.PosterThumbSize + candidates[i].PosterPath
+			}
+		}
+	}
 	ranked := matcher.Rank(matcher.Local{Title: it.ParsedTitle, Year: it.ParsedYear}, candidates)
 
 	if err := s.deps.Media.SaveCandidates(r.Context(), it.ID, ranked); err != nil {
@@ -92,7 +104,7 @@ func (s *Server) handleSearchMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if isHTMX(r) {
-		s.renderMatchCandidates(w, r, http.StatusOK, it.ID)
+		s.renderModalCandidates(w, r, http.StatusOK, it.ID)
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
