@@ -167,10 +167,10 @@ func (s *Service) scanMovieLibrary(ctx context.Context, lib library.Library) (St
 		return Stats{}, fmt.Errorf("scan library %q: %w", lib.Name, err)
 	}
 
-	// Matched movies whose video file has disappeared leave the list:
-	// delete their media_items rows, then the movie row when unreferenced.
-	// Unmatched files are kept listed (the scan never removes a record the
-	// user may still want to match).
+	// Files that no longer exist on disk leave the list entirely, matched
+	// or not: the scan reflects what is actually in the library folder.
+	// Matched items additionally cascade to their movie row when no other
+	// media item references it (multi-version movies survive).
 	walked := make(map[string]bool, len(cands))
 	for _, c := range cands {
 		walked[c.Path] = true
@@ -180,12 +180,10 @@ func (s *Service) scanMovieLibrary(ctx context.Context, lib library.Library) (St
 		return Stats{}, fmt.Errorf("scan library %q: %w", lib.Name, err2)
 	}
 	affected := map[string]bool{}
+	removed := 0
 	for _, it := range items {
 		if _, ok := walked[it.Path]; ok {
 			continue
-		}
-		if it.MovieID == "" {
-			continue // unmatched file: keep listed
 		}
 		if _, err := os.Stat(it.Path); !os.IsNotExist(err) {
 			continue // still on disk somehow: keep
@@ -194,10 +192,12 @@ func (s *Service) scanMovieLibrary(ctx context.Context, lib library.Library) (St
 		if err != nil {
 			return Stats{}, fmt.Errorf("scan library %q: %w", lib.Name, err)
 		}
+		removed++
 		if movieID != "" {
 			affected[movieID] = true
 		}
 	}
+	_ = removed
 	for movieID := range affected {
 		if _, err := s.movies.DeleteIfUnreferenced(ctx, movieID); err != nil {
 			return Stats{}, fmt.Errorf("scan library %q: %w", lib.Name, err)

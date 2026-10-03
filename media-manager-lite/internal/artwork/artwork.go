@@ -20,6 +20,7 @@ import (
 	"media-manager-lite/internal/library"
 	"media-manager-lite/internal/media"
 	"media-manager-lite/internal/movie"
+	"media-manager-lite/internal/nfo"
 	"media-manager-lite/internal/paths"
 	"media-manager-lite/internal/task"
 	"media-manager-lite/internal/tmdb"
@@ -42,17 +43,19 @@ type Service struct {
 	movies *movie.Store
 	tv     *tv.Store
 	libs   *library.Service
+	nfo    *nfo.Service
 	http   *http.Client
 }
 
 // NewService returns an artwork service.
-func NewService(tm *tmdb.Service, m *media.Store, mv *movie.Store, t *tv.Store, l *library.Service) *Service {
+func NewService(tm *tmdb.Service, m *media.Store, mv *movie.Store, t *tv.Store, l *library.Service, nf *nfo.Service) *Service {
 	return &Service{
 		tmdb:   tm,
 		media:  m,
 		movies: mv,
 		tv:     t,
 		libs:   l,
+		nfo:    nf,
 		http:   &http.Client{Timeout: 60 * time.Second},
 	}
 }
@@ -252,6 +255,35 @@ func (s *Service) download(ctx context.Context, url, dest string) error {
 		return fmt.Errorf("artwork: rename: %w", err)
 	}
 	return nil
+}
+
+// MovieLibraryHandler adapts batch movie scraping into a task handler:
+// every matched movie item in the library gets artwork + NFO; unmatched
+// items are skipped.
+func MovieLibraryHandler(items *media.Store, movies *movie.Store, nfoSvc *nfo.Service, svc *Service) task.Handler {
+	return func(ctx context.Context, _ /*targetType*/, libraryID string) (string, error) {
+		items2, err := items.ListByLibrary(ctx, libraryID)
+		if err != nil {
+			return "", err
+		}
+		matched, scraped, failed := 0, 0, 0
+		for _, it := range items2 {
+			if it.Kind != media.KindMovie || it.MovieID == "" {
+				continue
+			}
+			matched++
+			if _, err := svc.Download(ctx, it.ID); err != nil {
+				failed++
+				continue
+			}
+			if _, err := nfoSvc.WriteForItem(ctx, it.ID); err != nil {
+				failed++
+				continue
+			}
+			scraped++
+		}
+		return fmt.Sprintf("scraped %d/%d movie(s) (%d failures)", scraped, matched, failed), nil
+	}
 }
 
 // DownloadHandler adapts Download into a task handler.

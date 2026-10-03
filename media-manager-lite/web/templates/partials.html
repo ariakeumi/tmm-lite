@@ -16,6 +16,10 @@
         hx-post="/api/movies/{{.Item.ID}}/scrape"
         hx-target="#item-{{.Item.ID}}" hx-swap="outerHTML">刮削</button>
       <button type="button"
+        hx-post="/api/movies/{{.Item.ID}}/search"
+        hx-target="#modal-content" hx-swap="innerHTML"
+        onclick="openModal()">重新搜索</button>
+      <button type="button"
         hx-get="/api/movies/{{.Item.ID}}/rename"
         hx-target="#modal-content" hx-swap="innerHTML"
         onclick="openModal()">重命名</button>
@@ -34,6 +38,13 @@
   <h3>匹配候选 · {{.Item.Filename}}</h3>
   <button type="button" class="close" onclick="closeModal()">✕</button>
 </div>
+<form class="library-form modal-search" hx-post="/api/movies/{{.Item.ID}}/search"
+      hx-target="#modal-content" hx-swap="innerHTML">
+  <label>关键词
+    <input type="text" name="query" value="{{.Item.ParsedTitle}}" placeholder="手动输入其他关键词">
+  </label>
+  <button type="submit">搜索</button>
+</form>
 {{if .Error}}<div class="error">{{.Error}}</div>{{end}}
 {{range .Candidates}}
 <div class="candidate">

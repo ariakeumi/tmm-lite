@@ -285,8 +285,8 @@ func TestScanKeepsRemovedFiles(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Match the item (so movie_id is set), then the user removes the file
-	// from disk; a rescan removes the matched item from the list and drops
-	// the now-unreferenced movie row.
+	// from disk; a rescan removes the item from the list and drops the
+	// now-unreferenced movie row.
 	items, err := store.ListByLibrary(ctx, lib.ID)
 	if err != nil {
 		t.Fatal(err)
@@ -316,5 +316,26 @@ func TestScanKeepsRemovedFiles(t *testing.T) {
 	}
 	if len(movies) != 0 {
 		t.Errorf("unreferenced movie kept: %d rows", len(movies))
+	}
+
+	// Same rule for unmatched files: removed from disk → removed from list.
+	f2 := filepath.Join(dir, "Plain.Movie.2020.1080p.WEB-DL.x264.mkv")
+	write(t, f2, "v")
+	if _, err := svc.ScanLibrary(ctx, lib); err != nil {
+		t.Fatal(err)
+	}
+	items, _ = store.ListByLibrary(ctx, lib.ID)
+	if len(items) != 1 {
+		t.Fatalf("items after adding second file = %d, want 1", len(items))
+	}
+	if err := os.Remove(f2); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := svc.ScanLibrary(ctx, lib); err != nil {
+		t.Fatal(err)
+	}
+	items, _ = store.ListByLibrary(ctx, lib.ID)
+	if len(items) != 0 {
+		t.Fatalf("removed unmatched file kept in list: %d items", len(items))
 	}
 }

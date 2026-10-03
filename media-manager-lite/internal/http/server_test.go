@@ -65,8 +65,8 @@ func newTestServerWithDeps(t *testing.T, logOut io.Writer, tmdbBaseURL string) (
 	}
 	settingsStore := settings.NewStore(db.DB)
 	tmdbSvc := tmdb.NewService(settingsStore, "test-key-1234567890", tmdbBaseURL)
-	artworkSvc := artwork.NewService(tmdbSvc, mediaStore, movies, tvStore, libs)
 	nfoSvc := nfo.NewService(mediaStore, movies, settingsStore, tmdbSvc, tvStore, libs)
+	artworkSvc := artwork.NewService(tmdbSvc, mediaStore, movies, tvStore, libs, nfoSvc)
 	renamerSvc := renamer.NewService(mediaStore, movies, libs, settingsStore, tvStore)
 	tvScrape := tv.NewScrapeService(tvStore, tmdbSvc, func(ctx context.Context) string {
 		v, _ := settingsStore.String(ctx, "certification_country", "US")

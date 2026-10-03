@@ -12,6 +12,7 @@ import (
 	"media-manager-lite/internal/library"
 	"media-manager-lite/internal/media"
 	"media-manager-lite/internal/movie"
+	"media-manager-lite/internal/nfo"
 	"media-manager-lite/internal/scanner"
 	"media-manager-lite/internal/settings"
 	"media-manager-lite/internal/tmdb"
@@ -61,8 +62,9 @@ func newHardenFixture(t *testing.T) (*Service, *media.Store, *movie.Store, *tv.S
 	movies := movieStore
 	tvStore := tv.NewStore(db.DB)
 	settingsStore := settings.NewStore(db.DB)
-	tm := tmdb.NewService(settingsStore, "fixture-key-0001", "http://127.0.0.1:1")
-	svc := NewService(tm, mediaStore, movieStore, tvStore, libs)
+	tmdbSvc := tmdb.NewService(settingsStore, "fixture-key-0001", "http://127.0.0.1:1")
+	nfoSvc := nfo.NewService(mediaStore, movieStore, settingsStore, tmdbSvc, tvStore, libs)
+	svc := NewService(tmdbSvc, mediaStore, movieStore, tvStore, libs, nfoSvc)
 
 	// Seed the media item + matched movie through the normal scan flow.
 	sc := scanner.NewService(mediaStore, tvStore, movies)

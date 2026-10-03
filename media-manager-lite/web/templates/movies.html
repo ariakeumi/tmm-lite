@@ -1,6 +1,18 @@
 {{define "content"}}
 <h1>电影</h1>
 
+{{if .HasLibraries}}
+<section class="panel" style="display: flex; align-items: center; gap: .5rem; flex-wrap: wrap;">
+  <button type="button"
+    hx-post="/api/movies/scrape-all"
+    hx-swap="none">刮削全部(海报 + NFO)</button>
+  <button type="button"
+    hx-post="/api/movies/rename-all"
+    hx-swap="none"
+    hx-confirm="对所有电影库执行批量重命名?文件将在磁盘上移动。">批量重命名</button>
+</section>
+{{end}}
+
 {{if not .HasLibraries}}
   <section class="panel"><p class="muted empty">还没有媒体库——请先在
   <a href="/settings">设置</a>页面添加并扫描。</p></section>

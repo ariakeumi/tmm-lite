@@ -13,6 +13,7 @@ import (
 	"media-manager-lite/internal/media"
 	"media-manager-lite/internal/movie"
 	"media-manager-lite/internal/settings"
+	"media-manager-lite/internal/task"
 	"media-manager-lite/internal/tv"
 )
 
@@ -104,7 +105,7 @@ func (s *Service) itemContext(ctx context.Context, itemID string) (media.Item, m
 	if err != nil {
 		return it, movie.Movie{}, library.Library{}, FileSet{}, Data{}, Profile{}, fmt.Errorf("renamer: %w", err)
 	}
-	if it.Kind != media.KindMovie {
+	if it.Kind != "movie" {
 		return it, movie.Movie{}, library.Library{}, FileSet{}, Data{}, Profile{}, fmt.Errorf("renamer: only movie items are supported")
 	}
 	if it.MovieID == "" {
@@ -289,6 +290,39 @@ func (s *Service) PlanEpisodeForItem(ctx context.Context, itemID string) (*Plan,
 		return nil, err
 	}
 	return PlanEpisodeRename(lib.Path, fs, s.view, data, profile), nil
+}
+
+// RenameMovieLibraryHandler adapts batch movie renaming into a task
+// handler: every matched movie item in the library gets planned and
+// executed; unmatched items are skipped with a log line.
+func RenameMovieLibraryHandler(media *media.Store, svc *Service) task.Handler {
+	return func(ctx context.Context, _ /*targetType*/, libraryID string) (string, error) {
+		items, err := media.ListByLibrary(ctx, libraryID)
+		if err != nil {
+			return "", err
+		}
+		matched, renamed, skipped := 0, 0, 0
+		for _, it := range items {
+			if it.Kind != "movie" {
+				continue
+			}
+			if it.Status != "matched" && it.MovieID == "" {
+				skipped++
+				continue
+			}
+			matched++
+			plan, _, err := svc.ExecuteForItem(ctx, it.ID)
+			if err != nil {
+				// Unmatched/invalid plans (e.g. pattern rendered empty) are
+				// per-item failures; keep processing the rest.
+				skipped++
+				_ = plan
+				continue
+			}
+			renamed += len(plan.Actions)
+		}
+		return fmt.Sprintf("matched %d, renamed %d action(s), skipped %d", matched, renamed, skipped), nil
+	}
 }
 
 // ExecuteEpisodeForItem plans and executes, then updates media_items.path.

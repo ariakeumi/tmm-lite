@@ -25,7 +25,16 @@ func (s *Server) handleSearchTVShow(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	ranked, err := s.deps.TVScrape.SearchShow(r.Context(), id)
+	query := strings.TrimSpace(r.URL.Query().Get("query"))
+	if query == "" {
+		sh, err := s.deps.TV.GetShow(r.Context(), id)
+		if err != nil {
+			writeAPIError(w, http.StatusNotFound, "tv show not found")
+			return
+		}
+		query = sh.Title
+	}
+	ranked, err := s.deps.TVScrape.SearchShowByQuery(r.Context(), id, query)
 	if err != nil {
 		status, msg := tmdbErrorStatus(err)
 		s.log.Error("tmdb tv search", "show", id, "status", status, "error", err.Error())

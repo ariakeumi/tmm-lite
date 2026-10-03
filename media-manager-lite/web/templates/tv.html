@@ -10,6 +10,11 @@
     hx-swap="none"
     hx-on::after-request="if(event.detail.successful) setTimeout(() => window.location.reload(), 1500)">{{.Name}}</button>
   {{end}}
+  <span style="flex: 1;"></span>
+  <button type="button"
+    hx-post="/api/tv/scrape-all"
+    hx-swap="none"
+    hx-on::after-request="setTimeout(() => window.location.reload(), 1500)">刮削全部(海报 + NFO)</button>
 </div>
 {{end}}
 
@@ -31,14 +36,11 @@
   <td>{{.EpisodeCount}}</td>
   <td>{{if .TMDBID}}{{.TMDBID}}<span class="muted">(已匹配)</span>{{else}}<span class="muted">未匹配</span>{{end}}</td>
   <td class="actions">
-    {{if .TMDBID}}
-      <a href="/tv/shows/{{.ID}}">管理</a>
-    {{else}}
-      <button type="button"
-        hx-post="/api/tv/shows/{{.ID}}/search"
-        hx-target="#modal-content" hx-swap="innerHTML"
-        onclick="openModal()">搜索 TMDB</button>
-    {{end}}
+    <a href="/tv/shows/{{.ID}}">管理</a>
+    <button type="button"
+      hx-post="/api/tv/shows/{{.ID}}/search"
+      hx-target="#modal-content" hx-swap="innerHTML"
+      onclick="openModal()">重新搜索</button>
   </td>
 </tr>
 {{end}}
@@ -48,6 +50,13 @@
   <h3>匹配候选 · {{.Show.Title}}</h3>
   <button type="button" class="close" onclick="closeModal()">✕</button>
 </div>
+<form class="library-form modal-search" hx-post="/api/tv/shows/{{.Show.ID}}/search"
+      hx-target="#modal-content" hx-swap="innerHTML">
+  <label>关键词
+    <input type="text" name="query" value="{{.Show.Title}}" placeholder="手动输入其他关键词">
+  </label>
+  <button type="submit">搜索</button>
+</form>
 {{if .Error}}<div class="error">{{.Error}}</div>{{end}}
 {{range .Candidates}}
 <div class="candidate">

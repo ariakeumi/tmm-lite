@@ -64,7 +64,21 @@ func (s *Server) handleSearchMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	results, err := s.deps.TMDB.SearchMovieByText(r.Context(), it.ParsedTitle, it.ParsedYear)
+	// Optional manual query override (modal search box).
+	query := strings.TrimSpace(r.URL.Query().Get("query"))
+	year := it.ParsedYear
+	if q := r.URL.Query().Get("year"); q != "" {
+		if n, err := strconv.Atoi(q); err == nil {
+			year = n
+		}
+	} else if query != "" {
+		year = 0 // manual keyword search: no year filter
+	}
+	if query == "" {
+		query = it.ParsedTitle
+	}
+
+	results, err := s.deps.TMDB.SearchMovieByText(r.Context(), query, year)
 	if err != nil {
 		status, msg := tmdbErrorStatus(err)
 		s.log.Error("tmdb search", "item", it.ID, "status", status, "error", err.Error())
@@ -96,7 +110,11 @@ func (s *Server) handleSearchMovie(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-	ranked := matcher.Rank(matcher.Local{Title: it.ParsedTitle, Year: it.ParsedYear}, candidates)
+	matchTitle := query
+	if query == it.ParsedTitle {
+		matchTitle = it.ParsedTitle
+	}
+	ranked := matcher.Rank(matcher.Local{Title: matchTitle, Year: it.ParsedYear}, candidates)
 
 	if err := s.deps.Media.SaveCandidates(r.Context(), it.ID, ranked); err != nil {
 		s.log.Error("save candidates", "error", err)
@@ -108,10 +126,10 @@ func (s *Server) handleSearchMovie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]any{
-		"itemId":      it.ID,
-		"parsedTitle": it.ParsedTitle,
-		"count":       len(ranked),
-		"candidates":  ranked,
+		"itemId":     it.ID,
+		"query":      query,
+		"count":      len(ranked),
+		"candidates": ranked,
 	})
 }
 

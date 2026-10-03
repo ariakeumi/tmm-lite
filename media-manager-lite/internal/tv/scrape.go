@@ -66,6 +66,39 @@ func (s *ScrapeService) SearchShow(ctx context.Context, showID string) ([]matche
 	return ranked, nil
 }
 
+// SearchShowByQuery searches TMDB with an arbitrary keyword (manual
+// override in the candidates modal) and persists ranked candidates.
+func (s *ScrapeService) SearchShowByQuery(ctx context.Context, showID, query string) ([]matcher.TVShowMatchResult, error) {
+	results, err := s.tmdb.SearchTVByText(ctx, query, 0)
+	if err != nil {
+		return nil, err
+	}
+	candidates := make([]matcher.TVShowCandidate, 0, len(results))
+	for _, sr := range results {
+		candidates = append(candidates, matcher.TVShowCandidate{
+			TMDBID:       sr.TMDBID,
+			Name:         sr.Name,
+			OriginalName: sr.OriginalName,
+			Year:         sr.Year(),
+			Overview:     sr.Overview,
+			PosterPath:   sr.PosterPath,
+			FirstAirDate: sr.FirstAirDate,
+		})
+	}
+	if base, err := s.tmdb.ImageBaseURL(ctx); err == nil {
+		for i := range candidates {
+			if candidates[i].PosterPath != "" {
+				candidates[i].PosterURL = base + tmdb.PosterThumbSize + candidates[i].PosterPath
+			}
+		}
+	}
+	ranked := matcher.RankTVShows(matcher.TVShowLocal{Title: query}, candidates)
+	if err := s.store.SaveShowCandidates(ctx, showID, ranked); err != nil {
+		return nil, err
+	}
+	return ranked, nil
+}
+
 // MatchShow confirms a show match synchronously: one TMDB detail call,
 // then the transactional show-row update. Season/episode enrichment is the
 // caller's follow-up (EnrichEpisodes, typically via the task queue).

@@ -386,8 +386,23 @@ its media. The executor's preflight skips existence checks for NFO moves
 and the move itself overwrites (temp+rename), since the content is derived
 from the database. Additional NFO naming variants still copy.
 
-**Vanished matched files**: a rescan now deletes `media_items` rows whose
-video file is gone **only when the item was matched** (MovieID set), then
-deletes the movie row when no other item references it (multi-version
-movies survive). Unmatched files are always kept listed — the scan never
-removes a record the user may still want to match.
+**Vanished files**: a rescan deletes `media_items` rows whose video file
+no longer exists on disk — **matched or unmatched** (the list reflects the
+actual library contents; D25's "keep unmatched" behavior was superseded by
+user decision). Matched items cascade: the movie row is deleted when no
+other media item references it (multi-version movies survive). Skipped
+(unparseable) videos are unaffected — they are re-evaluated by filename on
+every scan.
+
+## D26 — re-matching: the search button stays on matched items
+
+Search is deliberately available on matched movies and TV shows (button
+label "重新搜索" on matched rows): users fix wrong matches by searching,
+reviewing candidates, and confirming again — both match flows (movie
+ConfirmMatch / TV ConfirmShowMatch) already update an existing matched row
+transactionally instead of failing, so re-matching is safe by design. The
+TV list page always shows the search button; the TV detail page keeps it
+outside the matched-state conditional. One nuance: a new search overwrites
+the stored candidates and the modal shows the new ranking, but the current
+match stays in effect until the user explicitly confirms a different
+candidate (or marks unmatched).

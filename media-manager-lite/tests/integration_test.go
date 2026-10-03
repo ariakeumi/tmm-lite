@@ -74,8 +74,8 @@ func newAppWithConfig(t *testing.T, cfgFn func() config.Config) *app {
 	}
 	settingsStore := settings.NewStore(db.DB)
 	tmdbSvc := tmdb.NewService(settingsStore, cfg.TMDBAPIKey, cfg.TMDBBaseURL)
-	artworkSvc := artwork.NewService(tmdbSvc, mediaStore, movies, tvStore, libs)
 	nfoSvc := nfo.NewService(mediaStore, movies, settingsStore, tmdbSvc, tvStore, libs)
+	artworkSvc := artwork.NewService(tmdbSvc, mediaStore, movies, tvStore, libs, nfoSvc)
 	renamerSvc := renamer.NewService(mediaStore, movies, libs, settingsStore, tvStore)
 	tvScrape := tv.NewScrapeService(tvStore, tmdbSvc, func(ctx context.Context) string {
 		v, _ := settingsStore.String(ctx, "certification_country", "US")
@@ -417,6 +417,71 @@ func TestMilestone3MatchFlow(t *testing.T) {
 	}
 	if !strings.Contains(string(hxBody), "candidate-info") {
 		t.Errorf("modal candidates missing cover layout")
+	}
+	// Modal search form present (manual keyword override).
+	if !strings.Contains(string(hxBody), `name="query"`) {
+		t.Errorf("modal missing manual search form")
+	}
+
+	// Manual query override: searching an unrelated keyword must not rank
+	// the previous candidate top.
+	qReq, err := http.NewRequest(http.MethodPost,
+		a.ts.URL+"/api/movies/"+itemID+"/search?query=Another+Keyword", strings.NewReader(`{}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	qReq.Header.Set("Content-Type", "application/json")
+	qResp, err := http.DefaultClient.Do(qReq)
+	if err != nil {
+		t.Fatal(err)
+	}
+	qBody, _ := io.ReadAll(qResp.Body)
+	qResp.Body.Close()
+	if qResp.StatusCode != http.StatusOK {
+		t.Fatalf("query search status = %d", qResp.StatusCode)
+	}
+	var qOut struct {
+		Candidates []struct {
+			Score     float64 `json:"score"`
+			Candidate struct {
+				TMDBID int `json:"tmdbId"`
+			} `json:"candidate"`
+		} `json:"candidates"`
+	}
+	if err := json.Unmarshal(qBody, &qOut); err != nil {
+		t.Fatal(err)
+	}
+	if len(qOut.Candidates) == 0 {
+		t.Fatal("query search returned no candidates")
+	}
+	for _, c := range qOut.Candidates {
+		if c.Candidate.TMDBID == 111 && c.Score > 0.9 {
+			t.Errorf("unrelated query should not rank exact-match candidate top")
+		}
+	}
+	// Restore the good candidates for the rest of the flow.
+	postJSONBody(t, a.ts.URL+"/api/movies/"+itemID+"/search", `{}`)
+
+	// Re-search on a MATCHED item must stay possible (fix mismatch flow).
+	afterMatch := postJSONBody(t, a.ts.URL+"/api/movies/"+itemID+"/search", `{}`)
+	if afterMatch["count"].(float64) != 2 {
+		t.Errorf("re-search on matched item = %v, want 2 candidates", afterMatch["count"])
+	}
+	hxReq2, err := http.NewRequest(http.MethodPost, a.ts.URL+"/api/movies/"+itemID+"/search",
+		strings.NewReader(`{}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	hxReq2.Header.Set("Content-Type", "application/json")
+	hxReq2.Header.Set("HX-Request", "true")
+	hxResp2, err := http.DefaultClient.Do(hxReq2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	hxBody2, _ := io.ReadAll(hxResp2.Body)
+	hxResp2.Body.Close()
+	if hxResp2.StatusCode != http.StatusOK || !strings.Contains(string(hxBody2), "匹配候选") {
+		t.Errorf("matched item re-search fragment = %d/%s", hxResp2.StatusCode, string(hxBody2)[:minLen(120, len(hxBody2))])
 	}
 	cands := search["candidates"].([]any)
 	best := cands[0].(map[string]any)

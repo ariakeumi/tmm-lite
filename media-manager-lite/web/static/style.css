@@ -174,10 +174,14 @@ dialog.modal {
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 1.25rem;
-  width: min(92vw, 560px);
-  max-height: 80vh;
+  width: min(94vw, 760px);
+  height: min(88vh, 720px);
+  max-height: 88vh;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+  overflow-y: auto;
 }
+.modal-search { margin-bottom: 1rem; }
+.modal-search input { flex: 1; min-width: 240px; }
 dialog.modal::backdrop {
   background: rgba(15, 23, 42, 0.4);
 }

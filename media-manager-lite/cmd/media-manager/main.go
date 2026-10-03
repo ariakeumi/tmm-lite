@@ -78,8 +78,8 @@ func run() error {
 	runner.Register("scan_library", scanner.ScanHandler(libs, scanSvc))
 	settingsStore := settings.NewStore(db.DB)
 	tmdbSvc := tmdb.NewService(settingsStore, cfg.TMDBAPIKey, cfg.TMDBBaseURL)
-	artworkSvc := artwork.NewService(tmdbSvc, mediaStore, movies, tvStore, libs)
 	nfoSvc := nfo.NewService(mediaStore, movies, settingsStore, tmdbSvc, tvStore, libs)
+	artworkSvc := artwork.NewService(tmdbSvc, mediaStore, movies, tvStore, libs, nfoSvc)
 	renamerSvc := renamer.NewService(mediaStore, movies, libs, settingsStore, tvStore)
 	tvScrape := tv.NewScrapeService(tvStore, tmdbSvc, func(ctx context.Context) string {
 		v, _ := settingsStore.String(ctx, settings.KeyCertCountry, "US")
@@ -88,7 +88,29 @@ func run() error {
 
 	runner.Register("download_artwork", artwork.DownloadHandler(mediaStore, artworkSvc))
 	runner.Register("scrape_tv_episodes", tv.EnrichHandler(tvStore, tvScrape))
+	runner.Register("scrape_tv_library", func(ctx context.Context, _ /*targetType*/, libraryID string) (string, error) {
+		shows, err := tvStore.ListShows(ctx, libraryID)
+		if err != nil {
+			return "", err
+		}
+		enriched, scraped, failed := 0, 0, 0
+		for _, sh := range shows {
+			if n, err := tvScrape.EnrichEpisodes(ctx, sh.ID); err == nil {
+				enriched += n
+			}
+			if _, err := artworkSvc.DownloadShow(ctx, sh.ID); err != nil {
+				failed++
+			}
+			if _, err := nfoSvc.WriteTVForShow(ctx, sh.ID); err != nil {
+				failed++
+			}
+			scraped++
+		}
+		return fmt.Sprintf("tv library: %d show(s), enriched %d episode(s), %d failure(s)", scraped, enriched, failed), nil
+	})
 	runner.Register("download_tv_artwork", artwork.TVDownloadHandler(tvStore, artworkSvc))
+	runner.Register("scrape_movie_library", artwork.MovieLibraryHandler(mediaStore, movies, nfoSvc, artworkSvc))
+	runner.Register("rename_movie_library", renamer.RenameMovieLibraryHandler(mediaStore, renamerSvc))
 
 	// Apply the restart policy and start the single worker before serving.
 	if err := runner.Start(ctx); err != nil {
