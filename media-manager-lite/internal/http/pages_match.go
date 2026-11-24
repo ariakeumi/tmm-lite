@@ -16,6 +16,7 @@ import (
 type matchRowData struct {
 	Item       media.Item
 	Candidates []matcher.MatchResult
+	PosterURL  string
 	Error      string
 }
 
@@ -47,6 +48,10 @@ func (s *Server) handleMatchPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rows := make([]matchRowData, 0, len(items))
+	posters, err := s.moviePosterURLs(r.Context(), lib.ID)
+	if err != nil {
+		s.log.Error("list movie artwork", "error", err)
+	}
 	for _, it := range items {
 		if it.Kind != media.KindMovie {
 			continue
@@ -55,7 +60,7 @@ func (s *Server) handleMatchPage(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			cands = nil
 		}
-		rows = append(rows, matchRowData{Item: it, Candidates: cands})
+		rows = append(rows, matchRowData{Item: it, Candidates: cands, PosterURL: posters[it.MovieID]})
 	}
 
 	s.renderPage(w, http.StatusOK, "match", matchPageData{
@@ -72,7 +77,27 @@ func (s *Server) loadMatchRow(ctx context.Context, itemID string) (matchRowData,
 		return matchRowData{}, err
 	}
 	cands, _ := s.deps.Media.Candidates(ctx, itemID)
-	return matchRowData{Item: it, Candidates: cands}, nil
+	row := matchRowData{Item: it, Candidates: cands}
+	if it.MovieID != "" {
+		if m, err := s.deps.Movies.GetByID(ctx, it.MovieID); err == nil && m.Artwork != nil {
+			row.PosterURL = m.Artwork.PosterURL
+		}
+	}
+	return row, nil
+}
+
+func (s *Server) moviePosterURLs(ctx context.Context, libraryID string) (map[string]string, error) {
+	movies, err := s.deps.Movies.ListByLibrary(ctx, libraryID)
+	if err != nil {
+		return nil, err
+	}
+	posters := make(map[string]string, len(movies))
+	for _, m := range movies {
+		if m.Artwork != nil {
+			posters[m.ID] = m.Artwork.PosterURL
+		}
+	}
+	return posters, nil
 }
 
 // renderMatchRow writes the refreshed row fragment after a match/unmatch.

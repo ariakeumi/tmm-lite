@@ -1,7 +1,0 @@
-.videoinfo:before {
-    content: var(--i18n-videoinfo, "Movie format: ");
-}
-
-.audioinfo:before {
-    content: var(--i18n-audioinfo, "Audio format: ");
-}

@@ -9,6 +9,9 @@ Makefile). The upstream Java build (`pom.xml`, `src/`) is untouched; the
 `.git` history stays shared until the project is extracted into its own
 repository.
 
+Later update: the upstream Java source and build files were removed from the
+checkout; the Lite module remains in this subdirectory.
+
 ## D2 — `internal/http` package name
 
 The requested tree uses `internal/http/`. A Go package named `http` may

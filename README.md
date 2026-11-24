@@ -1,100 +1,11 @@
-# [tinyMediaManager][1]
+# Media Manager Lite
 
-tinyMediaManager (https://www.tinymediamanager.org) full-featured media manager to organize and clean up your media
-library. It is designed to allow you to create/view/edit the metadata, artwork and file structure for your media files
-used by Kodi (formerly XBMC), Plex, MediaPortal, Emby, Jellyfin and other compatible media center software. As a Java
-application it is truly cross-platform and will run on Windows, Linux and MacOS (and possibly more).
+Media Manager Lite is a lightweight, web-based media metadata manager for
+Jellyfin, Emby, and Kodi libraries. It is built with Go, SQLite, and HTMX.
 
-## [Features][4]
+See the [project README](media-manager-lite/README.md) for setup, configuration,
+usage, development, and deployment instructions.
 
-- Automatic updates
-- GUI and command line interfaces
-- Metadata scrapers for IMDb, TheMovieDb, TVDb, OFDb, Moviemeter, Trakt and more
-- Artwork downloaders for TheMovieDb, TVDb and FanArt.tv
-- Trailer downloads from TheMovieDb and HD-Trailers.net
-- Subtitles downloaded from OpenSubtitles.org
-- Manually edit any metadata fields with ease
-- Automatic file renaming according to any user-defined format
-- Powerful search features with custom filters and sorting
-- Saves everything in .nfo files automatically recognized by Kodi and most other media centers
-- Technical metadata like codecs, duration and resolution extracted from each media file
-- Group movies into sets with special artwork common to all movies in it
-- Import TV show collections no matter the file organization style used
-
-## [Release][5]
-
-You can always find the latest release [here][5]. [Pre-release builds][6] and [nightly builds][7] are also available, all of which automatically update within their release channel. You need at least Java Runtime Environment 8 to run tinyMediaManager, which you can get [here][8]. Linux users can download [OpenJDK][9] from the package manager (apt/dnf/yum/pacman) of their distribution too.
-
-## [Changelog][10]
-
-Each release's major improvements are announced on our [project blog][11], or you can view the full
-ChangeLog [here][12].
-
-## [Screenshots][13]
-
-[![movies01](https://www.tinymediamanager.org/images/screenshots/thumbs/v5/movies/movies01-thumb.png)](https://www.tinymediamanager.org/images/screenshots/v5/movies/movies01.png) [![movies04](https://www.tinymediamanager.org/images/screenshots/thumbs/v5/movies/movies04-thumb.png)](https://www.tinymediamanager.org/images/screenshots/v5/movies/movies04.png)
-
-[![movies08](https://www.tinymediamanager.org/images/screenshots/thumbs/v5/movies/movies08-thumb.png)](https://www.tinymediamanager.org/images/screenshots/v5/movies/movies08.png) [![movies14](https://www.tinymediamanager.org/images/screenshots/thumbs/v5/movies/movies14-thumb.png)](https://www.tinymediamanager.org/images/screenshots/v5/movies/movies14.png)
-
-[![tvshows01](https://www.tinymediamanager.org/images/screenshots/thumbs/v5/tvshows/tvshows01-thumb.png)](https://www.tinymediamanager.org/images/screenshots/v5/tvshows/tvshows01.png) [![tvshows02](https://www.tinymediamanager.org/images/screenshots/thumbs/v5/tvshows/tvshows02-thumb.png)](https://www.tinymediamanager.org/images/screenshots/v5/tvshows/tvshows02.png)
-
-The complete gallery of screenshots can be viewed on our website [here][13].
-
-## Development
-
-To maintain a high pace of development, tinyMediaManager leverages AI-assisted tools like GitHub Copilot, ensuring all
-generated code is manually reviewed and integrated to meet our quality standards.
-
-## [Contributing][14]
-
-Please read our [Contributors' Guide][14] and be sure to base your pull requests against our **devel** branch.
-
-## Building from source
-
-tinyMediaManager is compiled using Apache's build automation tool, [Maven][15]. Check that you have it installed (and git, of course) before attempting a build.
-
-1. Clone this repository to your computer
-
-   ```bash
-   git clone https://github.com/ariakeumi/tmm-lite.git
-   ```
-
-2. Build using maven. Since we use some different repositories, you need to adopt your maven settings.xml (usually
-   located in ~/.m2/settings.xml) to include your access key to GitHub Packages (replace YOUR_GITHUB_USERNAME and
-   YOUR_GITHUB_TOKEN
-   accordingly - https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry):
-
-   ```xml
-   <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-     xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
-     <servers>
-       <server>
-         <id>github-maven</id>
-         <username>YOUR_GITHUB_USERNAME</username>
-         <password>YOUR_GITHUB_TOKEN</password>
-       </server>
-     </servers>
-   </settings>
-   ```
-   after that you can build and package tinyMediaManager using
-
-   ```bash
-   mvn -P dist clean package
-   ```
-
-After the build completes, you will find the packages in the folder `dist` (without the Windows Installer and macOS .dmg
-files, since those require additional tools).
-
-[1]: https://www.tinymediamanager.org
-[4]: https://www.tinymediamanager.org/features/
-[5]: https://www.tinymediamanager.org/download/
-[6]: https://www.tinymediamanager.org/download/prerelease
-[7]: https://www.tinymediamanager.org/download/nightly-build
-[8]: https://www.java.com/en/download/manual.jsp
-[9]: https://openjdk.java.net/install/
-[10]: /changelog.txt
-[11]: https://www.tinymediamanager.org/blog/
-[12]: https://www.tinymediamanager.org/changelog/
-[13]: https://www.tinymediamanager.org/screenshots/
-[14]: /CONTRIBUTING.md
-[15]: https://maven.apache.org/
+The original tinyMediaManager Java source has been removed from this checkout.
+The [source analysis](docs/media-manager-lite/phase0-source-analysis.md) is
+retained as historical context for the Lite implementation.

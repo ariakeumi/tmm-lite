@@ -284,6 +284,12 @@ func (s *Store) ListByLibrary(ctx context.Context, libraryID string) ([]Movie, e
 				m.Metadata = &md
 			}
 		}
+		if m.artJSON != "" && m.artJSON != "{}" {
+			var aw Artwork
+			if err := json.Unmarshal([]byte(m.artJSON), &aw); err == nil && (aw.PosterURL != "" || aw.PosterFile != "") {
+				m.Artwork = &aw
+			}
+		}
 		out = append(out, m)
 	}
 	return out, rows.Err()

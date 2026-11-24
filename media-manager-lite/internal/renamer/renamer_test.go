@@ -297,6 +297,36 @@ func TestExecuteRealRename(t *testing.T) {
 	}
 }
 
+func TestExecuteRootMovieMovesArtwork(t *testing.T) {
+	root := t.TempDir()
+	for _, name := range []string{"old.mkv", "poster.jpg", "fanart.jpg"} {
+		if err := os.WriteFile(filepath.Join(root, name), []byte(name), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	profile := DefaultProfile()
+	profile.PosterNames = []string{"poster", "basename-poster"}
+	profile.FanartNames = []string{"fanart", "basename-fanart"}
+	plan := PlanRename(root, FileSet{Dir: root, Video: "old.mkv", Others: []string{"poster.jpg", "fanart.jpg"}}, OSView{}, sampleData(), profile)
+	if !plan.Valid {
+		t.Fatalf("invalid plan: %v", plan.Invalid)
+	}
+	if _, err := Execute(plan); err != nil {
+		t.Fatal(err)
+	}
+	newDir := filepath.Join(root, "Movie Name (2019)")
+	for _, name := range []string{"poster.jpg", "fanart.jpg", "Movie Name (2019)-poster.jpg", "Movie Name (2019)-fanart.jpg"} {
+		if _, err := os.Stat(filepath.Join(newDir, name)); err != nil {
+			t.Errorf("missing %s: %v", name, err)
+		}
+	}
+	for _, name := range []string{"poster.jpg", "fanart.jpg"} {
+		if _, err := os.Stat(filepath.Join(root, name)); !os.IsNotExist(err) {
+			t.Errorf("root artwork remains: %s (err: %v)", name, err)
+		}
+	}
+}
+
 func TestExecuteConflictFailsBeforeTouchingAnything(t *testing.T) {
 	root := t.TempDir()
 	dir := filepath.Join(root, "old")

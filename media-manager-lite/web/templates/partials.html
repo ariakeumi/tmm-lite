@@ -1,6 +1,6 @@
 {{define "match_row"}}
 <tr id="item-{{.Item.ID}}">
-  <td class="path"><a href="/movies/{{.Item.ID}}">{{.Item.Filename}}</a></td>
+  <td class="path">{{if .PosterURL}}<a href="/movies/{{.Item.ID}}"><img class="movie-poster" src="{{.PosterURL}}" alt="{{.Item.Filename}} 海报" loading="lazy"></a>{{end}}<a href="/movies/{{.Item.ID}}">{{.Item.Filename}}</a></td>
   <td>
     {{if .Item.ParsedTitle}}
       {{.Item.ParsedTitle}}{{if .Item.ParsedYear}} <span class="muted">({{.Item.ParsedYear}})</span>{{end}}

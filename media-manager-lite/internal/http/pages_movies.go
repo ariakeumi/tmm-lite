@@ -45,6 +45,10 @@ func (s *Server) handleMoviesPage(w http.ResponseWriter, r *http.Request) {
 			data.HasLibraries = true
 		}
 		section := movieSection{Library: l}
+		posters, err := s.moviePosterURLs(r.Context(), l.ID)
+		if err != nil {
+			s.log.Error("movies page artwork", "error", err)
+		}
 		items, err := s.deps.Media.ListByLibrary(r.Context(), l.ID)
 		if err != nil {
 			s.log.Error("movies page items", "error", err)
@@ -55,7 +59,7 @@ func (s *Server) handleMoviesPage(w http.ResponseWriter, r *http.Request) {
 			if it.Kind != media.KindMovie {
 				continue
 			}
-			row := matchRowData{Item: it}
+			row := matchRowData{Item: it, PosterURL: posters[it.MovieID]}
 			if cands, err := s.deps.Media.Candidates(r.Context(), it.ID); err == nil {
 				row.Candidates = cands
 			}

@@ -141,6 +141,7 @@ td.path {
   word-break: break-all;
 }
 td.actions { text-align: right; white-space: nowrap; }
+.movie-poster { display: block; width: 72px; height: auto; border-radius: 4px; margin-bottom: 0.4rem; }
 
 .error {
   background: var(--danger-soft);

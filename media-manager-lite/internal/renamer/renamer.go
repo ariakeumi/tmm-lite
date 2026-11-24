@@ -299,6 +299,7 @@ func PlanRename(root string, fs FileSet, view FSView, d Data, p Profile) *Plan {
 			return
 		}
 		seen := map[string]bool{}
+		firstAction := len(plan.Actions)
 		for _, v := range nameVariants {
 			var target string
 			switch v {
@@ -331,6 +332,11 @@ func PlanRename(root string, fs FileSet, view FSView, d Data, p Profile) *Plan {
 				continue
 			}
 			plan.Actions = append(plan.Actions, Action{Kind: kind, Op: OpCopy, From: src, To: target})
+		}
+		// When gathering a root-level movie into its own folder, move the
+		// source after creating any other requested variants.
+		if fs.Dir == root && plan.NewDir != fs.Dir && len(plan.Actions) > firstAction {
+			plan.Actions[len(plan.Actions)-1].Op = OpMove
 		}
 	}
 	// NFO: the primary file MOVES with the video (metadata is not left
